@@ -364,6 +364,12 @@
 		<profile>
 			<!-- Profile to use more recent versions of hibernate etc. for jboss 7 -->
 			<id>jboss7</id>
+			<activation>
+				<property>
+					<name>platform</name>
+					<value>as7</value>
+				</property>
+			</activation>
 			<properties>
 				<hibernate.scope>compile</hibernate.scope>
 				<!-- more recent hibernate versions -->
@@ -451,6 +457,11 @@
 
 		<profile>
 			<id>allReports</id>
+			<activation>
+				<property>
+					<name>allReports</name>
+				</property>
+			</activation>
 			<properties>
 				<javadoc.skip>false</javadoc.skip>
 			</properties>
