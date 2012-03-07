@@ -512,7 +512,7 @@
 			<id>jaas</id>
 			<activation>
 				<property>
-					<name>ayth.jaas</name>
+					<name>auth.jaas</name>
 				</property>
 			</activation>
 			<build>
