@@ -29,7 +29,6 @@ import org.dbunit.operation.DatabaseOperation;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.fedorahosted.tennera.jgettext.HeaderFields;
-import org.fest.assertions.Assertions;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.seam.core.Events;
 import org.jboss.seam.security.Credentials;
@@ -1096,7 +1095,7 @@ public class TranslationResourceRestTest extends ZanataRestTest
             ResourceTestUtil.clearRevs(actualDoc);
          createExtensionSets(expectedDoc);
          createExtensionSets(actualDoc);
-         Assertions.assertThat(actualDoc).isEqualTo(expectedDoc);
+         assertThat(actualDoc, is(expectedDoc));
       }
    }
 
@@ -1144,7 +1143,7 @@ public class TranslationResourceRestTest extends ZanataRestTest
       // Clear Po Headers since Zanata will generate custom ones
       ResourceTestUtil.clearPoTargetHeaders(actualDoc, expectedDoc);
 
-      Assertions.assertThat(actualDoc.toString()).isEqualTo(expectedDoc.toString());
+      assertThat(actualDoc.toString(), is(expectedDoc.toString()));
    }
 
    private Resource createSourceDoc(String name, boolean withTextFlow)
