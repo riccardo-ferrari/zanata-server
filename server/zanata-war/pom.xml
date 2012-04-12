@@ -699,9 +699,9 @@
 			</build>
 		</profile>
 		
-		<!-- Integration test profile -->
+		<!-- test dependencies profile -->
 		<profile>
-			<id>integration-tests</id>
+			<id>tests-deps</id>
 			<activation>
 				<property>
 					<name>!maven.test.skip</name>
@@ -723,7 +723,15 @@
 				<dependency>
 					<groupId>org.zanata</groupId>
 					<artifactId>zanata-api-compat</artifactId>
-					<version>1.0.0</version>
+					<version>1.1</version>
+					<scope>test</scope>
+					<classifier>v1.5.0</classifier>
+				</dependency>
+				
+				<dependency>
+					<groupId>org.zanata</groupId>
+					<artifactId>zanata-api-compat</artifactId>
+					<version>1.1</version>
 					<scope>test</scope>
 					<classifier>v1.4.4</classifier>
 				</dependency>
@@ -731,7 +739,7 @@
 				<dependency>
 					<groupId>org.zanata</groupId>
 					<artifactId>zanata-api-compat</artifactId>
-					<version>1.0.0</version>
+					<version>1.1</version>
 					<scope>test</scope>
 					<classifier>v1.3</classifier>
 				</dependency>
@@ -777,7 +785,6 @@
 				<dependency>
 					<groupId>org.jboss.seam.embedded</groupId>
 					<artifactId>jboss-embedded-api</artifactId>
-					<version>${jboss.embedded.version}</version>
 					<exclusions>
 						<exclusion>
 							<groupId>org.jboss.microcontainer</groupId>
@@ -845,33 +852,28 @@
 		<dependency>
 			<groupId>org.jboss.seam</groupId>
 			<artifactId>jboss-seam</artifactId>
-			<version>${seam.version}</version>
 			<type>ejb</type>
 		</dependency>
 
 		<dependency>
 			<groupId>org.jboss.seam</groupId>
 			<artifactId>jboss-seam-ui</artifactId>
-			<version>${seam.version}</version>
 		</dependency>
 
 		<dependency>
 			<!-- TODO this should be excluded in production -->
 			<groupId>org.jboss.seam</groupId>
 			<artifactId>jboss-seam-debug</artifactId>
-			<version>${seam.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.jboss.seam</groupId>
 			<artifactId>jboss-seam-mail</artifactId>
-			<version>${seam.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.jboss.seam</groupId>
 			<artifactId>jboss-seam-remoting</artifactId>
-			<version>${seam.version}</version>
 		</dependency>
 
 		<!-- RestEasy dependencies -->

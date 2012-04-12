@@ -32,7 +32,6 @@
     <dependency>
       <groupId>org.fedorahosted.tennera</groupId>
       <artifactId>jgettext</artifactId>
-      <version>${tennera.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -42,20 +41,5 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>    
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <scope>test</scope>
-    </dependency>
-	<dependency>
-		<groupId>org.hamcrest</groupId>
-		<artifactId>hamcrest-all</artifactId>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
-		<groupId>org.testng</groupId>
-		<artifactId>testng</artifactId>
-		<scope>test</scope>
-	</dependency>
   </dependencies>
 </project>

@@ -536,6 +536,42 @@
 				</plugins>
 			</reporting>
 		</profile>
+
+      <profile>
+         <id>tests-deps</id>
+         <activation>
+            <property>
+               <name>!maven.test.skip</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <scope>test</scope>
+            </dependency>
+           <dependency>
+              <groupId>org.hamcrest</groupId>
+              <artifactId>hamcrest-all</artifactId>
+              <scope>test</scope>
+           </dependency>
+           <dependency>
+              <groupId>org.testng</groupId>
+              <artifactId>testng</artifactId>
+              <scope>test</scope>
+           </dependency>
+           <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <scope>test</scope>
+           </dependency>
+           <dependency>
+              <groupId>org.easymock</groupId>
+              <artifactId>easymock</artifactId>
+              <scope>test</scope>
+           </dependency>
+         </dependencies>
+      </profile>
 	</profiles>
 
 	<dependencyManagement>
@@ -873,6 +909,34 @@
                 <artifactId>quartz</artifactId>
                 <version>1.5.2</version>
 			</dependency>
+
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.8.2</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant-launcher</artifactId>
+          <version>1.8.2</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant-testutil</artifactId>
+          <version>1.8.2</version>
+        </dependency>
+        <dependency>
+          <groupId>org.fedorahosted.tennera</groupId>
+          <artifactId>ant-gettext</artifactId>
+          <version>${tennera.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.fedorahosted.tennera</groupId>
+          <artifactId>jgettext</artifactId>
+          <version>${tennera.version}</version>
+        </dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
