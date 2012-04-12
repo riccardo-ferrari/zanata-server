@@ -3,6 +3,7 @@ package org.zanata.adapter.po;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -73,10 +74,6 @@ public class PoReader2
          {
             // TODO append obsolete
          }
-         else if (message.isPlural())
-         {
-            // TODO skip for now
-         }
          else
          {
             String id = createId(message);
@@ -85,7 +82,15 @@ public class PoReader2
             tfTarget.setResId(id);
             tfTarget.setDescription(ShortString.shorten(message.getMsgid()));
 
-            tfTarget.setContent(message.getMsgstr());
+            if (message.isPlural())
+            {
+               tfTarget.setContents(message.getMsgstrPlural());
+            }
+            else
+            {
+               tfTarget.setContents(message.getMsgstr());
+            }
+
             tfTarget.setState(getContentState(message));
 
             // add the PO comment
@@ -200,16 +205,20 @@ public class PoReader2
          {
             // TODO append obsolete
          }
-         else if (message.isPlural())
-         {
-            // TODO skip for now
-         }
          else
          {
             String id = createId(message);
             // add the content (msgid)
             TextFlow tf = new TextFlow(id, sourceLocaleId);
-            tf.setContent(message.getMsgid());
+            tf.setPlural(message.isPlural());
+            if (message.isPlural())
+            {
+               tf.setContents(message.getMsgid(), message.getMsgidPlural());
+            }
+            else
+            {
+               tf.setContents(message.getMsgid());
+            }
             resources.add(tf);
 
             // add the entry header POT fields
@@ -275,14 +284,46 @@ public class PoReader2
       return messageParser;
    }
 
+   private static boolean allNonEmpty(Collection<?> coll)
+   {
+      if (coll == null)
+         return false;
+      for (Object o : coll)
+      {
+         if (o == null)
+            return false;
+      }
+      return true;
+   }
+
+   private static boolean allEmpty(List<String> strings)
+   {
+      if (strings == null)
+         return true;
+      for (String s : strings)
+      {
+         if (s != null && !s.isEmpty())
+            return false;
+      }
+      return true;
+   }
+
    static ContentState getContentState(Message message)
    {
-      if (message.getMsgstr() == null || message.getMsgstr().isEmpty())
-         return ContentState.New;
-      else if (message.isFuzzy())
+      boolean fuzzy = message.isFuzzy();
+      if (message.isPlural() && allEmpty(message.getMsgstrPlural()))
+      {
+         fuzzy = false;
+      }
+      if (fuzzy)
+      {
          return ContentState.NeedReview;
-      else
+      }
+      if ((message.getMsgstr() != null && !message.getMsgstr().isEmpty()) || allNonEmpty(message.getMsgstrPlural()))
+      {
          return ContentState.Approved;
+      }
+      return ContentState.New;
    }
 
    static String createId(Message message)

@@ -27,5 +27,14 @@ package org.zanata.rest.service;
  */
 public enum MergeType
 {
-   AUTO, IMPORT;
+   /**
+    * Adds new translations, imports extension headers, but rejects old
+    * translations which have already been seen in the history, even if
+    * their states have changed (eg from Fuzzy to Approved).
+    */
+   AUTO,
+   /**
+    * Straight import - completely replaces server's translations; may delete content.
+    */
+   IMPORT;
 }

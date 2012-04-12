@@ -20,23 +20,54 @@
  */
 package org.zanata.model;
 
+import static org.zanata.util.ZanataUtil.equal;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
+import org.hibernate.annotations.AccessType;
+import org.hibernate.annotations.CollectionOfElements;
+import org.hibernate.annotations.IndexColumn;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.Type;
 import org.zanata.common.ContentState;
 
 @Entity
 @org.hibernate.annotations.Entity(mutable = false)
-public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHistory
+@NamedQueries({
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[1]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+               		  "and contents[0] = ?"),
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[2]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+                       "and contents[0] = ? and contents[1] = ?"),
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[3]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+                       "and contents[0] = ? and contents[1] = ? and contents[2] = ?"),
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[4]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+                       "and contents[0] = ? and contents[1] = ? and contents[2] = ? and contents[3] = ?"),
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[5]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+                       "and contents[0] = ? and contents[1] = ? and contents[2] = ? and contents[3] = ? and contents[4] = ?"),
+   @NamedQuery(name = "HTextFlowTargetHistory.findContentInHistory[6]",
+               query = "select count(*) from HTextFlowTargetHistory t where t.textFlowTarget = ? and size(t.contents) = ? " +
+                       "and contents[0] = ? and contents[1] = ? and contents[2] = ? and contents[3] = ? and contents[4] = ? and contents[5] = ?"),
+})
+public class HTextFlowTargetHistory extends HTextContainer implements Serializable, ITextFlowTargetHistory
 {
 
    private static final long serialVersionUID = 1L;
@@ -47,7 +78,7 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
 
    private Integer versionNum;
 
-   private String content;
+   private List<String> contents;
 
    private Date lastChanged;
 
@@ -56,6 +87,23 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
    private ContentState state;
 
    private Integer textFlowRevision;
+
+   public HTextFlowTargetHistory()
+   {
+   }
+
+   public HTextFlowTargetHistory(HTextFlowTarget target)
+   {
+      this.lastChanged = target.getLastChanged();
+      this.lastModifiedBy = target.getLastModifiedBy();
+      this.state = target.getState();
+      this.textFlowRevision = target.getTextFlowRevision();
+      this.textFlowTarget = target;
+      this.versionNum = target.getVersionNum();
+      // This cannot be done at this point due to an issue with hibernate in which a listener cannot access
+      // loading collections
+      //this.setContents(target.getContents()); 
+   }
 
    @Id
    @GeneratedValue
@@ -71,7 +119,7 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
 
    // TODO PERF @NaturalId(mutable=false) for better criteria caching
    @NaturalId
-   @ManyToOne
+   @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "target_id")
    public HTextFlowTarget getTextFlowTarget()
    {
@@ -98,14 +146,21 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
 
    @Override
    @Type(type = "text")
-   public String getContent()
+   @AccessType("field")
+   @CollectionOfElements(fetch = FetchType.EAGER)
+   @JoinTable(name = "HTextFlowTargetContentHistory", 
+      joinColumns = @JoinColumn(name = "text_flow_target_history_id")
+   )
+   @IndexColumn(name = "pos", nullable = false)
+   @Column(name = "content", nullable = false)
+   public List<String> getContents()
    {
-      return content;
+      return contents;
    }
 
-   public void setContent(String content)
+   public void setContents(List<String> contents)
    {
-      this.content = content;
+      this.contents = new ArrayList<String>(contents);
    }
 
    public Date getLastChanged()
@@ -118,7 +173,7 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
       this.lastChanged = lastChanged;
    }
 
-   @ManyToOne
+   @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "last_modified_by_id", nullable = true)
    @Override
    public HPerson getLastModifiedBy()
@@ -152,5 +207,25 @@ public class HTextFlowTargetHistory implements Serializable, ITextFlowTargetHist
    public void setTextFlowRevision(Integer textFlowRevision)
    {
       this.textFlowRevision = textFlowRevision;
+   }
+   
+   /**
+    * Determines whether a Text Flow Target has changed when compared to this
+    * history object.
+    * 
+    * @param current The current Text Flow Target state. 
+    * @return True, if any of the Text Flow Target fields have changed from the
+    * state recorded in this History object. False, otherwise.
+    */
+   public boolean hasChanged(HTextFlowTarget current)
+   {
+      return    !equal(current.getContents(), this.contents)
+             || !equal(current.getLastChanged(), this.lastChanged)
+             || !equal(current.getLastModifiedBy(), this.lastModifiedBy)
+             || !equal(current.getState(), this.state)
+             || !equal(current.getTextFlowRevision(), this.textFlowRevision)
+             || !equal(current.getLastChanged(), this.lastChanged)
+             || !equal(current.getTextFlow().getId(), this.textFlowTarget.getId())
+             || !equal(current.getVersionNum(), this.versionNum);
    }
 }
