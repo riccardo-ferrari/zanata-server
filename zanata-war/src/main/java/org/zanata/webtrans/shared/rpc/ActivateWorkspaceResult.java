@@ -3,7 +3,7 @@ package org.zanata.webtrans.shared.rpc;
 import net.customware.gwt.dispatch.shared.Result;
 
 import org.zanata.webtrans.shared.auth.Identity;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
+import org.zanata.webtrans.shared.model.UserWorkspaceContext;
 
 
 public class ActivateWorkspaceResult implements Result
@@ -11,7 +11,7 @@ public class ActivateWorkspaceResult implements Result
 
    private static final long serialVersionUID = 1L;
 
-   private WorkspaceContext workspaceContext;
+   private UserWorkspaceContext userWorkspaceContext;
    private Identity identity;
 
    @SuppressWarnings("unused")
@@ -19,15 +19,15 @@ public class ActivateWorkspaceResult implements Result
    {
    }
 
-   public ActivateWorkspaceResult(WorkspaceContext workspaceContext, Identity identity)
+   public ActivateWorkspaceResult(UserWorkspaceContext userWorkspaceContext, Identity identity)
    {
-      this.workspaceContext = workspaceContext;
+      this.userWorkspaceContext = userWorkspaceContext;
       this.identity = identity;
    }
 
-   public WorkspaceContext getWorkspaceContext()
+   public UserWorkspaceContext getUserWorkspaceContext()
    {
-      return workspaceContext;
+      return userWorkspaceContext;
    }
 
    public Identity getIdentity()

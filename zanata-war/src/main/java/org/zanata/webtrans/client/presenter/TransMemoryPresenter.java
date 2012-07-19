@@ -13,9 +13,9 @@ import org.zanata.webtrans.client.events.TransUnitSelectionEvent;
 import org.zanata.webtrans.client.events.TransUnitSelectionHandler;
 import org.zanata.webtrans.client.rpc.CachingDispatchAsync;
 import org.zanata.webtrans.shared.model.TransMemoryQuery;
-import org.zanata.webtrans.shared.model.TransUnit;
 import org.zanata.webtrans.shared.model.TransMemoryResultItem;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
+import org.zanata.webtrans.shared.model.TransUnit;
+import org.zanata.webtrans.shared.model.UserWorkspaceContext;
 import org.zanata.webtrans.shared.rpc.GetTranslationMemory;
 import org.zanata.webtrans.shared.rpc.GetTranslationMemoryResult;
 import org.zanata.webtrans.shared.rpc.HasSearchType.SearchType;
@@ -63,19 +63,20 @@ public class TransMemoryPresenter extends WidgetPresenter<TransMemoryPresenter.D
       void setQueries(List<String> queries);
    }
 
-   private final WorkspaceContext workspaceContext;
+   private final UserWorkspaceContext userWorkspaceContext;
    private final CachingDispatchAsync dispatcher;
+   
    private GetTranslationMemory submittedRequest = null;
    private GetTranslationMemory lastRequest = null;
    private TransMemoryDetailsPresenter tmInfoPresenter;
    private ListDataProvider<TransMemoryResultItem> dataProvider;
 
    @Inject
-   public TransMemoryPresenter(Display display, EventBus eventBus, CachingDispatchAsync dispatcher, TransMemoryDetailsPresenter tmInfoPresenter, WorkspaceContext workspaceContext)
+   public TransMemoryPresenter(Display display, EventBus eventBus, CachingDispatchAsync dispatcher, TransMemoryDetailsPresenter tmInfoPresenter, UserWorkspaceContext userWorkspaceContext)
    {
       super(display, eventBus);
       this.dispatcher = dispatcher;
-      this.workspaceContext = workspaceContext;
+      this.userWorkspaceContext = userWorkspaceContext;
       this.tmInfoPresenter = tmInfoPresenter;
 
       dataProvider = new ListDataProvider<TransMemoryResultItem>();
@@ -120,7 +121,7 @@ public class TransMemoryPresenter extends WidgetPresenter<TransMemoryPresenter.D
          @Override
          public void onTransMemoryCopy(TransMemoryShortcutCopyEvent event)
          {
-            if (!workspaceContext.isReadOnly())
+            if (!userWorkspaceContext.hasReadOnlyAccess())
             {
                TransMemoryResultItem item;
                try
@@ -169,7 +170,7 @@ public class TransMemoryPresenter extends WidgetPresenter<TransMemoryPresenter.D
    {
       dataProvider.getList().clear();
       display.startProcessing();
-      final GetTranslationMemory action = new GetTranslationMemory(query, workspaceContext.getWorkspaceId().getLocaleId());
+      final GetTranslationMemory action = new GetTranslationMemory(query, userWorkspaceContext.getWorkspaceContext().getWorkspaceId().getLocaleId());
       scheduleTMRequest(action);
    }
 

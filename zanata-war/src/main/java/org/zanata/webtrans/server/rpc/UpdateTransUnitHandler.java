@@ -35,9 +35,11 @@ import org.jboss.seam.log.Logging;
 import org.jboss.seam.security.management.JpaIdentityStore;
 import org.zanata.common.LocaleId;
 import org.zanata.dao.ProjectDAO;
+import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.model.HAccount;
 import org.zanata.model.HLocale;
 import org.zanata.model.HProject;
+import org.zanata.model.HProjectIteration;
 import org.zanata.model.HTextFlow;
 import org.zanata.model.HTextFlowTarget;
 import org.zanata.security.ZanataIdentity;
@@ -48,6 +50,7 @@ import org.zanata.webtrans.server.ActionHandlerFor;
 import org.zanata.webtrans.server.TranslationWorkspace;
 import org.zanata.webtrans.server.TranslationWorkspaceManager;
 import org.zanata.webtrans.shared.model.DocumentId;
+import org.zanata.webtrans.shared.model.ProjectIterationId;
 import org.zanata.webtrans.shared.model.TransUnit;
 import org.zanata.webtrans.shared.model.TransUnitUpdateInfo;
 import org.zanata.webtrans.shared.rpc.AbstractWorkspaceAction;
@@ -85,7 +88,7 @@ public class UpdateTransUnitHandler extends AbstractActionHandler<UpdateTransUni
    HAccount authenticatedAccount;
 
    @In
-   ProjectDAO projectDAO;
+   ProjectIterationDAO projectIterationDAO;
 
    @In
    TranslationWorkspaceManager translationWorkspaceManager;
@@ -105,7 +108,7 @@ public class UpdateTransUnitHandler extends AbstractActionHandler<UpdateTransUni
     */
    public UpdateTransUnitHandler(
          ZanataIdentity identity,
-         ProjectDAO projectDAO,
+         ProjectIterationDAO projectIterationDAO,
          TranslationWorkspaceManager translationWorkspaceManager,
          LocaleService localeServiceImpl,
          HAccount authenticatedAccount,
@@ -116,7 +119,7 @@ public class UpdateTransUnitHandler extends AbstractActionHandler<UpdateTransUni
       this.translationServiceImpl = translationService;
       this.log = Logging.getLog(UpdateTransUnitHandler.class);
       this.identity = identity;
-      this.projectDAO = projectDAO;
+      this.projectIterationDAO = projectIterationDAO;
       this.translationWorkspaceManager = translationWorkspaceManager;
       this.localeServiceImpl = localeServiceImpl;
       this.authenticatedAccount = authenticatedAccount;
@@ -147,18 +150,20 @@ public class UpdateTransUnitHandler extends AbstractActionHandler<UpdateTransUni
       return result;
    }
 
+   // FIXME DUPE org.zanata.webtrans.server.rpc.RevertTransUnitUpdatesHandler.checkSecurityAndGetWorkspace(AbstractWorkspaceAction<?>)
    private TranslationWorkspace checkSecurityAndGetWorkspace(AbstractWorkspaceAction<?> action) throws ActionException
    {
       identity.checkLoggedIn();
+      ProjectIterationId projectIterationId = action.getWorkspaceId().getProjectIterationId();
+      HProjectIteration hProjectIteration = projectIterationDAO.getBySlug(action.getWorkspaceId().getProjectIterationId().getProjectSlug(), projectIterationId.getIterationSlug());
       TranslationWorkspace workspace = translationWorkspaceManager.getOrRegisterWorkspace(action.getWorkspaceId());
-      if (workspace.getWorkspaceContext().isReadOnly())
+      if (!hProjectIteration.isWritable())
       {
          throw new ActionException("Project or version is read-only");
       }
 
-      HProject hProject = projectDAO.getBySlug( action.getWorkspaceId().getProjectIterationId().getProjectSlug() );
       HLocale hLocale = localeServiceImpl.getByLocaleId(action.getWorkspaceId().getLocaleId());
-      identity.checkPermission(ACTION_MODIFY_TRANSLATION, hLocale, hProject);
+      identity.checkPermission(ACTION_MODIFY_TRANSLATION, hLocale, hProjectIteration.getProject());
 
       return workspace;
    }

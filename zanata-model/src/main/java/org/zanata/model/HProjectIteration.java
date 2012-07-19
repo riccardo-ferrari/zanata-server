@@ -45,6 +45,7 @@ import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.validator.NotNull;
 import org.jboss.seam.annotations.security.Restrict;
+import org.zanata.common.EntityStatus;
 import org.zanata.hibernate.search.GroupSearchBridge;
 import org.zanata.model.type.EntityStatusType;
 import org.zanata.rest.dto.ProjectIteration;
@@ -140,4 +141,11 @@ public class HProjectIteration extends SlugEntityBase
          allDocuments = new HashMap<String, HDocument>();
       return allDocuments;
    }
+   
+   public boolean isWritable()
+   {
+      return (project.getStatus().equals(EntityStatus.ACTIVE) && getStatus().equals(EntityStatus.ACTIVE));
+   }
+
+
 }

@@ -28,9 +28,9 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.log.Log;
-import org.zanata.dao.ProjectDAO;
+import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.model.HLocale;
-import org.zanata.model.HProject;
+import org.zanata.model.HProjectIteration;
 import org.zanata.model.HTextFlow;
 import org.zanata.model.HTextFlowTarget;
 import org.zanata.security.ZanataIdentity;
@@ -41,6 +41,7 @@ import org.zanata.webtrans.server.ActionHandlerFor;
 import org.zanata.webtrans.server.TranslationWorkspace;
 import org.zanata.webtrans.server.TranslationWorkspaceManager;
 import org.zanata.webtrans.shared.model.DocumentId;
+import org.zanata.webtrans.shared.model.ProjectIterationId;
 import org.zanata.webtrans.shared.model.TransUnit;
 import org.zanata.webtrans.shared.model.TransUnitUpdateInfo;
 import org.zanata.webtrans.shared.rpc.AbstractWorkspaceAction;
@@ -82,8 +83,8 @@ public class RevertTransUnitUpdatesHandler extends AbstractActionHandler<RevertT
    TranslationWorkspaceManager translationWorkspaceManager;
 
    @In
-   ProjectDAO projectDAO;
-
+   ProjectIterationDAO projectIterationDAO;
+   
    @In
    LocaleService localeServiceImpl;
 
@@ -116,20 +117,22 @@ public class RevertTransUnitUpdatesHandler extends AbstractActionHandler<RevertT
    }
 
 
+   // FIXME DUPE org.zanata.webtrans.server.rpc.UpdateTransUnitHandler.checkSecurityAndGetWorkspace(AbstractWorkspaceAction<?>)
    // FIXME duplicated exactly from UpdateTransUnitHandler, so should probably be moved to a common service
    // or make a common supertype that can provide this common utility
    private TranslationWorkspace checkSecurityAndGetWorkspace(AbstractWorkspaceAction<?> action) throws ActionException
    {
       identity.checkLoggedIn();
+      ProjectIterationId projectIterationId = action.getWorkspaceId().getProjectIterationId();
+      HProjectIteration hProjectIteration = projectIterationDAO.getBySlug(action.getWorkspaceId().getProjectIterationId().getProjectSlug(), projectIterationId.getIterationSlug());
       TranslationWorkspace workspace = translationWorkspaceManager.getOrRegisterWorkspace(action.getWorkspaceId());
-      if (workspace.getWorkspaceContext().isReadOnly())
+      if (!hProjectIteration.isWritable())
       {
          throw new ActionException("Project or version is read-only");
       }
 
-      HProject hProject = projectDAO.getBySlug( action.getWorkspaceId().getProjectIterationId().getProjectSlug() );
       HLocale hLocale = localeServiceImpl.getByLocaleId(action.getWorkspaceId().getLocaleId());
-      identity.checkPermission(ACTION_MODIFY_TRANSLATION, hLocale, hProject);
+      identity.checkPermission(ACTION_MODIFY_TRANSLATION, hLocale, hProjectIteration.getProject());
 
       return workspace;
    }

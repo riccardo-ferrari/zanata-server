@@ -37,7 +37,7 @@ import org.zanata.webtrans.shared.model.Person;
 import org.zanata.webtrans.shared.model.PersonId;
 import org.zanata.webtrans.shared.model.PersonSessionDetails;
 import org.zanata.webtrans.shared.model.TransUnit;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
+import org.zanata.webtrans.shared.model.UserWorkspaceContext;
 import org.zanata.webtrans.shared.rpc.GetTranslatorList;
 import org.zanata.webtrans.shared.rpc.GetTranslatorListResult;
 
@@ -73,7 +73,7 @@ public class TranslationPresenterTest
    private OptionsPanelPresenter mockSidePanelPresenter;
    private TranslationEditorPresenter mockTranslationEditorPresenter;
    private TransMemoryPresenter mockTransMemoryPresenter;
-   private WorkspaceContext mockWorkspaceContext;
+   private UserWorkspaceContext mockUserWorkspaceContext;
    private WorkspaceUsersPresenter mockWorkspaceUsersPresenter;
    private TargetContentsPresenter mockTargetContentsPresenter;
 
@@ -105,7 +105,7 @@ public class TranslationPresenterTest
       mockSidePanelPresenter = createMock(OptionsPanelPresenter.class);
       mockTranslationEditorPresenter = createMock(TranslationEditorPresenter.class);
       mockTransMemoryPresenter = createMock(TransMemoryPresenter.class);
-      mockWorkspaceContext = createMock(WorkspaceContext.class);
+      mockUserWorkspaceContext = createMock(UserWorkspaceContext.class);
       mockWorkspaceUsersPresenter = createMock(WorkspaceUsersPresenter.class);
       mockTargetContentsPresenter = createMock(TargetContentsPresenter.class);
 
@@ -115,7 +115,7 @@ public class TranslationPresenterTest
 
    private TranslationPresenter newTranslationPresenter()
    {
-      return new TranslationPresenter(mockDisplay, mockEventBus, mockDispatcher, mockTargetContentsPresenter, mockWorkspaceUsersPresenter, mockTranslationEditorPresenter, mockSidePanelPresenter, mockTransMemoryPresenter, mockGlossaryPresenter, mockMessages, mockNativeEvent, mockWorkspaceContext);
+      return new TranslationPresenter(mockDisplay, mockEventBus, mockDispatcher, mockTargetContentsPresenter, mockWorkspaceUsersPresenter, mockTranslationEditorPresenter, mockSidePanelPresenter, mockTransMemoryPresenter, mockGlossaryPresenter, mockMessages, mockNativeEvent, mockUserWorkspaceContext);
    }
 
 
@@ -429,7 +429,7 @@ public class TranslationPresenterTest
       setupAndBindPresenter();
       fireReadOnlyAndCheckResponse();
 
-      reset(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle);
+      reset(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle, mockUserWorkspaceContext);
 
       // re-expansion of south panel depends on toggle state (from before it was
       // hidden). Simulating contracted in this test, so no re-binding of
@@ -439,17 +439,20 @@ public class TranslationPresenterTest
       expect(mockSouthPanelToggle.getValue()).andReturn(false).anyTimes();
       expect(mockDisplay.getSouthPanelToggle()).andReturn(mockSouthPanelToggle);
 
+      mockUserWorkspaceContext.setProjectActive(true);
+      expect(mockUserWorkspaceContext.hasReadOnlyAccess()).andReturn(false);
+      
       mockDisplay.setSouthPanelVisible(true);
 
-      replay(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle);
+      replay(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle, mockUserWorkspaceContext);
 
       // fire readonly event
       WorkspaceContextUpdateEvent notReadOnlyEvent = createMock(WorkspaceContextUpdateEvent.class);
-      expect(notReadOnlyEvent.isReadOnly()).andReturn(false).anyTimes();
+      expect(notReadOnlyEvent.isProjectActive()).andReturn(true).anyTimes();
       replay(notReadOnlyEvent);
       capturedWorkspaceContextUpdateEventHandler.getValue().onWorkspaceContextUpdated(notReadOnlyEvent);
 
-      verify(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle);
+      verify(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockSouthPanelToggle, mockUserWorkspaceContext);
 
    }
 
@@ -459,24 +462,28 @@ public class TranslationPresenterTest
     */
    private void fireReadOnlyAndCheckResponse()
    {
-      reset(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter);
+      reset(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockUserWorkspaceContext);
 
       mockDisplay.setSouthPanelExpanded(false);
       mockDisplay.setSouthPanelVisible(false);
 
+      mockUserWorkspaceContext.setProjectActive(false);
+      expect(mockUserWorkspaceContext.hasReadOnlyAccess()).andReturn(true);
+      
       mockTransMemoryPresenter.unbind();
       mockGlossaryPresenter.unbind();
       mockWorkspaceUsersPresenter.unbind();
+      
 
-      replay(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter);
+      replay(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockUserWorkspaceContext);
 
       // fire readonly event
       WorkspaceContextUpdateEvent readOnlyEvent = createMock(WorkspaceContextUpdateEvent.class);
-      expect(readOnlyEvent.isReadOnly()).andReturn(true).anyTimes();
+      expect(readOnlyEvent.isProjectActive()).andReturn(false).anyTimes();
       replay(readOnlyEvent);
       capturedWorkspaceContextUpdateEventHandler.getValue().onWorkspaceContextUpdated(readOnlyEvent);
 
-      verify(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter);
+      verify(mockDisplay, mockTransMemoryPresenter, mockGlossaryPresenter, mockWorkspaceUsersPresenter, mockUserWorkspaceContext);
    }
 
    // TODO test for starting in read-only mode
@@ -520,6 +527,9 @@ public class TranslationPresenterTest
       
       setupUserListRequestResponse(initialParticipants);
       
+      mockDisplay.setSouthPanelVisible(true);
+      expectLastCall().once();
+      
       expect(mockDisplay.getOptionsToggle()).andReturn(mockOptionsToggle).anyTimes();
       capturedOptionsToggleValueChangeHandler = new Capture<ValueChangeHandler<Boolean>>();
       expect(mockOptionsToggle.addValueChangeHandler(and(capture(capturedOptionsToggleValueChangeHandler), isA(ValueChangeHandler.class)))).andReturn(createMock(HandlerRegistration.class)).once();
@@ -529,7 +539,7 @@ public class TranslationPresenterTest
       expect(mockSouthPanelToggle.addValueChangeHandler(and(capture(capturedSouthPanelToggleValueChangeHandler), isA(ValueChangeHandler.class)))).andReturn(createMock(HandlerRegistration.class)).once();
       expect(mockSouthPanelToggle.getValue()).andReturn(true).anyTimes();
 
-      expect(mockWorkspaceContext.isReadOnly()).andReturn(false).anyTimes();
+      expect(mockUserWorkspaceContext.hasReadOnlyAccess()).andReturn(false).anyTimes();
 
       capturedKeyShortcutHandler = new Capture<NativePreviewHandler>();
       expect(mockNativeEvent.addNativePreviewHandler(and(capture(capturedKeyShortcutHandler), isA(NativePreviewHandler.class)))).andReturn(createMock(HandlerRegistration.class)).once();
@@ -556,27 +566,27 @@ public class TranslationPresenterTest
 
    private void resetAllMocks()
    {
-      reset(mockDispatcher, mockDisplay, mockEventBus, mockGlossaryPresenter);
+      reset(mockDispatcher, mockDisplay, mockEventBus, mockUserWorkspaceContext, mockGlossaryPresenter);
       reset(mockMessages, mockNativeEvent, mockSidePanelPresenter, mockTranslationEditorPresenter, mockTransMemoryPresenter);
-      reset(mockWorkspaceContext, mockWorkspaceUsersPresenter);
+      reset(mockWorkspaceUsersPresenter);
 
       reset(mockOptionsToggle, mockSouthPanelToggle);
    }
 
    private void replayAllMocks()
    {
-      replay(mockDispatcher, mockDisplay, mockEventBus, mockGlossaryPresenter);
+      replay(mockDispatcher, mockDisplay, mockEventBus, mockUserWorkspaceContext, mockGlossaryPresenter);
       replay(mockMessages, mockNativeEvent, mockSidePanelPresenter, mockTranslationEditorPresenter, mockTransMemoryPresenter);
-      replay(mockWorkspaceContext, mockWorkspaceUsersPresenter);
+      replay(mockWorkspaceUsersPresenter);
 
       replay(mockOptionsToggle, mockSouthPanelToggle);
    }
 
    private void verifyAllMocks()
    {
-      verify(mockDispatcher, mockDisplay, mockEventBus, mockGlossaryPresenter);
+      verify(mockDispatcher, mockDisplay, mockEventBus, mockUserWorkspaceContext, mockGlossaryPresenter);
       verify(mockMessages, mockNativeEvent, mockSidePanelPresenter, mockTranslationEditorPresenter, mockTransMemoryPresenter);
-      verify(mockWorkspaceContext, mockWorkspaceUsersPresenter);
+      verify(mockWorkspaceUsersPresenter);
 
       verify(mockOptionsToggle, mockSouthPanelToggle);
    }

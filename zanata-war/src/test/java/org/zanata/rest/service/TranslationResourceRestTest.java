@@ -1,6 +1,18 @@
 package org.zanata.rest.service;
 
-import com.google.common.collect.Lists;
+import static java.util.Arrays.asList;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isOneOf;
+import static org.hamcrest.Matchers.notNullValue;
+
+
 import org.apache.commons.httpclient.URIException;
 import org.dbunit.operation.DatabaseOperation;
 import org.easymock.EasyMock;
@@ -23,7 +35,6 @@ import org.zanata.common.LocaleId;
 import org.zanata.common.MergeType;
 import org.zanata.common.ResourceType;
 import org.zanata.dao.AccountDAO;
-import org.zanata.dao.ProjectDAO;
 import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.model.HAccount;
 import org.zanata.model.HDocument;
@@ -62,13 +73,11 @@ import org.zanata.webtrans.server.rpc.UpdateTransUnitHandler;
 import org.zanata.webtrans.shared.model.ProjectIterationId;
 import org.zanata.webtrans.shared.model.TransUnitId;
 import org.zanata.webtrans.shared.model.TransUnitUpdateRequest;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
 import org.zanata.webtrans.shared.model.WorkspaceId;
 import org.zanata.webtrans.shared.rpc.SessionEventData;
 import org.zanata.webtrans.shared.rpc.TransUnitUpdated.UpdateType;
 import org.zanata.webtrans.shared.rpc.UpdateTransUnit;
 import org.zanata.webtrans.shared.rpc.UpdateTransUnitResult;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
@@ -79,17 +88,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.hamcrest.Matchers.notNullValue;
+import com.google.common.collect.Lists;
 
 public class TranslationResourceRestTest extends ZanataRestTest
 {
@@ -971,7 +970,6 @@ public class TranslationResourceRestTest extends ZanataRestTest
       TranslationWorkspace transWorkspace = mockControl.createMock(TranslationWorkspace.class);
 
       WorkspaceId workspaceId = new WorkspaceId(new ProjectIterationId(projectSlug, iterationSlug), localeId);
-      WorkspaceContext workspaceContext = new WorkspaceContext(workspaceId, "sample-workspace", localeId.getId(), false);
       
 //      Credentials mockCredentials = new Credentials();
 //      mockCredentials.setInitialized(true);
@@ -980,7 +978,6 @@ public class TranslationResourceRestTest extends ZanataRestTest
       // Set mock expectations
       expect(transWorkerManager.getOrRegisterWorkspace(anyObject(WorkspaceId.class))).andReturn( transWorkspace ).anyTimes();
 //      expect( mockIdentity.getCredentials() ).andReturn( mockCredentials );
-      expect( transWorkspace.getWorkspaceContext() ).andReturn( workspaceContext );
       mockIdentity.checkLoggedIn();
       expectLastCall();
       mockIdentity.checkPermission(anyObject(String.class), anyObject(HLocale.class), anyObject(HProject.class));
@@ -996,7 +993,7 @@ public class TranslationResourceRestTest extends ZanataRestTest
       // @formatter:off
       UpdateTransUnitHandler transUnitHandler = new UpdateTransUnitHandler(
             mockIdentity,
-            seam.autowire(ProjectDAO.class),
+            seam.autowire(ProjectIterationDAO.class),
             transWorkerManager,
             seam.autowire(LocaleServiceImpl.class),
             translator,

@@ -35,7 +35,7 @@ import org.zanata.webtrans.client.keys.ShortcutContext;
 import org.zanata.webtrans.client.resources.WebTransMessages;
 import org.zanata.webtrans.client.rpc.CachingDispatchAsync;
 import org.zanata.webtrans.shared.model.TransUnit;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
+import org.zanata.webtrans.shared.model.UserWorkspaceContext;
 import org.zanata.webtrans.shared.rpc.GetTranslatorList;
 import org.zanata.webtrans.shared.rpc.GetTranslatorListResult;
 import com.allen_sauer.gwt.log.client.Log;
@@ -92,7 +92,7 @@ public class TranslationPresenter extends WidgetPresenter<TranslationPresenter.D
    private final GlossaryPresenter glossaryPresenter;
    private final WorkspaceUsersPresenter workspaceUsersPresenter;
    private final TargetContentsPresenter targetContentsPresenter;
-   private WorkspaceContext workspaceContext;
+   private UserWorkspaceContext userWorkspaceContext;
 
    private final WebTransMessages messages;
 
@@ -101,7 +101,7 @@ public class TranslationPresenter extends WidgetPresenter<TranslationPresenter.D
    private boolean southPanelExpanded = true;
 
    @Inject
-   public TranslationPresenter(Display display, EventBus eventBus, CachingDispatchAsync dispatcher, final TargetContentsPresenter targetContentsPresenter, final WorkspaceUsersPresenter workspaceUsersPresenter, final TranslationEditorPresenter translationEditorPresenter, final OptionsPanelPresenter optionsPanelPresenter, final TransMemoryPresenter transMemoryPresenter, final GlossaryPresenter glossaryPresenter, final WebTransMessages messages, final NativeEvent nativeEvent, final WorkspaceContext workspaceContext)
+   public TranslationPresenter(Display display, EventBus eventBus, CachingDispatchAsync dispatcher, final TargetContentsPresenter targetContentsPresenter, final WorkspaceUsersPresenter workspaceUsersPresenter, final TranslationEditorPresenter translationEditorPresenter, final OptionsPanelPresenter optionsPanelPresenter, final TransMemoryPresenter transMemoryPresenter, final GlossaryPresenter glossaryPresenter, final WebTransMessages messages, final NativeEvent nativeEvent, final UserWorkspaceContext userWorkspaceContext)
    {
       super(display, eventBus);
       this.messages = messages;
@@ -112,9 +112,8 @@ public class TranslationPresenter extends WidgetPresenter<TranslationPresenter.D
       this.glossaryPresenter = glossaryPresenter;
       this.targetContentsPresenter = targetContentsPresenter;
       this.dispatcher = dispatcher;
-
+      this.userWorkspaceContext = userWorkspaceContext;
       this.nativeEvent = nativeEvent;
-      this.workspaceContext = workspaceContext;
    }
 
    @Override
@@ -182,14 +181,12 @@ public class TranslationPresenter extends WidgetPresenter<TranslationPresenter.D
          @Override
          public void onWorkspaceContextUpdated(WorkspaceContextUpdateEvent event)
          {
-            setSouthPanelReadOnly(event.isReadOnly());
+            userWorkspaceContext.setProjectActive(event.isProjectActive());
+            setSouthPanelReadOnly(userWorkspaceContext.hasReadOnlyAccess());
          }
       }));
 
-      if (workspaceContext.isReadOnly())
-      {
-         setSouthPanelReadOnly(true);
-      }
+      setSouthPanelReadOnly(userWorkspaceContext.hasReadOnlyAccess());
 
       registerHandler(display.getOptionsToggle().addValueChangeHandler(new ValueChangeHandler<Boolean>()
       {

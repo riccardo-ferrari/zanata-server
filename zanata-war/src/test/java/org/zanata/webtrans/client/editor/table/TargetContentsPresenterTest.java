@@ -65,7 +65,7 @@ import org.zanata.webtrans.client.ui.ToggleEditor;
 import org.zanata.webtrans.client.ui.ValidationMessagePanelDisplay;
 import org.zanata.webtrans.shared.auth.Identity;
 import org.zanata.webtrans.shared.model.TransUnit;
-import org.zanata.webtrans.shared.model.WorkspaceContext;
+import org.zanata.webtrans.shared.model.UserWorkspaceContext;
 
 import com.google.common.collect.Lists;
 import com.google.gwt.core.client.Scheduler;
@@ -82,7 +82,7 @@ public class TargetContentsPresenterTest
    @Mock private TableEditorMessages tableEditorMessages;
    @Mock private SourceContentsPresenter sourceContentPresenter;
    @Mock private NavigationMessages navMessages;
-   @Mock private WorkspaceContext workspaceContext;
+   @Mock private UserWorkspaceContext userWorkspaceContext;
    @Mock private Scheduler scheduler;
    @Mock private TargetContentsDisplay display1;
    @Mock private TargetContentsDisplay display2;
@@ -110,7 +110,7 @@ public class TargetContentsPresenterTest
    public void beforeMethod()
    {
       MockitoAnnotations.initMocks(this);
-      presenter = new TargetContentsPresenter(displayProvider, dispatcher, identity, eventBus, tableEditorMessages, sourceContentPresenter, sessionService, configHolder, workspaceContext, scheduler, validationPanel);
+      presenter = new TargetContentsPresenter(displayProvider, dispatcher, identity, eventBus, tableEditorMessages, sourceContentPresenter, sessionService, configHolder, userWorkspaceContext, scheduler, validationPanel);
 
       verify(eventBus).addHandler(UserConfigChangeEvent.getType(), presenter);
       verify(eventBus).addHandler(RequestValidationEvent.getType(), presenter);
@@ -149,7 +149,7 @@ public class TargetContentsPresenterTest
       String buttonTitle = "Save (Ctrl + Enter)";
       String findMessages = "abc";
       when(transUnit.getTargets()).thenReturn(targetContents);
-      when(workspaceContext.isReadOnly()).thenReturn(false);
+//      when(workspaceContext.isReadOnly()).thenReturn(false);
       when(configHolder.isButtonEnter()).thenReturn(false);
       when(navMessages.editSaveShortcut()).thenReturn(buttonTitle);
 
@@ -170,7 +170,6 @@ public class TargetContentsPresenterTest
       String buttonTitle = "Save (Enter)";
       String findMessages = "abc";
       when(transUnit.getTargets()).thenReturn(targetContents);
-      when(workspaceContext.isReadOnly()).thenReturn(true);
       when(configHolder.isButtonEnter()).thenReturn(true);
       when(navMessages.editSaveWithEnterShortcut()).thenReturn(buttonTitle);
 
@@ -180,7 +179,6 @@ public class TargetContentsPresenterTest
       assertThat(result, sameInstance(display2));
       verify(display2).setTargets(targetContents);
       verify(display2).setFindMessage(findMessages);
-      verify(display2).showButtons(false);
       verifyNoMoreInteractions(display2);
       verifyZeroInteractions(display1);
    }
