@@ -845,5 +845,6 @@
     <module>zanata-war</module>
     <module>functional-test</module>
     <!-- <module>zanata-dist</module> -->
+    <module>zanata-war2</module>
   </modules>
 </project>
