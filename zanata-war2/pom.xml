@@ -29,6 +29,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.jboss.seam</groupId>
+        <artifactId>seam-bom</artifactId>
+        <version>3.1.0.Final</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -67,6 +74,15 @@
       <groupId>org.jboss.seam.persistence</groupId>
       <artifactId>seam-persistence</artifactId>
       <version>${seam.persistence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.seam.security</groupId>
+      <artifactId>seam-security</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.seam.security</groupId>
+      <artifactId>seam-security-external</artifactId>
     </dependency>
     <dependency>
       <groupId>org.richfaces.ui</groupId>

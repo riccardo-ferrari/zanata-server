@@ -18,38 +18,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package org.zanata.sample;
+package org.zanata.security;
 
-import java.util.List;
+import javax.enterprise.inject.Specializes;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.EntityManager;
-
-import org.zanata.cdi.util.ComponentLocator;
-import org.zanata.model.HProject;
-import org.zanata.persistence.Forge;
+import org.jboss.seam.security.CredentialsImpl;
 
 /**
  * @author Carlos Munoz <a href="mailto:camunoz@redhat.com">camunoz@redhat.com</a>
  */
-@Named
-@RequestScoped
-public class SampleBean
+@Specializes
+public class Credentials extends CredentialsImpl
 {
-   @Inject
-   @Forge
-   private EntityManager entityManager;
-
-   public List<HProject> getAllProjects()
-   {
-      return entityManager.createQuery("select p from HProject p").getResultList();
-   }
-
-   public int getProjectCount()
-   {
-      EntityManager em = ComponentLocator.getSingleton(EntityManager.class);
-      return em.createQuery("select p from HProject p").getResultList().size();
-   }
 }

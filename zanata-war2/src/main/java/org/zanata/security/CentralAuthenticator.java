@@ -18,38 +18,46 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package org.zanata.sample;
-
-import java.util.List;
+package org.zanata.security;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
-import org.zanata.cdi.util.ComponentLocator;
-import org.zanata.model.HProject;
-import org.zanata.persistence.Forge;
+import org.jboss.seam.security.Authenticator;
+import org.picketlink.idm.api.User;
 
 /**
  * @author Carlos Munoz <a href="mailto:camunoz@redhat.com">camunoz@redhat.com</a>
  */
 @Named
 @RequestScoped
-public class SampleBean
+public class CentralAuthenticator implements Authenticator
 {
    @Inject
-   @Forge
-   private EntityManager entityManager;
+   private Credentials credentials;
 
-   public List<HProject> getAllProjects()
+   @Override
+   public void authenticate()
    {
-      return entityManager.createQuery("select p from HProject p").getResultList();
+      //To change body of implemented methods use File | Settings | File Templates.
    }
 
-   public int getProjectCount()
+   @Override
+   public void postAuthenticate()
    {
-      EntityManager em = ComponentLocator.getSingleton(EntityManager.class);
-      return em.createQuery("select p from HProject p").getResultList().size();
+      //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public User getUser()
+   {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public AuthenticationStatus getStatus()
+   {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
    }
 }
