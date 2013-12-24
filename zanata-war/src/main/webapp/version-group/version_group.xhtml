@@ -222,13 +222,13 @@
           </li>
           <s:fragment
             rendered="#{s:hasPermission(versionGroupHome.instance, 'update')}">
-            <li>
+            <li class="tab__end">
               <a href="#settings" id="settings_tab"
                 title="#{messages['Settings']}" onclick="setActiveTab(this)">
-                <i class="i i--settings"></i>
-                <span class="is-hidden--m-down i__text--right">
+                <span class="is-hidden--m-down i__text--left">
                   #{messages['jsf.Settings']}
                 </span>
+                <i class="i i--settings"></i>
               </a>
             </li>
           </s:fragment>
