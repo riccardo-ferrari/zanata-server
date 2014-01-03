@@ -86,12 +86,14 @@
             <p>
               <a4j:commandLink styleClass="button--success"
                 action="#{versionGroupHome.setStatus('A')}" render="status">
-                #{messages['jsf.ActivateThisGroup']}
+                <i
+                  class="i--left i--archive"></i> #{messages['jsf.UnArchiveThisGroup']}
               </a4j:commandLink>
             </p>
 
             <p class="txt--meta">
-              #{messages['jsf.ActivateGroupMessage']}
+              <i
+                class="i--left i--archive"></i> #{messages['jsf.ActivateGroupMessage']}
             </p>
           </s:fragment>
 
@@ -127,7 +129,8 @@
             selectedField="#{versionGroupHome.selectedLocale}"
             getResultAction="#{versionGroupHome.suggestLocales()}"
             onSelectItemAction="#{versionGroupHome.addLanguage()}"
-            maxlength="80" searchWhenFocus="true" id="languageAutocomplete"
+            maxlength="80" minlength="1" searchWhenFocus="true"
+            id="languageAutocomplete"
             queryField="#{versionGroupHome.languageQuery}"
             fetchValue="#{result.localeId}" render="settings-languages-form"
             oncomplete="refreshStatistics();focusCurrentActiveInput()"

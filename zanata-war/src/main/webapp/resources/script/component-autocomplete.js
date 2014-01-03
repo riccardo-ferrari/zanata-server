@@ -36,9 +36,11 @@ jQuery(document).ready(function() {
 });
 
 function onResultKeyPressed(autocomplete, event, selectItemAction,
-    selectItemFunction) {
-  var currentSelected = jQuery(autocomplete).find('.autocomplete__results')
-      .children('.is-selected');
+                            selectItemFunction) {
+
+  var resultDiv = jQuery(autocomplete).find('.autocomplete__results');
+
+  var currentSelected = jQuery(resultDiv).children('.is-selected');
 
   if (isEnterKey(event)) {
     event.preventDefault();
@@ -47,22 +49,20 @@ function onResultKeyPressed(autocomplete, event, selectItemAction,
     }
   } else if (event.keyCode == 40) {
     // key: down
-    deselectRow(currentSelected);
+    clearAllSelection(resultDiv);
     if (currentSelected.length == 0
-        || jQuery(currentSelected).next().length == 0) {
-      selectRow(jQuery(autocomplete).find('.autocomplete__results').children(
-          'li').first());
+      || jQuery(currentSelected).next().length == 0) {
+      selectRow(resultDiv, jQuery(resultDiv).children('li').first());
     } else {
-      selectRow(jQuery(currentSelected).next("li"));
+      selectRow(resultDiv, jQuery(currentSelected).next("li"));
     }
   } else if (event.keyCode == 38) {
     // key: up
-    deselectRow(currentSelected);
+    clearAllSelection(resultDiv);
     if (currentSelected.length == 0) {
-      selectRow(jQuery(autocomplete).find('.autocomplete__results').children(
-          'li').last());
+      selectRow(resultDiv, jQuery(resultDiv).children('li').last());
     } else {
-      selectRow(jQuery(currentSelected).prev("li"));
+      selectRow(resultDiv, jQuery(currentSelected).prev("li"));
     }
   }
 }
@@ -76,8 +76,21 @@ function onSelectItem(row, selectItemAction, selectItemFunction) {
   jQuery(row).parent().remove();
 }
 
-function selectRow(row) {
+function selectRow(resultDiv, row) {
   jQuery(row).addClass("is-selected");
+
+  var resultDivPos = jQuery(resultDiv).height();
+  var rowPos = jQuery(row).offset().top + jQuery(row).height();
+
+  console.info(resultDivPos + ":" + rowPos);
+
+  if (resultDivPos <= rowPos) {
+    console.log('out');
+    jQuery(resultDiv).animate({
+      scrollTop : (jQuery(row).offset().top)
+    }, 500);
+  }
+  //    jQuery(resultDiv).scrollTop(rowPos);
 }
 
 function deselectRow(row) {
@@ -108,25 +121,33 @@ function onValueChange(inputField, event, renderResultFn) {
 }
 
 function registerMouseEvent(autocompleteId, selectItemAction,
-    selectItemFunction) {
-  jQuery("[id='" + autocompleteId + "']").find('.autocomplete__results')
-      .children('.autocomplete__result').each(function() {
-        jQuery(this).mouseover(function() {
-          selectRow(this);
-        });
+                            selectItemFunction) {
+  var resultDiv = jQuery("[id='" + autocompleteId + "']").find(
+    '.autocomplete__results');
 
-        jQuery(this).mouseout(function() {
-          deselectRow(this);
-        });
+  jQuery(resultDiv).children('.autocomplete__result').each(function() {
+    jQuery(this).mouseover(function() {
+      clearAllSelection(resultDiv);
+      selectRow(resultDiv, this);
+    });
 
-        jQuery(this).click(function() {
-          onSelectItem(this, selectItemAction, selectItemFunction);
-        });
-      });
+    jQuery(this).mouseout(function() {
+      deselectRow(this);
+    });
+
+    jQuery(this).click(function() {
+      onSelectItem(this, selectItemAction, selectItemFunction);
+    });
+  });
 
   var firstResult = jQuery("[id='" + autocompleteId + "']").find(
-      '.autocomplete__results').children('.autocomplete__result').first();
+    '.autocomplete__results').children('.autocomplete__result').first();
   if (firstResult.length != 0) {
-    selectRow(firstResult);
+    selectRow(resultDiv, firstResult);
   }
+}
+
+function clearAllSelection(resultDiv) {
+  jQuery(resultDiv).children('.autocomplete__result')
+    .removeClass("is-selected");
 }

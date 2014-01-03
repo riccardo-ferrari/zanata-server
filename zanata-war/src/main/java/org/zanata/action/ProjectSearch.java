@@ -1,10 +1,9 @@
 package org.zanata.action;
 
-import com.google.common.collect.Lists;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.Serializable;
+import java.util.List;
+import javax.faces.model.DataModel;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.queryParser.ParseException;
 import org.jboss.seam.ScopeType;
@@ -15,10 +14,12 @@ import org.jboss.seam.annotations.Scope;
 import org.zanata.dao.ProjectDAO;
 import org.zanata.model.HProject;
 import org.zanata.security.ZanataIdentity;
+import com.google.common.collect.Lists;
 
-import javax.faces.model.DataModel;
-import java.io.Serializable;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Name("projectSearch")
 @Scope(ScopeType.CONVERSATION)
@@ -70,7 +71,9 @@ public class ProjectSearch implements Serializable {
                                             "view-obsolete"));
 
             for (HProject project : searchResult) {
-                result.add(new SearchResult(project));
+                for (int i = 0; i < 10; i++) {
+                    result.add(new SearchResult(project));
+                }
             }
             result.add(new SearchResult());
             return result;
