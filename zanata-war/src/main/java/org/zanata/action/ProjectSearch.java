@@ -71,9 +71,7 @@ public class ProjectSearch implements Serializable {
                                             "view-obsolete"));
 
             for (HProject project : searchResult) {
-                for (int i = 0; i < 10; i++) {
-                    result.add(new SearchResult(project));
-                }
+                result.add(new SearchResult(project));
             }
             result.add(new SearchResult());
             return result;

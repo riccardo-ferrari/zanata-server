@@ -52,17 +52,42 @@ function onResultKeyPressed(autocomplete, event, selectItemAction,
     clearAllSelection(resultDiv);
     if (currentSelected.length == 0
       || jQuery(currentSelected).next().length == 0) {
-      selectRow(resultDiv, jQuery(resultDiv).children('li').first());
+      selectRow(jQuery(resultDiv).children('li').first());
+      scrollToFirstEntry(resultDiv);
     } else {
-      selectRow(resultDiv, jQuery(currentSelected).next("li"));
+      selectRow(jQuery(currentSelected).next("li"));
+      scrollToPosition(resultDiv, jQuery(currentSelected).next("li"));
     }
+
   } else if (event.keyCode == 38) {
     // key: up
     clearAllSelection(resultDiv);
-    if (currentSelected.length == 0) {
-      selectRow(resultDiv, jQuery(resultDiv).children('li').last());
+    if (currentSelected.length == 0 || jQuery(currentSelected).prev().length == 0) {
+      selectRow(jQuery(resultDiv).children('li').last());
+      scrollToLastEntry(resultDiv);
     } else {
-      selectRow(resultDiv, jQuery(currentSelected).prev("li"));
+      selectRow(jQuery(currentSelected).prev("li"));
+      scrollToPosition(resultDiv, jQuery(currentSelected).prev("li"));
+    }
+  }
+}
+
+function scrollToFirstEntry(resultDiv) {
+  jQuery(resultDiv).animate({scrollTop : 0}, 0);
+}
+
+function scrollToLastEntry(resultDiv) {
+  jQuery(resultDiv).animate({scrollTop : jQuery(resultDiv)[0].scrollHeight}, 0);
+}
+function scrollToPosition(resultDiv, row) {
+  if (jQuery(row).position()) {
+    if (jQuery(row).position().top < 0) {
+      //scroll up
+      jQuery(resultDiv).animate({scrollTop : jQuery(resultDiv).scrollTop() - jQuery(row).innerHeight()}, 0);
+    }
+    else if (jQuery(row).position().top + jQuery(row).height() > jQuery(resultDiv).height()) {
+      //scroll down
+      jQuery(resultDiv).animate({scrollTop:jQuery(resultDiv).scrollTop() + jQuery(row).innerHeight()}, 0);
     }
   }
 }
@@ -76,21 +101,8 @@ function onSelectItem(row, selectItemAction, selectItemFunction) {
   jQuery(row).parent().remove();
 }
 
-function selectRow(resultDiv, row) {
+function selectRow(row) {
   jQuery(row).addClass("is-selected");
-
-  var resultDivPos = jQuery(resultDiv).height();
-  var rowPos = jQuery(row).offset().top + jQuery(row).height();
-
-  console.info(resultDivPos + ":" + rowPos);
-
-  if (resultDivPos <= rowPos) {
-    console.log('out');
-    jQuery(resultDiv).animate({
-      scrollTop : (jQuery(row).offset().top)
-    }, 500);
-  }
-  //    jQuery(resultDiv).scrollTop(rowPos);
 }
 
 function deselectRow(row) {
@@ -128,7 +140,7 @@ function registerMouseEvent(autocompleteId, selectItemAction,
   jQuery(resultDiv).children('.autocomplete__result').each(function() {
     jQuery(this).mouseover(function() {
       clearAllSelection(resultDiv);
-      selectRow(resultDiv, this);
+      selectRow(this);
     });
 
     jQuery(this).mouseout(function() {
@@ -143,7 +155,7 @@ function registerMouseEvent(autocompleteId, selectItemAction,
   var firstResult = jQuery("[id='" + autocompleteId + "']").find(
     '.autocomplete__results').children('.autocomplete__result').first();
   if (firstResult.length != 0) {
-    selectRow(resultDiv, firstResult);
+    selectRow(firstResult);
   }
 }
 
