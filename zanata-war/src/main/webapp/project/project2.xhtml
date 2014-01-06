@@ -1,0 +1,136 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:s="http://jboss.org/schema/seam/taglib"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:a4j="http://richfaces.org/a4j"
+  xmlns:zanata="http://java.sun.com/jsf/composite/zanata"
+  template="../WEB-INF/template/template.xhtml">
+
+  <ui:define name="page_title">
+    #{messages['jsf.Projects']} - #{projectHome.instance.name}
+  </ui:define>
+
+  <ui:define name="center_content">
+    <div class="g">
+      <div class="g__item w--1-m w--3-8-l w--1-3 l--push-bottom-half">
+        <p class="txt--meta l--push-all-0">
+          <s:link view="/project/home.xhtml" propagation="none"
+            value="#{messages['jsf.Projects']}"/>
+        </p>
+
+        <div class="media l--push-bottom-half">
+          <div class="media__body">
+            <h1 class="l--push-all-0">#{projectHome.instance.name}</h1>
+
+            <p class="txt--understated">
+              <s:formattedText value="#{projectHome.instance.homeContent}"/>
+              <s:formattedText value="#{projectHome.instance.description}"
+                rendered="#{empty projectHome.instance.homeContent}"/>
+
+              <s:formattedText
+                rendered="#{not empty projectHome.instance.sourceCheckoutURL}"
+                value="#{projectHome.instance.sourceCheckoutURL}"/>
+            </p>
+
+            <p class="txt--hyphenate">
+              <h:outputLink value="#{projectHome.instance.sourceViewURL}">
+                <h:outputText value="#{projectHome.instance.sourceViewURL}"/><i
+                class="i--small i--right i--external-link txt--neutral"></i>
+              </h:outputLink>
+            </p>
+          </div>
+        </div>
+
+        <s:fragment rendered="#{identity.loggedIn}">
+          <div class="panel l--push-top-half">
+            <div class="panel__header">
+              <h2
+                class="panel__heading--small">#{messages['jsf.YourActivity']}</h2>
+            </div>
+            <div class="l--pad-all-half">
+              <ui:param name="latestActivity"
+                value="#{projectHomeAction.getProjectLatestActivity(projectHome.instance.id)}"/>
+              <s:fragment rendered="#{latestActivity not null}">
+                <div class="txt--meta">
+                  <p class="l--float-right txt--neutral l--push-left-half">
+                    <s:fragment
+                      rendered="#{latestActivity.activityType == 'UPDATE_TRANSLATION'}">
+                      <i aria-hidden="true" class="i--large i--translate"
+                        title="#{messages['jsf.Translation']}"></i>
+                      <span
+                        class="is-invisible">#{messages['jsf.Translation']}</span>
+                    </s:fragment>
+
+                    <s:fragment
+                      rendered="#{activity.activityType == 'REVIEWED_TRANSLATION'}">
+                      <i aria-hidden="true" class="i--large i--review"
+                        title="#{messages['jsf.Reviewed']}"></i>
+                      <span
+                        class="is-invisible">#{messages['jsf.Reviewed']}</span>
+                    </s:fragment>
+
+                    <s:fragment
+                      rendered="#{activity.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
+                      <i aria-hidden="true" class="i--large i--document"
+                        title="#{messages['jsf.UploadedSource']}"></i>
+                      <span
+                        class="is-invisible">#{messages['jsf.UploadSource']}</span>
+                    </s:fragment>
+
+                    <s:fragment
+                      rendered="#{activity.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
+                      <i aria-hidden="true" class="i--large i--translate-up"
+                        title="#{messages['jsf.UploadedTranslations']}"></i>
+                      <span
+                        class="is-invisible">#{messages['jsf.UploadedTranslation']}</span>
+                    </s:fragment>
+                  </p>
+
+                  <p class="l--push-all-0">You translated
+                    <strong>537 words</strong>, finishing on “<a
+                      href="#">Determines how the project is treated for upload…</a>”
+                  </p>
+                  <ul class="list--horizontal txt--meta">
+                    <li><i aria-hidden="true" class="i i--clock txt--neutral"
+                      title="Time"></i><span class="is-invisible">Time</span> 6d
+                    </li>
+                    <li><i aria-hidden="true" class="i i--document txt--neutral"
+                      title="Document"></i><span
+                      class="is-invisible">Document</span> <a
+                      href="#">Messages</a>
+                    </li>
+                    <li><i aria-hidden="true" class="i i--language txt--neutral"
+                      title="Language"></i><span
+                      class="is-invisible">Language</span> <a
+                      href="#">Japanese</a>
+                    </li>
+                    <li><i aria-hidden="true" class="i i--version txt--neutral"
+                      title="Version"><span
+                      class="is-invisible">Version</span></i>
+                      <a href="#">2.0</a></li>
+                  </ul>
+                </div>
+              </s:fragment>
+              <s:fragment rendered="#{latestActivity eq null}">
+                <div class="l--pad-all-half bg--high">
+                  <p><em>#{messages['jsf.YouHaveNoActivity']}</em></p>
+
+                  <p class="txt--meta">#{messages['jsf.NoActivityMessage']}</p>
+                </div>
+              </s:fragment>
+            </div>
+          </div>
+        </s:fragment>
+
+      </div>
+
+      <div class="g__item w--1-m w--5-8-l w--2-3">
+      </div>
+    </div>
+  </ui:define>
+
+
+</ui:composition>
