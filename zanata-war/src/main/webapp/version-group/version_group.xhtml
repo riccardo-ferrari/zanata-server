@@ -13,51 +13,16 @@
   #{messages['jsf.Groups']} - #{versionGroupHome.instance.name}
 </ui:define>
 
-
 <ui:define name="center_content">
 <script type="text/javascript">
   jQuery(document).ready(function () {
-    checkHashUrl();
+    checkHashUrl('#languages_tab', '#settings-general_tab');
     renderStatistics();
   });
 
-  function checkHashUrl() {
-    var selectedTabId = "#languages_tab"; //default to language tab
-    var originalHashUrl = window.location.hash;
-
-    if (window.location.hash) {
-      if (window.location.hash.substring(0, 9) == '#settings') {
-        window.location.hash = "#settings";
-      }
-
-      if (elementExist(window.location.hash + "_tab")) {
-        selectedTabId = window.location.hash + "_tab";
-      }
-    }
-
-    jQuery(selectedTabId)[0].click();
-    window.location.hash = selectedTabId;
-
-    if (window.location.hash.substring(0, 9) == "#settings") {
-      handleSettingsTab(originalHashUrl);
-    }
-  }
-
   function updateHashAndGotoUrl(anchor) {
     window.location.hash = jQuery(anchor).attr('href');
-    checkHashUrl();
-  }
-
-  function handleSettingsTab(hashUrl) {
-    var selectedSettingsTabId = "#settings-general_tab"; //default to general tab
-    if (elementExist(hashUrl)) {
-      selectedSettingsTabId = hashUrl + "_tab";
-    }
-    jQuery(selectedSettingsTabId)[0].click();
-  }
-
-  function elementExist(hashId) {
-    return jQuery(hashId).length != 0;
+    checkHashUrl('#languages_tab', '#settings-general_tab');
   }
 
   function updateActiveRow(clickedElement) {
@@ -77,7 +42,8 @@
 
   function toggleColumn(tabId) {
     jQuery('#' + tabId).find('.panels--2').toggleClass('panel__active-2');
-    jQuery('#' + tabId).find('.panel__active-2').find('.panels__panel').addClass('is-active');
+    jQuery('#' +
+      tabId).find('.panel__active-2').find('.panels__panel').addClass('is-active');
   }
 </script>
 
@@ -175,8 +141,8 @@
       <nav class="tabs__nav">
         <ul>
           <li>
-            <a href="#languages" id="languages_tab"
-              onclick="setActiveTab(this)" title="#{messages['Languages']}">
+            <a href="#languages" id="languages_tab" class="js-tab"
+              title="#{messages['Languages']}">
               <i class="i i--language"></i>
               <span class="is-hidden--m-down i__text--right">
                 #{messages['jsf.Languages']}
@@ -187,7 +153,7 @@
             </a>
           </li>
           <li>
-            <a href="#projects" id="projects_tab" onclick="setActiveTab(this)"
+            <a href="#projects" id="projects_tab" class="js-tab"
               title="#{messages['Projects']}">
               <i class="i i--project"></i>
               <span class="is-hidden--m-down i__text--right">
@@ -199,8 +165,8 @@
             </a>
           </li>
           <li>
-            <a href="#maintainers" id="maintainers_tab"
-              title="#{messages['Maintainers']}" onclick="setActiveTab(this)">
+            <a href="#maintainers" id="maintainers_tab" class="js-tab"
+              title="#{messages['Maintainers']}">
               <i class="i i--users"></i>
               <span class="is-hidden--m-down i__text--right">
                 #{messages['jsf.Maintainers']}
@@ -214,8 +180,8 @@
           <s:fragment
             rendered="#{s:hasPermission(versionGroupHome.instance, 'update')}">
             <li class="tab__end">
-              <a href="#settings" id="settings_tab"
-                title="#{messages['Settings']}" onclick="setActiveTab(this)">
+              <a href="#settings" id="settings_tab" class="js-tab"
+                title="#{messages['Settings']}">
                 <span class="is-hidden--m-down i__text--left">
                   #{messages['jsf.Settings']}
                 </span>

@@ -25,14 +25,21 @@ package org.zanata.action;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.security.management.JpaIdentityStore;
 import org.zanata.annotation.CachedMethodResult;
+import org.zanata.dao.ProjectDAO;
 import org.zanata.model.Activity;
 import org.zanata.model.HAccount;
+import org.zanata.model.HProject;
+import org.zanata.security.ZanataIdentity;
 import org.zanata.service.ActivityService;
 
 /**
@@ -45,13 +52,28 @@ public class ProjectHomeAction implements Serializable {
     @In
     private ActivityService activityServiceImpl;
 
+    @In
+    private ProjectDAO projectDAO;
+
     @In(required = false, value = JpaIdentityStore.AUTHENTICATED_USER)
     private HAccount authenticatedAccount;
 
+    @In
+    private ZanataIdentity identity;
+
+    @Setter
+    @Getter
+    private String slug;
+
     @CachedMethodResult
-    public List<Activity> getProjectLatestActivity(long projectId) {
-        return activityServiceImpl.findLatestProjectActivities(
-                authenticatedAccount.getPerson().getId(), projectId, 0,
-                1);
+    public List<Activity> getProjectLatestActivity() {
+        if (StringUtils.isEmpty(slug) || !identity.isLoggedIn()) {
+            return Lists.newArrayList();
+        }
+
+        HProject project = projectDAO.getBySlug(slug);
+        return activityServiceImpl
+                .findLatestProjectActivities(authenticatedAccount.getPerson()
+                        .getId(), project.getId(), 0, 1);
     }
 }

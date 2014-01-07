@@ -557,6 +557,7 @@
 
   <page view-id="/project/project.xhtml">
     <param name="slug" value="#{projectHome.slug}" />
+    <param name="slug" value="#{projectHomeAction.slug}" />
     <param name="slug" value="#{versionDetailsAction.projectSlug}" />
     <action execute="#{projectHome.validateSuppliedId}" />
     <action execute="#{breadcrumbs.clear}" />

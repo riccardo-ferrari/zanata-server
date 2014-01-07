@@ -95,7 +95,7 @@
     <ui:param name="docName"
       value="#{activityEntry.getDocumentName(cc.attrs.value)}"/>
     <s:fragment rendered="#{docName != null and !docName.isEmpty()}">
-      <li class="#{cc.attr.hideInfo ? 'reveal__target': ''}">
+      <li class="#{cc.attrs.hideInfo ? 'reveal__target': ''}">
         <i aria-hidden="true" class="i i--document txt--neutral"
           title="#{messages['jsf.Document']}"></i>
         <span class="is-invisible">#{messages['jsf.Document']}</span>
@@ -107,7 +107,7 @@
       value="#{activityEntry.getLanguageName(cc.attrs.value)}"/>
     <s:fragment
       rendered="#{languageName != null and !languageName.isEmpty()}">
-      <li class="reveal__target">
+      <li class="#{cc.attrs.hideInfo ? 'reveal__target': ''}">
         <i aria-hidden="true" class="i i--language txt--neutral"
           title="#{messages['jsf.Language']}"></i>
         <span class="is-invisible">#{messages['jsf.Language']}</span>
@@ -119,7 +119,7 @@
       value="#{activityEntry.getVersionName(cc.attrs.value)}"/>
     <s:fragment
       rendered="#{versionName != null and !versionName.isEmpty()}">
-      <li class="reveal__target">
+      <li class="#{cc.attrs.hideInfo ? 'reveal__target': ''}">
         <i aria-hidden="true" class="i i--version txt--neutral"
           title="#{messages['jsf.Version']}">
           <span class="is-invisible">#{messages['jsf.Version']}</span>

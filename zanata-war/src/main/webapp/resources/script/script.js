@@ -1,30 +1,51 @@
-/*
- *
- *  * Copyright 2014, Red Hat, Inc. and individual contributors as indicated by the
- *  * @author tags. See the copyright.txt file in the distribution for a full
- *  * listing of individual contributors.
- *  *
- *  * This is free software; you can redistribute it and/or modify it under the
- *  * terms of the GNU Lesser General Public License as published by the Free
- *  * Software Foundation; either version 2.1 of the License, or (at your option)
- *  * any later version.
- *  *
- *  * This software is distributed in the hope that it will be useful, but WITHOUT
- *  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- *  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- *  * details.
- *  *
- *  * You should have received a copy of the GNU Lesser General Public License
- *  * along with this software; if not, write to the Free Software Foundation,
- *  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
- *  * site: http://www.fsf.org.
- */
+jQuery(document).ready(function() {
+  registerJsTab();
+});
 
-function setActiveTab(clickedTab) {
-  jQuery(clickedTab).parent().siblings("li").children("a").removeClass(
-      'is-active');
-  jQuery(clickedTab).addClass("is-active");
+function registerJsTab() {
+  jQuery('.js-tab').each(function() {
+    jQuery(this).click(function() {
+      onTabClick(this);
+    });
+  });
+}
 
-  jQuery("[id$=_content]").addClass('is-hidden');
-  jQuery(jQuery(clickedTab).attr('href') + '_content').removeClass('is-hidden');
+function onTabClick(tab) {
+  jQuery(tab).parent().siblings("li").children("a").removeClass('is-active');
+  jQuery(tab).addClass("is-active");
+  jQuery(tab).parents('.tabs--lined').children('.tabs__content')
+      .children('div').addClass('is-hidden');
+  jQuery(jQuery(tab).attr('href') + '_content').removeClass('is-hidden');
+}
+
+function checkHashUrl(defaultTabId, defaultSettingsTabId) {
+  var originalHashUrl = window.location.hash;
+
+  if (window.location.hash) {
+    if (window.location.hash.substring(0, 9) == '#settings') {
+      window.location.hash = "#settings";
+    }
+
+    if (elementExist(window.location.hash + "_tab")) {
+      defaultTabId = window.location.hash + "_tab";
+    }
+  }
+  onTabClick(defaultTabId);
+  window.location.hash = defaultTabId.replace("_tab", "");
+
+  if (window.location.hash.substring(0, 9) == "#settings") {
+    handleSettingsTab(defaultSettingsTabId, originalHashUrl);
+  }
+}
+
+function handleSettingsTab(defaultSettingsTabId, hashUrl) {
+  var selectedSettingsTabId = defaultSettingsTabId;
+  if (elementExist(hashUrl)) {
+    selectedSettingsTabId = hashUrl + "_tab";
+  }
+  onTabClick(selectedSettingsTabId);
+}
+
+function elementExist(hashId) {
+  return jQuery(hashId).length != 0;
 }
