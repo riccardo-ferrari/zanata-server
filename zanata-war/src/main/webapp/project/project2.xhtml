@@ -1,136 +1,202 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:c="http://java.sun.com/jsp/jstl/core"
   xmlns:s="http://jboss.org/schema/seam/taglib"
   xmlns:ui="http://java.sun.com/jsf/facelets"
   xmlns:f="http://java.sun.com/jsf/core"
   xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:rich="http://richfaces.org/rich"
   xmlns:a4j="http://richfaces.org/a4j"
-  xmlns:zanata="http://java.sun.com/jsf/composite/zanata"
-  template="../WEB-INF/template/template.xhtml">
+  xmlns:richext="http://java.sun.com/jsf/composite/richext"
+  template="../WEB-INF/template/template_2x.xhtml">
 
-  <ui:define name="page_title">
-    #{messages['jsf.Projects']} - #{projectHome.instance.name}
-  </ui:define>
+  <ui:define name="page_title">#{projectHome.instance.name}</ui:define>
 
   <ui:define name="center_content">
-    <div class="g">
-      <div class="g__item w--1-m w--3-8-l w--1-3 l--push-bottom-half">
-        <p class="txt--meta l--push-all-0">
-          <s:link view="/project/home.xhtml" propagation="none"
-            value="#{messages['jsf.Projects']}"/>
+    <s:decorate id="main_content">
+
+      <s:div styleClass="content_box"
+        rendered="#{not empty projectHome.instance.homeContent or not empty projectHome.instance.description or not empty projectHome.instance.sourceViewURL or not empty projectHome.instance.sourceCheckoutURL}">
+        <s:formattedText id="project-home-content"
+          value="#{projectHome.instance.homeContent}"/>
+        <s:formattedText value="#{projectHome.instance.description}"
+          rendered="#{empty projectHome.instance.homeContent}"/>
+
+        <p>
+          <h:outputText
+            rendered="#{not empty projectHome.instance.sourceViewURL}"
+            value="#{messages['jsf.viewSourceFiles']}: "/>
+          <h:outputLink value="#{projectHome.instance.sourceViewURL}">
+            <h:outputText value="#{projectHome.instance.sourceViewURL}"/>
+          </h:outputLink>
         </p>
+        <s:formattedText id="source-checkout-url"
+          rendered="#{not empty projectHome.instance.sourceCheckoutURL}"
+          value="#{messages['jsf.SourceCheckoutUrl']}: #{projectHome.instance.sourceCheckoutURL}"/>
+      </s:div>
 
-        <div class="media l--push-bottom-half">
-          <div class="media__body">
-            <h1 class="l--push-all-0">#{projectHome.instance.name}</h1>
+      <div class="iterations">
+        <h:form id="iterationsForm">
+          <rich:dataTable id="iterations" value="#{projectHome.versions}"
+            var="_version">
+            <rich:column sortBy="#{_version.slug}" id="column">
+              <f:facet name="header">#{messages['jsf.Version']}
+                <richext:columnSorter/></f:facet>
+              <s:link view="/iteration/view.xhtml" styleClass="version_link">
+                <f:param name="projectSlug" value="#{projectHome.slug}"/>
+                <f:param name="iterationSlug" value="#{_version.slug}"/>
+                <s:fragment
+                  rendered="#{projectHome.getEffectiveVersionStatus(_version) == 'ACTIVE'}">
+                  <richext:spacer width="20"/>
+                </s:fragment>
+                <h:outputText styleClass="icon-lock-4 readOnlyIcon"
+                  title="#{messages['jsf.ReadOnlyVersions']}"
+                  rendered="#{projectHome.getEffectiveVersionStatus(_version) == 'READONLY'}"/>
+                <h:outputText styleClass="icon-block obsoleteIcon"
+                  title="#{messages['jsf.ObsoleteVersions']}"
+                  rendered="#{projectHome.getEffectiveVersionStatus(_version) == 'OBSOLETE'}"/>
+                <span class="version_title">#{_version.slug}</span>
+              </s:link>
+              <span
+                class="version_info">#{messages['jsf.DocumentCount']} #{_version.documents.size}</span>
+            </rich:column>
 
-            <p class="txt--understated">
-              <s:formattedText value="#{projectHome.instance.homeContent}"/>
-              <s:formattedText value="#{projectHome.instance.description}"
-                rendered="#{empty projectHome.instance.homeContent}"/>
+            <rich:column styleClass="centered" rendered="#{identity.loggedIn}">
+              <f:facet name="header">#{messages['jsf.TranslateLinks']}</f:facet>
+              <ui:remove>
+                <!--The c:if tag Below solves a bug where some components (in this case rich:dataGrid are not
+                    respecting their parent component's rendered attribute and invoke their value EL expressions)
+                -->
+              </ui:remove>
+              <c:if test="#{identity.loggedIn}">
+                <rich:dataGrid
+                  value="#{versionDetailsAction.getSupportedLocaleList(_version.slug)}"
+                  var="language" columns="3" styleClass="version_details_panel">
+                  <s:div styleClass="version_details_cell">
+                    <h:outputLink
+                      rendered="#{not projectHome.isUserAllowedToTranslateOrReview(_version.slug, language) }"
+                      value="#{request.contextPath}/webtrans/Application.seam"
+                      styleClass="table_link" title="#{messages['jsf.Open']}">
+                      <f:param name="project" value="#{projectHome.slug}"/>
+                      <f:param name="iteration" value="#{_version.slug}"/>
+                      <f:param name="localeId" value="#{language.localeId}"/>
+                      <f:param name="locale" value="#{locale.language}"/>
+                      <span>#{language.localeId.id}</span>
+                      <span class="icon-eye icon"/>
+                    </h:outputLink>
 
-              <s:formattedText
-                rendered="#{not empty projectHome.instance.sourceCheckoutURL}"
-                value="#{projectHome.instance.sourceCheckoutURL}"/>
-            </p>
+                    <h:outputLink
+                      rendered="#{projectHome.isUserAllowedToTranslateOrReview(_version.slug, language)}"
+                      value="#{request.contextPath}/webtrans/Application.seam"
+                      styleClass="table_link"
+                      title="#{messages['jsf.Translate']}">
+                      <f:param name="project" value="#{projectHome.slug}"/>
+                      <f:param name="iteration" value="#{_version.slug}"/>
+                      <f:param name="localeId" value="#{language.localeId}"/>
+                      <f:param name="locale" value="#{locale.language}"/>
+                      <span>#{language.localeId.id}</span>
+                      <span class="icon-edit icon"/>
+                    </h:outputLink>
 
-            <p class="txt--hyphenate">
-              <h:outputLink value="#{projectHome.instance.sourceViewURL}">
-                <h:outputText value="#{projectHome.instance.sourceViewURL}"/><i
-                class="i--small i--right i--external-link txt--neutral"></i>
-              </h:outputLink>
-            </p>
-          </div>
-        </div>
+                  </s:div>
+                </rich:dataGrid>
+              </c:if>
+            </rich:column>
 
-        <s:fragment rendered="#{identity.loggedIn}">
-          <div class="panel l--push-top-half">
-            <div class="panel__header">
-              <h2
-                class="panel__heading--small">#{messages['jsf.YourActivity']}</h2>
-            </div>
-            <div class="l--pad-all-half">
-              <ui:param name="latestActivity"
-                value="#{projectHomeAction.getProjectLatestActivity(projectHome.instance.id)}"/>
-              <s:fragment rendered="#{latestActivity not null}">
-                <div class="txt--meta">
-                  <p class="l--float-right txt--neutral l--push-left-half">
-                    <s:fragment
-                      rendered="#{latestActivity.activityType == 'UPDATE_TRANSLATION'}">
-                      <i aria-hidden="true" class="i--large i--translate"
-                        title="#{messages['jsf.Translation']}"></i>
-                      <span
-                        class="is-invisible">#{messages['jsf.Translation']}</span>
-                    </s:fragment>
+            <rich:column styleClass="centered">
+              <f:facet name="header">#{messages['jsf.ManageVersion']}</f:facet>
 
-                    <s:fragment
-                      rendered="#{activity.activityType == 'REVIEWED_TRANSLATION'}">
-                      <i aria-hidden="true" class="i--large i--review"
-                        title="#{messages['jsf.Reviewed']}"></i>
-                      <span
-                        class="is-invisible">#{messages['jsf.Reviewed']}</span>
-                    </s:fragment>
+              <h:commandButton value="#{messages['jsf.Edit']}"
+                action="#{versionDetailsAction.editVersion(_version.slug)}"
+                rendered="#{s:hasPermission(_version, 'update')}"
+                title="#{messages['jsf.EditVersion']}">
+              </h:commandButton>
 
-                    <s:fragment
-                      rendered="#{activity.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
-                      <i aria-hidden="true" class="i--large i--document"
-                        title="#{messages['jsf.UploadedSource']}"></i>
-                      <span
-                        class="is-invisible">#{messages['jsf.UploadSource']}</span>
-                    </s:fragment>
+              <h:commandButton value="#{messages['jsf.SourceDocs']}"
+                action="#{versionDetailsAction.sourceDocs(_version.slug)}"
+                title="#{messages['jsf.SourceDocuments']}">
+              </h:commandButton>
 
-                    <s:fragment
-                      rendered="#{activity.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
-                      <i aria-hidden="true" class="i--large i--translate-up"
-                        title="#{messages['jsf.UploadedTranslations']}"></i>
-                      <span
-                        class="is-invisible">#{messages['jsf.UploadedTranslation']}</span>
-                    </s:fragment>
-                  </p>
+            </rich:column>
+          </rich:dataTable>
 
-                  <p class="l--push-all-0">You translated
-                    <strong>537 words</strong>, finishing on “<a
-                      href="#">Determines how the project is treated for upload…</a>”
-                  </p>
-                  <ul class="list--horizontal txt--meta">
-                    <li><i aria-hidden="true" class="i i--clock txt--neutral"
-                      title="Time"></i><span class="is-invisible">Time</span> 6d
-                    </li>
-                    <li><i aria-hidden="true" class="i i--document txt--neutral"
-                      title="Document"></i><span
-                      class="is-invisible">Document</span> <a
-                      href="#">Messages</a>
-                    </li>
-                    <li><i aria-hidden="true" class="i i--language txt--neutral"
-                      title="Language"></i><span
-                      class="is-invisible">Language</span> <a
-                      href="#">Japanese</a>
-                    </li>
-                    <li><i aria-hidden="true" class="i i--version txt--neutral"
-                      title="Version"><span
-                      class="is-invisible">Version</span></i>
-                      <a href="#">2.0</a></li>
-                  </ul>
-                </div>
-              </s:fragment>
-              <s:fragment rendered="#{latestActivity eq null}">
-                <div class="l--pad-all-half bg--high">
-                  <p><em>#{messages['jsf.YouHaveNoActivity']}</em></p>
-
-                  <p class="txt--meta">#{messages['jsf.NoActivityMessage']}</p>
-                </div>
-              </s:fragment>
-            </div>
-          </div>
-        </s:fragment>
-
+        </h:form>
       </div>
-
-      <div class="g__item w--1-m w--5-8-l w--2-3">
-      </div>
-    </div>
+    </s:decorate>
   </ui:define>
 
+  <ui:define name="right_content">
+
+    <rich:panel id="loggedIn" rendered="#{identity.loggedIn}">
+      <f:facet name="header">#{messages['jsf.Actions']}</f:facet>
+      <s:link styleClass="action_link"
+        rendered="#{s:hasPermission(projectHome.instance, 'update')}"
+        value="#{messages['jsf.EditProject']}" view="/project/edit.xhtml"
+        propagation="none">
+        <f:param name="slug" value="#{projectHome.slug}"/>
+      </s:link>
+      <s:link styleClass="action_link"
+        rendered="#{s:hasPermission(projectHome.instance, 'update')}"
+        value="#{messages['jsf.project.EditHomePage.label']}"
+        view="/project/homepage_edit.xhtml"
+        title="#{messages['jsf.project.EditHomePage.tooltip']}"
+        propagation="none">
+        <f:param name="slug" value="#{projectHome.slug}"/>
+      </s:link>
+      <s:link id="addIterationLink" styleClass="action_link"
+        rendered="#{s:hasPermission(projectHome.instance, 'add-iteration') and projectHome.isProjectActive()}"
+        view="/project/add_iteration.xhtml"
+        value="#{messages['jsf.CreateVersion']}" propagation="none">
+        <f:param name="projectSlug" value="#{projectHome.slug}"/>
+      </s:link>
+      <s:link styleClass="action_link"
+        rendered="#{s:hasPermission(projectHome.instance, 'update')}"
+        view="/project/assign_maintainer.xhtml"
+        value="#{messages['jsf.ManageMaintainers']}" propagation="none">
+        <f:param name="projectSlug" value="#{projectHome.slug}"/>
+      </s:link>
+      <s:link styleClass="action_link"
+        rendered="#{s:hasPermission(projectHome.instance, 'update')}"
+        view="/project/copy_trans_options.xhtml"
+        value="#{messages['jsf.project.CopyTransOpts.title']}"
+        title="#{messages['jsf.project.CopyTransOpts.tooltip']}"
+        propagation="none">
+        <f:param name="projectSlug" value="#{projectHome.slug}"/>
+      </s:link>
+      <h:outputLink id="exportTMXProjectLink" styleClass="action_link"
+        onclick="return confirm('#{messages['jsf.ConfirmExportTMXProject']}')"
+        value="#{request.contextPath}/rest/tm/projects/#{projectHome.slug}">
+        <h:outputText value="#{messages['jsf.ExportTMXProject']}"/>
+      </h:outputLink>
+    </rich:panel>
+
+    <rich:panel>
+      <f:facet name="header">#{messages['jsf.ProjectMaintainers']}</f:facet>
+      <h:outputText
+        rendered="#{empty projectHome.instance.maintainers}">#{messages['jsf.NoMaintainersDefined']}</h:outputText>
+      <rich:list value="#{projectHome.instance.maintainers.toArray()}"
+        var="maintainer">
+        <h:outputText value="#{maintainer.name}" styleClass="maintainer"
+          rendered="#{!s:hasRole('admin')}"/>
+
+        <s:fragment rendered="#{s:hasRole('admin')}">
+          <a href="mailto:#{maintainer.email}" class="maintainer_email"
+            title="#{maintainer.email}" target="_blank">#{maintainer.name}</a>
+        </s:fragment>
+      </rich:list>
+    </rich:panel>
+
+    <rich:panel rendered="#{projectHome.instance.restrictedByRoles}">
+      <f:facet
+        name="header">#{messages['jsf.project.RoleRestrictions']}</f:facet>
+      <h:outputText>#{messages['jsf.project.ProjectRestrictedToFollowingRoles']}</h:outputText><br/>
+      <rich:list value="#{projectHome.instance.allowedRoles.toArray()}"
+        var="role">
+        <h:outputText value="#{role.name}"/>
+      </rich:list>
+    </rich:panel>
+
+  </ui:define>
 
 </ui:composition>

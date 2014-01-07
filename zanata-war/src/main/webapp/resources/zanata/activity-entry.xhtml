@@ -8,26 +8,30 @@
 <composite:interface>
   <composite:attribute name="value" type="org.zanata.model.Activity"
     shortDescription="activity" required="true"/>
+
+  <composite:attribute name="hideInfo" type="java.lang.Boolean"
+    shortDescription="add 'reveal__target' class to information which will be hidden by default"
+    default="false"/>
 </composite:interface>
 
 <composite:implementation>
   <p class="l--float-right txt--neutral l--push-left-half">
     <s:fragment
-      rendered="#{activity.activityType == 'UPDATE_TRANSLATION'}">
+      rendered="#{cc.attrs.value.activityType == 'UPDATE_TRANSLATION'}">
       <i aria-hidden="true" class="i--large i--translate"
         title="#{messages['jsf.Translation']}"></i>
       <span class="is-invisible">#{messages['jsf.Translation']}</span>
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'REVIEWED_TRANSLATION'}">
+      rendered="#{cc.attrs.value.activityType == 'REVIEWED_TRANSLATION'}">
       <i aria-hidden="true" class="i--large i--review"
         title="#{messages['jsf.Reviewed']}"></i>
       <span class="is-invisible">#{messages['jsf.Reviewed']}</span>
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
+      rendered="#{cc.attrs.value.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
       <i aria-hidden="true" class="i--large i--document"
         title="#{messages['jsf.UploadedSource']}"></i>
       <span
@@ -35,7 +39,7 @@
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
+      rendered="#{cc.attrs.value.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
       <i aria-hidden="true" class="i--large i--translate-up"
         title="#{messages['jsf.UploadedTranslations']}"></i>
       <span
@@ -45,39 +49,39 @@
 
   <p class="l--push-all-0">
     <s:fragment
-      rendered="#{activity.activityType == 'UPDATE_TRANSLATION'}">
+      rendered="#{cc.attrs.value.activityType == 'UPDATE_TRANSLATION'}">
       You translated
-      <strong>#{activityEntry.getWordsCountMessage(activity.wordCount)}</strong> in
+      <strong>#{activityEntry.getWordsCountMessage(cc.attrs.value.wordCount)}</strong> in
       <a
-        href="#{activityEntry.getProjectUrl(activity)}">#{activityEntry.getProjectName(activity)}</a>,
+        href="#{activityEntry.getProjectUrl(cc.attrs.value)}">#{activityEntry.getProjectName(cc.attrs.value)}</a>,
       finishing on "<a
-      href="#{activityEntry.getEditorUrl(activity)}">#{activityEntry.getLastTextFlowContent(activity)}</a>"
+      href="#{activityEntry.getEditorUrl(cc.attrs.value)}">#{activityEntry.getLastTextFlowContent(cc.attrs.value)}</a>"
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'REVIEWED_TRANSLATION'}">
+      rendered="#{cc.attrs.value.activityType == 'REVIEWED_TRANSLATION'}">
       You reviewed
-      <strong>#{activityEntry.getWordsCountMessage(activity.wordCount)}</strong> in
+      <strong>#{activityEntry.getWordsCountMessage(cc.attrs.value.wordCount)}</strong> in
       <a
-        href="#{activityEntry.getProjectUrl(activity)}">#{activityEntry.getProjectName(activity)}</a>,
+        href="#{activityEntry.getProjectUrl(cc.attrs.value)}">#{activityEntry.getProjectName(cc.attrs.value)}</a>,
       finishing on "<a
-      href="#{activityEntry.getEditorUrl(activity)}">#{activityEntry.getLastTextFlowContent(activity)}</a>"
+      href="#{activityEntry.getEditorUrl(cc.attrs.value)}">#{activityEntry.getLastTextFlowContent(cc.attrs.value)}</a>"
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
+      rendered="#{cc.attrs.value.activityType == 'UPLOAD_SOURCE_DOCUMENT'}">
       You uploaded source documents of
-      <strong>#{activityEntry.getWordsCountMessage(activity.wordCount)}</strong> to
+      <strong>#{activityEntry.getWordsCountMessage(cc.attrs.value.wordCount)}</strong> to
       <a
-        href="#{activityEntry.getProjectUrl(activity)}">#{activityEntry.getProjectName(activity)}</a>
+        href="#{activityEntry.getProjectUrl(cc.attrs.value)}">#{activityEntry.getProjectName(cc.attrs.value)}</a>
     </s:fragment>
 
     <s:fragment
-      rendered="#{activity.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
+      rendered="#{cc.attrs.value.activityType == 'UPLOAD_TRANSLATION_DOCUMENT'}">
       You uploaded translations of
-      <strong>#{activityEntry.getWordsCountMessage(activity.wordCount)}</strong> to
+      <strong>#{activityEntry.getWordsCountMessage(cc.attrs.value.wordCount)}</strong> to
       <a
-        href="#{activityEntry.getProjectUrl(activity)}">#{activityEntry.getProjectName(activity)}</a>
+        href="#{activityEntry.getProjectUrl(cc.attrs.value)}">#{activityEntry.getProjectName(cc.attrs.value)}</a>
     </s:fragment>
   </p>
 
@@ -86,21 +90,21 @@
       <i aria-hidden="true" class="i i--clock txt--neutral"
         title="#{messages['jsf.Time']}"></i>
       <span
-        class="is-invisible">#{messages['jsf.Time']}</span>#{activityEntry.getHowLongAgoDescription(activity)}
+        class="is-invisible">#{messages['jsf.Time']}</span>#{activityEntry.getHowLongAgoDescription(cc.attrs.value)}
     </li>
     <ui:param name="docName"
-      value="#{activityEntry.getDocumentName(activity)}"/>
+      value="#{activityEntry.getDocumentName(cc.attrs.value)}"/>
     <s:fragment rendered="#{docName != null and !docName.isEmpty()}">
-      <li class="reveal__target">
+      <li class="#{cc.attr.hideInfo ? 'reveal__target': ''}">
         <i aria-hidden="true" class="i i--document txt--neutral"
           title="#{messages['jsf.Document']}"></i>
         <span class="is-invisible">#{messages['jsf.Document']}</span>
         <a
-          href="#{activityEntry.getDocumentUrl(activity)}">#{docName}</a>
+          href="#{activityEntry.getDocumentUrl(cc.attrs.value)}">#{docName}</a>
       </li>
     </s:fragment>
     <ui:param name="languageName"
-      value="#{activityEntry.getLanguageName(activity)}"/>
+      value="#{activityEntry.getLanguageName(cc.attrs.value)}"/>
     <s:fragment
       rendered="#{languageName != null and !languageName.isEmpty()}">
       <li class="reveal__target">
@@ -108,11 +112,11 @@
           title="#{messages['jsf.Language']}"></i>
         <span class="is-invisible">#{messages['jsf.Language']}</span>
         <a
-          href="#{activityEntry.getDocumentListUrl(activity)}">#{languageName}</a>
+          href="#{activityEntry.getDocumentListUrl(cc.attrs.value)}">#{languageName}</a>
       </li>
     </s:fragment>
     <ui:param name="versionName"
-      value="#{activityEntry.getVersionName(activity)}"/>
+      value="#{activityEntry.getVersionName(cc.attrs.value)}"/>
     <s:fragment
       rendered="#{versionName != null and !versionName.isEmpty()}">
       <li class="reveal__target">
@@ -121,7 +125,7 @@
           <span class="is-invisible">#{messages['jsf.Version']}</span>
         </i>
         <a
-          href="#{activityEntry.getVersionUrl(activity)}">#{versionName}</a>
+          href="#{activityEntry.getVersionUrl(cc.attrs.value)}">#{versionName}</a>
       </li>
     </s:fragment>
   </ul>

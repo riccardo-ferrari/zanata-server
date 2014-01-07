@@ -16,7 +16,7 @@
       <ul class="list--no-bullets">
         <ui:repeat value="#{activities}" var="activity">
           <li class="l--pad-all-half bg--higher--hover bg--faint reveal">
-            <zanata:activityEntry value="#{activity}"/>
+            <zanata:activity-entry value="#{activity}" hideInfo="true"/>
           </li>
         </ui:repeat>
         <s:fragment rendered="#{activityAction.hasMoreActivities()}">

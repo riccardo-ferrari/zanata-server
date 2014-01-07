@@ -60,15 +60,6 @@
     return jQuery(hashId).length != 0;
   }
 
-  function setActiveTab(clickedTab) {
-    jQuery(clickedTab).parent().siblings("li").children("a").removeClass('is-active');
-    jQuery(clickedTab).addClass("is-active");
-
-    jQuery("[id$=_content]").addClass('is-hidden');
-    jQuery(jQuery(clickedTab).attr('href') +
-      '_content').removeClass('is-hidden');
-  }
-
   function updateActiveRow(clickedElement) {
     var parent = jQuery(clickedElement).parent();
 

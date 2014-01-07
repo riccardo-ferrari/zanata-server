@@ -30,6 +30,7 @@ import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.security.management.JpaIdentityStore;
+import org.zanata.annotation.CachedMethodResult;
 import org.zanata.model.Activity;
 import org.zanata.model.HAccount;
 import org.zanata.service.ActivityService;
@@ -47,6 +48,7 @@ public class ProjectHomeAction implements Serializable {
     @In(required = false, value = JpaIdentityStore.AUTHENTICATED_USER)
     private HAccount authenticatedAccount;
 
+    @CachedMethodResult
     public List<Activity> getProjectLatestActivity(long projectId) {
         return activityServiceImpl.findLatestProjectActivities(
                 authenticatedAccount.getPerson().getId(), projectId, 0,
