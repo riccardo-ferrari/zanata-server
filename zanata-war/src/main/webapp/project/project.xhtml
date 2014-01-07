@@ -190,22 +190,20 @@
 
       <div class="tabs__content panels__container l--push-top-1">
         <div id="versions_content" class="is-hidden">
-
           versions
         </div>
 
         <div id="maintainers_content" class="is-hidden">
-
-          maintainers
+          <ui:include src="../WEB-INF/layout/maintainers-tab.xhtml">
+            <ui:param name="maintainers" value="#{projectHome.instance.maintainers}"/>
+          </ui:include>
         </div>
 
         <div id="notes_content" class="is-hidden">
-
           notes
         </div>
 
         <div id="settings_content" class="is-hidden">
-
           settings
         </div>
       </div>

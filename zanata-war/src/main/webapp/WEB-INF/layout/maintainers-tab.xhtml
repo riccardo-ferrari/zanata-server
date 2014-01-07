@@ -1,0 +1,29 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:s="http://jboss.org/schema/seam/taglib">
+  <div class="panel">
+    <div class="panel__header">
+      <h2 class="panel__heading">
+        <i class="i--left i--maintain"></i>#{messages['jsf.Maintainers']}
+      </h2>
+    </div>
+    <s:fragment rendered="#{not empty maintainers}">
+      <ul class="list--slat">
+        <ui:repeat value="#{maintainers}" var="maintainer">
+          <li class="l--pad-all-half">
+            <span class="w--r-1 bx--round l--push-right-quarter">
+              <img
+                src="#{gravatarServiceImpl.getUserImageUrl(48, maintainer.email)}"
+                alt="#{maintainer.name}"/>
+            </span>
+            #{maintainer.name}
+            <span class="txt--meta">@#{maintainer.account.username}</span>
+          </li>
+        </ui:repeat>
+      </ul>
+    </s:fragment>
+    <s:fragment rendered="#{empty maintainers}">
+      #{messages['jsf.NoMaintainersDefined']}
+    </s:fragment>
+  </div>
+</ui:composition>

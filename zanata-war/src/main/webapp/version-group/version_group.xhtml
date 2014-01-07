@@ -205,8 +205,9 @@
         </div>
 
         <div id="maintainers_content" class="is-hidden">
-          <ui:include
-            src="../WEB-INF/layout/version-group/maintainers-tab.xhtml"/>
+          <ui:include src="../WEB-INF/layout/maintainers-tab.xhtml">
+            <ui:param name="maintainers" value="#{versionGroupHomeAction.maintainers}"/>
+          </ui:include>
         </div>
 
         <s:fragment
