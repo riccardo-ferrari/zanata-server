@@ -205,9 +205,7 @@
         </div>
 
         <div id="maintainers_content" class="is-hidden">
-          <ui:include src="../WEB-INF/layout/maintainers-tab.xhtml">
-            <ui:param name="maintainers" value="#{versionGroupHomeAction.maintainers}"/>
-          </ui:include>
+          <zanata:maintainers-tab value="#{versionGroupHomeAction.maintainers.toArray()}"/>
         </div>
 
         <s:fragment

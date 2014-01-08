@@ -1,15 +1,26 @@
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:composite="http://java.sun.com/jsf/composite"
   xmlns:ui="http://java.sun.com/jsf/facelets"
   xmlns:s="http://jboss.org/schema/seam/taglib">
+
+<composite:interface>
+  <composite:attribute name="value"
+    shortDescription="maintainer list" required="true"/>
+</composite:interface>
+
+<composite:implementation>
   <div class="panel">
     <div class="panel__header">
       <h2 class="panel__heading">
         <i class="i--left i--maintain"></i>#{messages['jsf.Maintainers']}
       </h2>
     </div>
-    <s:fragment rendered="#{not empty maintainers}">
+
+    <s:fragment rendered="#{not empty cc.attrs.value}">
       <ul class="list--slat">
-        <ui:repeat value="#{maintainers}" var="maintainer">
+        <ui:repeat value="#{cc.attrs.value}" var="maintainer">
           <li class="l--pad-all-half">
             <span class="w--r-1 bx--round l--push-right-quarter">
               <img
@@ -22,8 +33,9 @@
         </ui:repeat>
       </ul>
     </s:fragment>
-    <s:fragment rendered="#{empty maintainers}">
+    <s:fragment rendered="#{empty cc.attrs.value}">
       #{messages['jsf.NoMaintainersDefined']}
     </s:fragment>
   </div>
-</ui:composition>
+</composite:implementation>
+</html>
