@@ -92,8 +92,8 @@ public class StatisticsServiceImpl implements StatisticsResource {
         // if no locales are specified, search in all locales
         if (locales.length == 0) {
             List<HLocale> iterationLocales =
-                    localeServiceImpl.getSupportedLangugeByProjectIteration(
-                            projectSlug, iterationSlug);
+                    localeServiceImpl.getSupportedLanguageByProjectIteration(
+                        projectSlug, iterationSlug);
             localeIds = new LocaleId[iterationLocales.size()];
             for (int i = 0, iterationLocalesSize = iterationLocales.size(); i < iterationLocalesSize; i++) {
                 HLocale loc = iterationLocales.get(i);
@@ -200,8 +200,8 @@ public class StatisticsServiceImpl implements StatisticsResource {
         // if no locales are specified, search in all locales
         if (locales.length == 0) {
             List<HLocale> iterationLocales =
-                    localeServiceImpl.getSupportedLangugeByProjectIteration(
-                            projectSlug, iterationSlug);
+                    localeServiceImpl.getSupportedLanguageByProjectIteration(
+                        projectSlug, iterationSlug);
             localeIds = new LocaleId[iterationLocales.size()];
             for (int i = 0, iterationLocalesSize = iterationLocales.size(); i < iterationLocalesSize; i++) {
                 HLocale loc = iterationLocales.get(i);

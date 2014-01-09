@@ -124,6 +124,8 @@ public class ActivityServiceImpl implements ActivityService {
                     }
                 });
         List<Activity> result = Lists.newArrayList(filtered);
+        offset = offset < 0 ? 0 : offset;
+        maxResults = maxResults > result.size() ? result.size() : maxResults;
         return result.subList(offset, maxResults);
     }
 

@@ -31,6 +31,7 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
 import org.jboss.seam.ScopeType;
@@ -215,7 +216,7 @@ public class LocaleServiceImpl implements LocaleService {
             @Nonnull String project, @Nonnull String iterationSlug)
             throws ZanataServiceException {
         List<HLocale> allList =
-                getSupportedLangugeByProjectIteration(project, iterationSlug);
+                getSupportedLanguageByProjectIteration(project, iterationSlug);
         HLocale hLocale = localeDAO.findByLocaleId(locale);
         if (hLocale == null || !hLocale.isActive()) {
             throw new ZanataServiceException("Locale " + locale.getId()
@@ -254,19 +255,19 @@ public class LocaleServiceImpl implements LocaleService {
     }
 
     @Override
-    public List<HLocale> getSupportedLangugeByProjectIteration(
-            @Nonnull String project, @Nonnull String iterationSlug) {
+    public List<HLocale> getSupportedLanguageByProjectIteration(
+        @Nonnull String projectSlug, @Nonnull String iterationSlug) {
         HProjectIteration iteration =
-                projectIterationDAO.getBySlug(project, iterationSlug);
+                projectIterationDAO.getBySlug(projectSlug, iterationSlug);
         if (iteration.isOverrideLocales()) {
             return new ArrayList<HLocale>(iteration.getCustomizedLocales());
         }
-        return getSupportedLanguageByProject(project);
+        return getSupportedLanguageByProject(projectSlug);
     }
 
     @Override
-    public List<HLocale> getSupportedLanguageByProject(@Nonnull String project) {
-        HProject proj = projectDAO.getBySlug(project);
+    public List<HLocale> getSupportedLanguageByProject(@Nonnull String projectSlug) {
+        HProject proj = projectDAO.getBySlug(projectSlug);
         if (proj.isOverrideLocales()) {
             return new ArrayList<HLocale>(proj.getCustomizedLocales());
         }
@@ -277,7 +278,7 @@ public class LocaleServiceImpl implements LocaleService {
     public List<HLocale> getTranslation(@Nonnull String project,
             @Nonnull String iterationSlug, String username) {
         List<HLocale> allList =
-                getSupportedLangugeByProjectIteration(project, iterationSlug);
+                getSupportedLanguageByProjectIteration(project, iterationSlug);
 
         List<HLocale> member =
                 personDAO.getLanguageMembershipByUsername(username);
@@ -304,7 +305,6 @@ public class LocaleServiceImpl implements LocaleService {
     @Override
     public Map<String, String>
             getIterationGlobalLocaleItems(String projectSlug) {
-        log.info("start getIterationGlobalLocaleItems for:" + projectSlug);
         HProject project = projectDAO.getBySlug(projectSlug);
         return project.isOverrideLocales() ? getCustomizedLocalesItems(projectSlug)
                 : getGlobalLocaleItems();
@@ -341,7 +341,7 @@ public class LocaleServiceImpl implements LocaleService {
     @Override
     public Map<String, String> getIterationCustomizedLocalesItems(
             String projectSlug, String iterationSlug) {
-        Map<String, String> customizedItems = new TreeMap<String, String>();
+        Map<String, String> customizedItems = Maps.newTreeMap();
         HProjectIteration iteration =
                 projectIterationDAO.getBySlug(projectSlug, iterationSlug);
         if (iteration != null && iteration.isOverrideLocales()) {

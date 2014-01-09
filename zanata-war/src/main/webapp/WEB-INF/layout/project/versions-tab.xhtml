@@ -1,0 +1,142 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:s="http://jboss.org/schema/seam/taglib"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:zanata="http://java.sun.com/jsf/composite/zanata"
+  xmlns:f="http://java.sun.com/jsf/core">
+
+  <div class="panel">
+    <div class="panel__header">
+      <div class="panel__header__actions">
+        <zanata:sortlist id="projects-project_sorting"
+          sortAction="#{projectHomeAction.sortVersionList()}"
+          render="versions_form"
+          sortingList="#{projectHomeAction.versionSortingList}"/>
+
+        <div
+          class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+          <a class="dropdown__toggle js-dropdown__toggle" href="#"
+            title="#{messages['jsf.project.tooltip.MoreActions']}"
+            data-original-title="#{messages['jsf.project.tooltip.MoreActions']}"><i
+            class="i i--ellipsis"></i></a>
+          <ul class="dropdown__content js-dropdown__content" role="content"
+            aria-labelledby="dropdownContent">
+            <li>
+              <a
+                href="#{projectHomeAction.getCreateVersionUrl(projectHomeAction.slug)}">
+                #{messages['jsf.project.NewVersion']} <i class="i i--plus i__item__icon"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <h2 class="panel__heading">#{messages['jsf.Versions']}</h2>
+    </div>
+    <div class="panel__sub-header">
+      <div class="panel__results">
+        <div class="panel__results__type">
+          <i class="i i--version txt--neutral"></i>
+        </div>
+        <span
+          class="txt--meta"><strong>#{projectHomeAction.getProjectVersions().size}</strong></span>
+      </div>
+    </div>
+    <h:form id="versions_form" styleClass="l--push-bottom-0">
+      <ul class="list--stats">
+        <ui:repeat value="#{projectHomeAction.getProjectVersions()}"
+          var="version">
+          <li class="progress-bar__expander list__item--actionable">
+            <s:div styleClass="list__item__action" rendered="#{identity.loggedIn}">
+              <div
+                class="dropdown dropdown--small dropdown--inline dropdown--single list__item__dropdown js-dropdown">
+                <a href="#"
+                  class="dropdown__toggle js-dropdown__toggle txt--meta"
+                  title="#{messages['jsf.project.tooltip.TranslateOptions']}"
+                  data-original-title="#{messages['jsf.project.tooltip.TranslateOptions']}">
+                  <span class="is-invisible">
+                    #{messages['jsf.project.tooltip.TranslateOptions']}
+                  </span>
+                </a>
+                <ul class="dropdown__content js-dropdown__content">
+                  <ui:repeat
+                    value="#{projectHomeAction.getSupportedLocale(version)}"
+                    var="hLocale">
+                    <li>
+                      <h:outputLink styleClass="i__item--right"
+                        value="#{request.contextPath}/webtrans/Application.seam">
+                        <f:param name="project"
+                          value="#{projectHomeAction.slug}"/>
+                        <f:param name="iteration" value="#{version.slug}"/>
+                        <f:param name="localeId" value="#{hLocale.localeId}"/>
+                        <f:param name="locale" value="#{locale.language}"/>
+                          <span>
+                            <s:fragment
+                              rendered="#{projectHomeAction.isUserAllowedToTranslateOrReview(version, hLocale)}">
+                              <h:outputFormat
+                                value="#{messages['jsf.project.TranslateIn']}">
+                                <f:param
+                                  value="#{hLocale.retrieveDisplayName()}"/>
+                              </h:outputFormat> <i
+                              class="i i--translate i__item__icon"></i>
+                            </s:fragment>
+                            <s:fragment
+                              rendered="#{not projectHomeAction.isUserAllowedToTranslateOrReview(version, hLocale)}">
+                              <h:outputFormat
+                                value="#{messages['jsf.project.ViewIn']}">
+                                <f:param
+                                  value="#{hLocale.retrieveDisplayName()}"/>
+                              </h:outputFormat> <i
+                              class="i i--translate i__item__icon"></i>
+                            </s:fragment>
+                          </span>
+                      </h:outputLink>
+                    </li>
+                  </ui:repeat>
+                  <li>
+                    <h:outputLink id="exportTMXIterLink"
+                      onclick="return confirm('#{messages['jsf.ConfirmExportTMXIter']}')" styleClass="i__item--right"
+                      value="#{request.contextPath}/rest/tm/projects/#{projectHomeAction.slug}/iterations/#{version.slug}">
+                      #{messages['jsf.iteration.ExportTMXIter']}<i
+                      class="i i--export i__item__icon"></i>
+                    </h:outputLink>
+                  </li>
+                </ul>
+              </div>
+            </s:div>
+
+            <s:link view="/iteration/view.xhtml">
+              <f:param name="projectSlug" value="#{projectHomeAction.slug}"/>
+              <f:param name="iterationSlug" value="#{version.slug}"/>
+
+              <div class="list__item__content">
+                <div class="list__item__info">
+                  <h3 class="list__title">#{version.slug} <span
+                    class="label--highlight">Latest</span></h3>
+                </div>
+
+                <s:div styleClass="list__item__stats"
+                  rendered="#{projectHomeAction.pageRendered}">
+                  <ui:param name="displayUnit"
+                    value="#{projectHomeAction.getStatisticFigureForVersion(projectHomeAction.versionSortingList.selectedSortOption, version.slug)}"/>
+                   <span class="stats--small #{displayUnit.cssClass}">
+                      <span class="stats__figure">
+                        #{displayUnit.figure}
+                      </span>
+                      <span class="stats__unit txt--lowercase">
+                        #{displayUnit.unit}
+                      </span>
+                    </span>
+                </s:div>
+              </div>
+              <zanata:statistic
+                value="#{projectHomeAction.getStatisticForVersion(version.slug)}"
+                rendered="#{projectHomeAction.pageRendered}"/>
+
+              <zanata:loader type="large"
+                rendered="#{!projectHomeAction.pageRendered}"/>
+            </s:link>
+          </li>
+        </ui:repeat>
+      </ul>
+    </h:form>
+  </div>
+</ui:composition>

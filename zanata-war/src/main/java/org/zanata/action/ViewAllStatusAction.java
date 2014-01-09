@@ -472,8 +472,8 @@ public class ViewAllStatusAction implements Serializable {
     }
 
     private List<HLocale> getDisplayLocales() {
-        return localeServiceImpl.getSupportedLangugeByProjectIteration(
-                this.projectSlug, this.iterationSlug);
+        return localeServiceImpl.getSupportedLanguageByProjectIteration(
+            this.projectSlug, this.iterationSlug);
     }
 
     public List<HIterationGroup> getSearchResults() {

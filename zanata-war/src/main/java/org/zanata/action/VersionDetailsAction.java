@@ -63,8 +63,8 @@ public class VersionDetailsAction implements Serializable {
     public List<HLocale> getSupportedLocaleList(String versionSlug) {
         List<HLocale> result = new ArrayList<HLocale>();
         List<HLocale> localeList =
-                localeServiceImpl.getSupportedLangugeByProjectIteration(
-                        projectSlug, versionSlug);
+                localeServiceImpl.getSupportedLanguageByProjectIteration(
+                    projectSlug, versionSlug);
         HPerson person =
                 personDAO.findByUsername(identity.getCredentials()
                         .getUsername());

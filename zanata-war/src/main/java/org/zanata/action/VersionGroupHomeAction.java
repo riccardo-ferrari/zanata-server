@@ -58,7 +58,8 @@ import com.google.common.collect.Maps;
 
 @Name("versionGroupHomeAction")
 @Scope(ScopeType.PAGE)
-public class VersionGroupHomeAction implements Serializable {
+public class VersionGroupHomeAction extends AbstractSortAction implements
+        Serializable {
     private static final long serialVersionUID = 1L;
 
     @In
@@ -326,45 +327,6 @@ public class VersionGroupHomeAction implements Serializable {
         return getDisplayUnit(sortOption, statistic);
     }
 
-    private DisplayUnit getDisplayUnit(SortingType.SortOption sortOption,
-            WordStatistic statistic) {
-        DisplayUnit displayUnit;
-
-        if (sortOption.equals(SortingType.SortOption.HOURS)) {
-            displayUnit =
-                    new DisplayUnit("", StatisticsUtil.formatHours(statistic
-                            .getRemainingHours()),
-                            zanataMessages
-                                    .getMessage("jsf.stats.HoursRemaining"));
-        } else if (sortOption.equals(SortingType.SortOption.WORDS)) {
-            displayUnit =
-                    new DisplayUnit("", String.valueOf(statistic.getTotal()),
-                            zanataMessages.getMessage("jsf.Words"));
-        } else {
-            String figure =
-                    StatisticsUtil.formatPercentage(statistic
-                            .getPercentTranslated()) + "%";
-            if (statistic.getPercentTranslated() == 0) {
-                displayUnit =
-                        new DisplayUnit("txt--neutral", figure,
-                                zanataMessages.getMessage("jsf.Translated"));
-            } else {
-                displayUnit =
-                        new DisplayUnit("txt--success", figure,
-                                zanataMessages.getMessage("jsf.Translated"));
-            }
-        }
-        return displayUnit;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public final class DisplayUnit {
-        private String cssClass;
-        private String figure;
-        private String unit;
-    }
-
     @CachedMethodResult
     public WordStatistic getStatisticsForLocale(LocaleId localeId) {
         WordStatistic statistic = new WordStatistic();
@@ -479,7 +441,8 @@ public class VersionGroupHomeAction implements Serializable {
      * Load up statistics for all project versions in all active locales in the
      * group.
      */
-    private void loadStatistic() {
+    @Override
+    protected void loadStatistic() {
         statisticMap = Maps.newHashMap();
 
         for (HLocale locale : getActiveLocales()) {
@@ -506,7 +469,7 @@ public class VersionGroupHomeAction implements Serializable {
         return projectIterations;
     }
 
-    // reset all page cached statistics
+    @Override
     public void resetPageData() {
         projectIterations = null;
         activeLocales = null;
@@ -514,5 +477,10 @@ public class VersionGroupHomeAction implements Serializable {
         selectedVersion = null;
         missingLocaleVersionMap = null;
         loadStatistic();
+    }
+
+    @Override
+    String getMessage(String key, Object... args) {
+        return zanataMessages.getMessage(key, args);
     }
 }
