@@ -14,7 +14,7 @@ function onTabClick(tab) {
   jQuery(tab).parent().siblings("li").children("a").removeClass('is-active');
   jQuery(tab).addClass("is-active");
   jQuery(tab).parents('.tabs--lined').children('.tabs__content')
-      .children('div').addClass('is-hidden');
+    .children('div').addClass('is-hidden');
   jQuery(jQuery(tab).attr('href') + '_content').removeClass('is-hidden');
 }
 
@@ -43,7 +43,7 @@ function handleSettingsTab(defaultSettingsTabId, hashUrl) {
   if (elementExist(hashUrl)) {
     selectedSettingsTabId = hashUrl + "_tab";
   }
-  onTabClick(selectedSettingsTabId);
+  jQuery(selectedSettingsTabId)[0].click();
 }
 
 function elementExist(hashId) {

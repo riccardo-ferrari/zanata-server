@@ -14,10 +14,41 @@
             sortAction="#{versionGroupHomeAction.sortLanguageList()}"
             render="languages-language_form"
             sortingList="#{versionGroupHomeAction.languageSortingList}"/>
+
+          <div
+            class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+            <a class="dropdown__toggle js-dropdown__toggle" href="#"
+              title="#{messages['jsf.tooltip.MoreActions']}"
+              data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
+              class="i i--ellipsis"></i></a>
+            <ul class="dropdown__content js-dropdown__content" role="content"
+              aria-labelledby="dropdownContent">
+              <s:fragment
+                rendered="#{s:hasPermission(versionGroupHome.instance, 'update')}">
+                <li>
+                  <a
+                    href="#settings-languages" onclick="updateHashAndGotoUrl(this)">
+                    #{messages['jsf.ManageLanguage']} <i class="i i--settings i__item__icon"></i>
+                  </a>
+                </li>
+              </s:fragment>
+            </ul>
+          </div>
+
+
         </div>
         <h2 class="panel__heading">
           <i class="i--language i--left"></i>#{messages['jsf.Languages']}
         </h2>
+      </div>
+      <div class="panel__sub-header">
+        <div class="panel__results">
+          <div class="panel__results__type">
+            <i class="i i--language txt--neutral"></i>
+          </div>
+        <span
+          class="txt--meta"><strong>#{versionGroupHomeAction.activeLocales.size}</strong></span>
+        </div>
       </div>
       <h:form id="languages-language_form" styleClass="l--push-bottom-0">
         <s:fragment
