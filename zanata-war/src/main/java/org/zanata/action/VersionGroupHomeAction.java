@@ -100,6 +100,10 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
     @Getter
     private String projectQuery;
 
+    @Setter
+    @Getter
+    private String languageQuery;
+
     private List<HLocale> activeLocales;
 
     private List<HProjectIteration> projectIterations;
@@ -273,7 +277,14 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
         } else {
             return getFilteredProjectIterations().size();
         }
+    }
 
+    public int getFilteredLocalesSize() {
+        if (getSelectedVersion() == null) {
+            return 0;
+        } else {
+            return getFilteredLocales().size();
+        }
     }
 
     /**
@@ -318,6 +329,24 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
         }
         Collections.sort(activeLocales, languageComparator);
         return activeLocales;
+    }
+
+    public List<HLocale> getFilteredLocales() {
+        List<HLocale> list = getActiveLocales();
+        if (StringUtils.isEmpty(languageQuery)) {
+            return list;
+        }
+
+        Collection<HLocale> filtered =
+                Collections2.filter(list, new Predicate<HLocale>() {
+                    @Override
+                    public boolean apply(@Nullable HLocale input) {
+                        return input.retrieveDisplayName().toLowerCase()
+                                .contains(languageQuery.toLowerCase());
+                    }
+                });
+
+        return Lists.newArrayList(filtered);
     }
 
     @CachedMethodResult

@@ -39,23 +39,23 @@
         <ui:param name="untranslated_percentage"
           value="#{statisticBar.formatPercentage(cc.attrs.value.percentUntranslated)}"/>
 
-        <span class="progress-bar__translated"
+        <span class="progress-bar__translated progress-bar__item"
           style="width: #{translated_percentage}%;">
         <span class="is-invisible"> #{messages['jsf.stats.Translated']}</span>
         </span>
-        <span class="progress-bar__fuzzy"
+        <span class="progress-bar__fuzzy progress-bar__item"
           style="width: #{fuzzy_percentage}%; margin-left: #{translated_percentage}%;">
           <span class="is-invisible">#{messages['jsf.stats.Fuzzy']}</span>
         </span>
-        <span class="progress-bar__rejected"
+        <span class="progress-bar__rejected progress-bar__item"
           style="width: #{rejected_percentage}%; margin-left: #{translated_percentage + fuzzy_percentage}%;">
           <span class="is-invisible">#{messages['jsf.stats.Rejected']}</span>
         </span>
-        <span class="progress-bar__approved"
+        <span class="progress-bar__approved progress-bar__item"
           style="width: #{approved_percentage}%;">
           <span class="is-invisible">#{messages['jsf.stats.Approved']}</span>
         </span>
-        <span class="progress-bar__untranslated"
+        <span class="progress-bar__untranslated progress-bar__item"
           style="width: #{untranslated_percentage}%; margin-left: #{translated_percentage + fuzzy_percentage + rejected_percentage + approved_percentage}%">
           <span
             class="is-invisible">#{messages['jsf.stats.Untranslated']}</span>

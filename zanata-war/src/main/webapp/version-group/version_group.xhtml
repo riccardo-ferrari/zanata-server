@@ -28,11 +28,12 @@
   function updateActiveRow(clickedElement) {
     var parent = jQuery(clickedElement).parent();
 
-    jQuery(clickedElement).addClass("is-active");
-
     jQuery(parent).siblings("li").removeClass('is-active');
-    jQuery(parent).addClass('is-active');
     jQuery(parent).siblings("li").children("a").removeClass('is-active');
+
+    jQuery(clickedElement).addClass("is-active");
+    jQuery(parent).addClass('is-active');
+
   }
 
   function removeActiveRows(listId) {
@@ -42,8 +43,6 @@
 
   function toggleColumn(tabId) {
     jQuery('#' + tabId).find('.panels--2').toggleClass('panel__active-2');
-    jQuery('#' +
-      tabId).find('.panel__active-2').find('.panels__panel').addClass('is-active');
   }
 </script>
 
@@ -116,23 +115,6 @@
       <zanata:loader type="large"
         rendered="#{!versionGroupHomeAction.pageRendered}"/>
     </a4j:outputPanel>
-    <s:fragment rendered="#{versionGroupHomeAction.isUserProjectMaintainer()}">
-      <ul class="list--slat">
-        <li>
-          <s:link view="/version-group/request_to_join.xhtml"
-            propagation="none">
-            <f:param name="emailType" value="request_to_join_group"/>
-            <f:param name="versionGroupSlug"
-              value="#{versionGroupHomeAction.slug}"/>
-            <i class="i--left i--project"></i>
-            <h:outputFormat
-              value="#{messages['jsf.RequestAddProjectToGroup']}">
-              <f:param value="#{versionGroupHome.instance.name}"/>
-            </h:outputFormat>
-          </s:link>
-        </li>
-      </ul>
-    </s:fragment>
   </div>
 
 
@@ -177,6 +159,37 @@
               </a4j:outputPanel>
             </a>
           </li>
+
+          <li class="tab__end">
+            <div
+              class="dropdown dropdown--tab dropdown--small dropdown--right dropdown--inline js-dropdown">
+              <a class="dropdown__toggle js-dropdown__toggle" href="#"
+                title="#{messages['jsf.tooltip.MoreActions']}"
+                data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
+                class="i i--ellipsis"></i></a>
+              <ul class="dropdown__content js-dropdown__content" role="content"
+                aria-labelledby="dropdownContent">
+                <s:fragment
+                  rendered="#{versionGroupHomeAction.isUserProjectMaintainer()}">
+                  <li>
+                    <s:link view="/version-group/request_to_join.xhtml"
+                      styleClass="i__item--right"
+                      propagation="none">
+                      <f:param name="emailType" value="request_to_join_group"/>
+                      <f:param name="versionGroupSlug"
+                        value="#{versionGroupHomeAction.slug}"/>
+                      <h:outputFormat
+                        value="#{messages['jsf.RequestAddProjectToGroup']}">
+                        <f:param value="#{versionGroupHome.instance.name}"/>
+                      </h:outputFormat>
+                      <i class="i i--project i__item__icon"></i>
+                    </s:link>
+                  </li>
+                </s:fragment>
+              </ul>
+            </div>
+          </li>
+
           <s:fragment
             rendered="#{s:hasPermission(versionGroupHome.instance, 'update')}">
             <li class="tab__end">
@@ -205,7 +218,8 @@
         </div>
 
         <div id="maintainers_content" class="is-hidden">
-          <zanata:maintainers-tab value="#{versionGroupHomeAction.maintainers.toArray()}"/>
+          <zanata:maintainers-tab
+            value="#{versionGroupHomeAction.maintainers.toArray()}"/>
         </div>
 
         <s:fragment

@@ -76,7 +76,7 @@
           value="#{versionGroupHomeAction.activeLocales}"
           var="hLocale">
           <li
-            class="progress-bar__expander panels__panel__item bg--highest--hover">
+            class="progress-bar__expander">
             <a4j:commandLink
               action="#{versionGroupHomeAction.setSelectedLocale(hLocale)}"
               render="languages-project_list, language-label, #{rich:clientId('projectFilter-size')}"
@@ -147,7 +147,7 @@
   </div>
 
   <zanata:list-filter queryField="#{versionGroupHomeAction.projectQuery}"
-    getFilteredSize="#{versionGroupHomeAction.getFilteredProjectSize()}"
+    getFilteredSize="#{versionGroupHomeAction.filteredProjectSize}"
     render="languages-project_list" id="projectFilter"
     iconClass="i--project"/>
 
@@ -161,7 +161,7 @@
       </div>
     </s:fragment>
     <s:fragment
-      rendered="#{versionGroupHomeAction.selectedLocale != null and versionGroupHomeAction.getFilteredProjectIterations().isEmpty()}">
+      rendered="#{versionGroupHomeAction.selectedLocale != null and versionGroupHomeAction.filteredProjectIterations.isEmpty()}">
       <div class="l--pad-all-half">
         <p class="txt--meta">#{messages['jsf.NoProjectsInGroup']}</p>
         <s:fragment
@@ -176,13 +176,13 @@
       </div>
     </s:fragment>
     <s:fragment
-      rendered="#{versionGroupHomeAction.selectedLocale != null and !versionGroupHomeAction.getFilteredProjectIterations().isEmpty()}">
+      rendered="#{versionGroupHomeAction.selectedLocale != null and !versionGroupHomeAction.filteredProjectIterations.isEmpty()}">
       <ul class="list--stats">
         <ui:repeat
-          value="#{versionGroupHomeAction.getFilteredProjectIterations()}"
+          value="#{versionGroupHomeAction.filteredProjectIterations}"
           var="version">
           <li
-            class="progress-bar__expander bg--highest--hover">
+            class="progress-bar__expander">
             <s:link view="/iteration/view.xhtml">
               <f:param name="projectSlug"
                 value="#{version.project.slug}"/>
