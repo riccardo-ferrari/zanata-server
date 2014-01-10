@@ -163,3 +163,7 @@ function clearAllSelection(resultDiv) {
   jQuery(resultDiv).children('.autocomplete__result')
     .removeClass("is-selected");
 }
+
+function filterList(input, filterFn) {
+  filterFn(jQuery(input).val());
+}

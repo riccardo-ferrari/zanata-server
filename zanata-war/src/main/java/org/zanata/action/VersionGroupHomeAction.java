@@ -21,16 +21,15 @@
 package org.zanata.action;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
+import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
@@ -42,15 +41,20 @@ import org.zanata.dao.VersionGroupDAO;
 import org.zanata.model.HAccount;
 import org.zanata.model.HLocale;
 import org.zanata.model.HPerson;
+import org.zanata.model.HProject;
 import org.zanata.model.HProjectIteration;
 import org.zanata.service.VersionGroupService;
 import org.zanata.service.VersionLocaleKey;
 import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
 import org.zanata.util.ZanataMessages;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
@@ -91,6 +95,10 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     @Getter
     private WordStatistic overallStatistic;
+
+    @Setter
+    @Getter
+    private String projectQuery;
 
     private List<HLocale> activeLocales;
 
@@ -259,6 +267,15 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
                 && authenticatedAccount.getPerson().isMaintainerOfProjects();
     }
 
+    public int getFilteredProjectSize() {
+        if (getSelectedLocale() == null) {
+            return 0;
+        } else {
+            return getFilteredProjectIterations().size();
+        }
+
+    }
+
     /**
      * Sort language list based on overall locale statistic for the group
      */
@@ -277,7 +294,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Sort project list based on selected locale - language tab
-     *
+     * 
      * @param localeId
      */
     public void sortProjectList(LocaleId localeId) {
@@ -386,7 +403,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Search for locale that is not activated in given version
-     *
+     * 
      * @param version
      */
     public List<LocaleId> getMissingLocale(HProjectIteration version) {
@@ -411,7 +428,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Search for version that doesn't activate given locale
-     *
+     * 
      * @param localeId
      */
     public List<HProjectIteration> getMissingVersion(LocaleId localeId) {
@@ -467,6 +484,25 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
         Collections.sort(projectIterations, versionComparator);
         return projectIterations;
+    }
+
+    public List<HProjectIteration> getFilteredProjectIterations() {
+        List<HProjectIteration> list = getProjectIterations();
+        if (StringUtils.isEmpty(projectQuery)) {
+            return list;
+        }
+
+        Collection<HProjectIteration> filtered =
+                Collections2.filter(list, new Predicate<HProjectIteration>() {
+                    @Override
+                    public boolean apply(@Nullable HProjectIteration input) {
+                        HProject project = input.getProject();
+                        return project.getName().toLowerCase()
+                                .contains(projectQuery.toLowerCase());
+                    }
+                });
+
+        return Lists.newArrayList(filtered);
     }
 
     @Override
