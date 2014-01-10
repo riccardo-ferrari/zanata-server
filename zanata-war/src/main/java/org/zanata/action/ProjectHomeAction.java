@@ -28,9 +28,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
@@ -53,9 +50,12 @@ import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
 import org.zanata.util.UrlUtil;
 import org.zanata.util.ZanataMessages;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
@@ -104,12 +104,12 @@ public class ProjectHomeAction extends AbstractSortAction implements
     @Getter
     private boolean pageRendered = false;
 
-    private List<HProjectIteration> projectVersions;
+    private List<VersionItem> projectVersions;
 
     private Map<String, WordStatistic> statisticMap;
 
-    private final VersionComparator versionComparator = new VersionComparator(
-            getVersionSortingList());
+    private final VersionItemComparator versionItemComparator =
+            new VersionItemComparator(getVersionSortingList());
 
     @CachedMethodResult
     public List<Activity> getProjectLatestActivity() {
@@ -142,27 +142,26 @@ public class ProjectHomeAction extends AbstractSortAction implements
      * Sort version list
      */
     public void sortVersionList() {
-        Collections.sort(projectVersions, versionComparator);
+        Collections.sort(projectVersions, versionItemComparator);
     }
 
-    private class VersionComparator implements Comparator<HProjectIteration> {
+    private class VersionItemComparator implements Comparator<VersionItem> {
         private SortingType sortingType;
 
-        public VersionComparator(SortingType sortingType) {
+        public VersionItemComparator(SortingType sortingType) {
             this.sortingType = sortingType;
         }
 
         @Override
-        public int compare(HProjectIteration compareFrom,
-                HProjectIteration compareTo) {
+        public int compare(VersionItem compareFrom, VersionItem compareTo) {
             final HProjectIteration item1, item2;
 
             if (sortingType.isDescending()) {
-                item1 = compareFrom;
-                item2 = compareTo;
+                item1 = compareFrom.getVersion();
+                item2 = compareTo.getVersion();
             } else {
-                item1 = compareTo;
-                item2 = compareFrom;
+                item1 = compareTo.getVersion();
+                item2 = compareFrom.getVersion();
             }
 
             SortingType.SortOption selectedSortOption =
@@ -210,14 +209,17 @@ public class ProjectHomeAction extends AbstractSortAction implements
     protected void loadStatistic() {
         statisticMap = Maps.newHashMap();
 
-        for (HProjectIteration version : getProjectVersions()) {
+        for (VersionItem versionItem : getProjectVersions()) {
             WordStatistic versionStats = new WordStatistic();
-            List<HLocale> locales = getSupportedLocale(version);
+            List<HLocale> locales =
+                    getSupportedLocale(versionItem.getVersion());
             for (HLocale locale : locales) {
-                versionStats.add(versionStateCacheImpl.getVersionStatistics(
-                        version.getId(), locale.getLocaleId()));
+                versionStats
+                        .add(versionStateCacheImpl.getVersionStatistics(
+                                versionItem.getVersion().getId(),
+                                locale.getLocaleId()));
             }
-            statisticMap.put(version.getSlug(), versionStats);
+            statisticMap.put(versionItem.getVersion().getSlug(), versionStats);
         }
     }
 
@@ -229,17 +231,31 @@ public class ProjectHomeAction extends AbstractSortAction implements
         return Lists.newArrayList();
     }
 
-    public List<HProjectIteration> getProjectVersions() {
+    public List<VersionItem> getProjectVersions() {
         if (projectVersions == null) {
+            List<HProjectIteration> result;
             if (isUserAllowViewObsolete()) {
-                projectVersions = projectDAO.getAllIterations(slug);
+                result = projectDAO.getAllIterations(slug);
             } else {
-                projectVersions = projectDAO.getActiveIterations(slug);
-                projectVersions.addAll(projectDAO.getReadOnlyIterations(slug));
+                result = projectDAO.getActiveIterations(slug);
+                result.addAll(projectDAO.getReadOnlyIterations(slug));
+            }
+
+            projectVersions = Lists.newArrayList();
+            for (int i = 0; i < result.size(); i++) {
+                HProjectIteration version = result.get(i);
+                projectVersions.add(new VersionItem(version, i == 0));
             }
         }
-        Collections.sort(projectVersions, versionComparator);
         return projectVersions;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public class VersionItem {
+        private HProjectIteration version;
+        private boolean latestVersion;
     }
 
     public boolean isUserAllowViewObsolete() {
