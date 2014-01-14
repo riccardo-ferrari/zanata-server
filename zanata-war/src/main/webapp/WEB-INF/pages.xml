@@ -560,11 +560,6 @@
     <param name="slug" value="#{projectHomeAction.slug}" />
     <param name="slug" value="#{versionDetailsAction.projectSlug}" />
     <action execute="#{projectHome.validateSuppliedId}" />
-    <action execute="#{breadcrumbs.clear}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
-    <action
-      execute="#{breadcrumbs.addLocation('', projectHome.instance.slug)}" />
 
     <navigation from-action="#{versionDetailsAction.sourceDocs(_version.slug)}">
       <redirect view-id="/iteration/source_files.xhtml">
@@ -752,16 +747,12 @@
   <!-- Project Iteration -->
 
   <page view-id="/iteration/view.xhtml">
-    <param name="projectSlug" value="#{viewAllStatusAction.projectSlug}" />
-    <param name="iterationSlug" value="#{viewAllStatusAction.iterationSlug}" />
-    <action execute="#{viewAllStatusAction.validateIteration}" />
-    <action execute="#{breadcrumbs.clear}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/project.xhtml', viewAllStatusAction.project.slug).param('slug', viewAllStatusAction.projectSlug)}" />
-    <action
-      execute="#{breadcrumbs.addLocation('', viewAllStatusAction.iterationSlug)}" />
+    <param name="projectSlug" value="#{versionHomeAction.projectSlug}" />
+    <param name="iterationSlug" value="#{versionHomeAction.versionSlug}" />
+    <param name="projectSlug" value="#{projectIterationFilesAction.projectSlug}" />
+    <param name="iterationSlug" value="#{projectIterationFilesAction.iterationSlug}" />
+    <action execute="#{versionHomeAction.validateIteration}" />
+    <action execute="#{projectIterationFilesAction.initialize()}" />
   </page>
 
   <page view-id="/iteration/source_files.xhtml">

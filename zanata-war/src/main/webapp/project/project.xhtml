@@ -18,7 +18,6 @@
       checkHashUrl('#versions_tab', '#settings-general_tab');
       renderStatistics();
     });
-
   </script>
   <h:form>
     <a4j:jsFunction name="refreshStatistics"
@@ -217,9 +216,13 @@
             </s:fragment>
           </div>
 
-          <div id="settings_content" class="is-hidden">
-            settings
-          </div>
+          <s:fragment
+            rendered="#{s:hasPermission(projectHome.instance, 'update')}">
+            <div id="settings_content" class="is-hidden">
+              <ui:include
+                src="../WEB-INF/layout/project/settings-tab.xhtml"/>
+            </div>
+          </s:fragment>
         </div>
 
       </div>

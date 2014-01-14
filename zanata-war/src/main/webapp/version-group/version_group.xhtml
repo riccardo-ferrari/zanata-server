@@ -24,26 +24,6 @@
     window.location.hash = jQuery(anchor).attr('href');
     checkHashUrl('#languages_tab', '#settings-general_tab');
   }
-
-  function updateActiveRow(clickedElement) {
-    var parent = jQuery(clickedElement).parent();
-
-    jQuery(parent).siblings("li").removeClass('is-active');
-    jQuery(parent).siblings("li").children("a").removeClass('is-active');
-
-    jQuery(clickedElement).addClass("is-active");
-    jQuery(parent).addClass('is-active');
-
-  }
-
-  function removeActiveRows(listId) {
-    jQuery('#' + listId).children('li').removeClass('is-active');
-    jQuery('#' + listId).children('li').children("a").removeClass('is-active');
-  }
-
-  function toggleColumn(tabId) {
-    jQuery('#' + tabId).find('.panels--2').toggleClass('panel__active-2');
-  }
 </script>
 
 <h:form>

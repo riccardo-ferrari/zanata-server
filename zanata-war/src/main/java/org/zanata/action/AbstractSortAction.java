@@ -22,10 +22,16 @@
 
 package org.zanata.action;
 
+import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import org.zanata.model.HLocale;
+import org.zanata.service.VersionLocaleKey;
 import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
+
+import java.util.Comparator;
 
 /**
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
@@ -39,6 +45,13 @@ public abstract class AbstractSortAction {
 
     abstract String getMessage(String key, Object... args);
 
+    @Getter
+    private final SortingType languageSortingList = new SortingType(
+            Lists.newArrayList(SortingType.SortOption.ALPHABETICAL,
+                    SortingType.SortOption.HOURS,
+                    SortingType.SortOption.PERCENTAGE,
+                    SortingType.SortOption.WORDS));
+
     protected DisplayUnit getDisplayUnit(SortingType.SortOption sortOption,
             WordStatistic statistic) {
         DisplayUnit displayUnit;
@@ -50,7 +63,7 @@ public abstract class AbstractSortAction {
                             getMessage("jsf.stats.HoursRemaining"));
         } else if (sortOption.equals(SortingType.SortOption.WORDS)) {
             displayUnit =
-                    new DisplayUnit("", String.valueOf(statistic.getTotal()),
+                    new DisplayUnit("", String.valueOf(statistic.getUntranslated()),
                             getMessage("jsf.Words"));
         } else {
             String figure =
@@ -76,5 +89,4 @@ public abstract class AbstractSortAction {
         private String figure;
         private String unit;
     }
-
 }

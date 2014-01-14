@@ -113,12 +113,6 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
     private Map<LocaleId, List<HProjectIteration>> missingLocaleVersionMap;
 
     @Getter
-    private final SortingType languageSortingList = new SortingType(
-            Lists.newArrayList(SortingType.SortOption.ALPHABETICAL,
-                    SortingType.SortOption.HOURS,
-                    SortingType.SortOption.PERCENTAGE));
-
-    @Getter
     private SortingType projectSortingList = new SortingType(
             Lists.newArrayList(SortingType.SortOption.ALPHABETICAL,
                     SortingType.SortOption.HOURS,
@@ -191,6 +185,10 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
                         .equals(SortingType.SortOption.HOURS)) {
                     return Double.compare(wordStatistic1.getRemainingHours(),
                             wordStatistic2.getRemainingHours());
+                } else if (selectedSortOption
+                        .equals(SortingType.SortOption.WORDS)) {
+                    return Double.compare(wordStatistic1.getUntranslated(),
+                            wordStatistic2.getUntranslated());
                 }
             } else {
                 return item1.retrieveDisplayName().compareTo(
@@ -252,7 +250,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
                             wordStatistic2.getRemainingHours());
                 } else if (selectedSortOption
                         .equals(SortingType.SortOption.WORDS)) {
-                    if (wordStatistic1.getTotal() == wordStatistic2.getTotal()) {
+                    if (wordStatistic1.getUntranslated() == wordStatistic2.getUntranslated()) {
                         return 0;
                     }
                     return wordStatistic1.getTotal() > wordStatistic2
@@ -305,7 +303,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Sort project list based on selected locale - language tab
-     * 
+     *
      * @param localeId
      */
     public void sortProjectList(LocaleId localeId) {
@@ -432,7 +430,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Search for locale that is not activated in given version
-     * 
+     *
      * @param version
      */
     public List<LocaleId> getMissingLocale(HProjectIteration version) {
@@ -457,7 +455,7 @@ public class VersionGroupHomeAction extends AbstractSortAction implements
 
     /**
      * Search for version that doesn't activate given locale
-     * 
+     *
      * @param localeId
      */
     public List<HProjectIteration> getMissingVersion(LocaleId localeId) {

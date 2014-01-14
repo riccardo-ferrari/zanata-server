@@ -26,6 +26,7 @@
 
     <div
       class="#{cc.attrs.type eq 'large' ? 'progress-bar--large' : 'progress-bar'}"
+      data-original-title="#{messages['jsf.stats.Total']} #{total}, #{messages['jsf.stats.Approved']} #{approved}, #{messages['jsf.stats.Translated']} #{translated}, #{messages['jsf.stats.Fuzzy']} #{fuzzy}, #{messages['jsf.stats.Rejected']} #{rejected}, #{messages['jsf.stats.Untranslated']} #{untranslated}"
       title="#{messages['jsf.stats.Total']} #{total}, #{messages['jsf.stats.Approved']} #{approved}, #{messages['jsf.stats.Translated']} #{translated}, #{messages['jsf.stats.Fuzzy']} #{fuzzy}, #{messages['jsf.stats.Rejected']} #{rejected}, #{messages['jsf.stats.Untranslated']} #{untranslated}">
       <s:fragment rendered="#{total > 0}">
         <ui:param name="translated_percentage"

@@ -30,6 +30,7 @@ import org.zanata.model.StatusCount;
 import org.zanata.rest.dto.stats.ContainerTranslationStatistics;
 import org.zanata.rest.dto.stats.TranslationStatistics;
 import org.zanata.rest.dto.stats.TranslationStatistics.StatUnit;
+import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
 
 import com.google.common.base.Optional;
@@ -109,15 +110,15 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
     /**
      * Returns the total message count for a document
      */
-    public Long getTotalCountForDocument(HDocument document) {
+    public Long getTotalCountForDocument(Long documentId) {
         Session session = getSession();
         Long totalCount =
                 (Long) session
                         .createQuery(
                                 "select count(tf) from HTextFlow tf "
-                                        + "where tf.document = :doc "
+                                        + "where tf.document.id = :docId "
                                         + "and tf.obsolete = false")
-                        .setParameter("doc", document)
+                        .setParameter("docId", documentId)
                         .setComment("DocumentDAO.getTotalCountForDocument")
                         .setCacheable(true).uniqueResult();
 
@@ -184,6 +185,48 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
                 .uniqueResult();
     }
 
+    public WordStatistic getWordStatistics(Long documentId, LocaleId localeId) {
+        WordStatistic wordStatistic = new WordStatistic();
+
+        List<StatusCount> stats = getWordStatusCount(documentId, localeId);
+
+        for (StatusCount count : stats) {
+            wordStatistic.set(count.status, count.count.intValue());
+        }
+
+        Long totalCount = getTotalCountForDocument(documentId);
+
+        wordStatistic.set(
+                ContentState.New,
+                totalCount.intValue()
+                        - (wordStatistic.getApproved()
+                                + wordStatistic.getTranslated()
+                                + wordStatistic.getNeedReview() + wordStatistic
+                                    .getRejected()));
+
+        return wordStatistic;
+    }
+
+    public List<StatusCount> getWordStatusCount(Long documentId,
+            LocaleId localeId) {
+        Query q =
+                getSession()
+                        .createQuery(
+                                "select new org.zanata.model.StatusCount(tft.state, "
+                                        + "sum(tft.textFlow.wordCount)) "
+                                        + "from HTextFlowTarget tft "
+                                        + "where tft.textFlow.document.id = :documentId "
+                                        + "and tft.locale.localeId = :locale "
+                                        + "and tft.textFlow.obsolete = false "
+                                        + "and tft.textFlow.document.obsolete = false "
+                                        + "group by tft.state ");
+        q.setParameter("documentId", documentId).setParameter("locale", localeId);
+        q.setCacheable(true).setComment("DocumentDAO.getWordStatistics");
+        @SuppressWarnings("unchecked")
+        List<StatusCount> stats = q.list();
+        return stats;
+    }
+
     /**
      * @see ProjectIterationDAO#getStatisticsForContainer(Long, LocaleId)
      * @param docId
@@ -209,7 +252,7 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
                         .setParameter("locale", localeId)
                         .setComment("DocumentDAO.getStatistics-units")
                         .setCacheable(true).list();
-        Long totalCount = getTotalCountForDocument(getById(docId));
+        Long totalCount = getTotalCountForDocument(docId);
 
         TransUnitCount unitCount = new TransUnitCount();
         for (StatusCount count : stats) {
@@ -322,14 +365,17 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
             transUnitWords.set(state, wordCount.intValue());
         }
 
-
         for (TransUnitCount stat : transUnitCountMap.values()) {
-            stat.set(ContentState.New,
-                    StatisticsUtil.calculateUntranslated(new Long(stat.getTotal()), stat));
+            stat.set(
+                    ContentState.New,
+                    StatisticsUtil.calculateUntranslated(
+                            new Long(stat.getTotal()), stat));
         }
         for (TransUnitWords stat : transUnitWordsMap.values()) {
-            stat.set(ContentState.New,
-                    StatisticsUtil.calculateUntranslated(new Long(stat.getTotal()), stat));
+            stat.set(
+                    ContentState.New,
+                    StatisticsUtil.calculateUntranslated(
+                            new Long(stat.getTotal()), stat));
         }
 
         // Merge into a single Stats object

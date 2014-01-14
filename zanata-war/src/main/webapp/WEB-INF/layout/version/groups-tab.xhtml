@@ -1,0 +1,29 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:s="http://jboss.org/schema/seam/taglib"
+  xmlns:f="http://java.sun.com/jsf/core">
+
+  <div class="panel">
+    <div class="panel__header">
+      <h2 class="panel__heading">
+        <i class="i--left i--group"></i>#{messages['jsf.Groups']}
+      </h2>
+    </div>
+
+    <s:fragment rendered="#{not empty versionHomeAction.groups}">
+      <ul class="list--slat">
+        <ui:repeat value="#{versionHomeAction.groups}" var="group">
+          <li class="l--pad-all-half">
+            <s:link value="#{group.name}" propagation="none"
+              view="/version-group/version_group.xhtml">
+              <f:param name="versionGroupSlug" value="#{group.slug}"/>
+            </s:link>
+          </li>
+        </ui:repeat>
+      </ul>
+    </s:fragment>
+    <s:fragment rendered="#{empty versionHomeAction.groups}">
+      #{messages['jsf.iteration.NoGroup']}
+    </s:fragment>
+  </div>
+</ui:composition>

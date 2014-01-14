@@ -14,7 +14,7 @@ function onTabClick(tab) {
   jQuery(tab).parent().siblings("li").children("a").removeClass('is-active');
   jQuery(tab).addClass("is-active");
   jQuery(tab).parents('.tabs--lined').children('.tabs__content')
-    .children('div').addClass('is-hidden');
+      .children('div').addClass('is-hidden');
   jQuery(jQuery(tab).attr('href') + '_content').removeClass('is-hidden');
 }
 
@@ -48,4 +48,23 @@ function handleSettingsTab(defaultSettingsTabId, hashUrl) {
 
 function elementExist(hashId) {
   return jQuery(hashId).length != 0;
+}
+
+function updateActiveRow(clickedElement) {
+  var parent = jQuery(clickedElement).parent();
+
+  jQuery(parent).siblings("li").removeClass('is-active');
+  jQuery(parent).siblings("li").children("a").removeClass('is-active');
+
+  jQuery(clickedElement).addClass("is-active");
+  jQuery(parent).addClass('is-active');
+}
+
+function toggleColumn(tabId) {
+  jQuery('#' + tabId).find('.panels--2').toggleClass('panel__active-2');
+}
+
+function removeActiveRows(listId) {
+  jQuery('#' + listId).children('li').removeClass('is-active');
+  jQuery('#' + listId).children('li').children("a").removeClass('is-active');
 }

@@ -232,7 +232,7 @@ public class StatisticsServiceImpl implements StatisticsResource {
         docStats.addRef(new Link(URI.create(zPathService
                 .generatePathForDocument(document)), "statSource", "DOC"));
 
-        long docTotalMssgs = documentDAO.getTotalCountForDocument(document);
+        long docTotalMssgs = documentDAO.getTotalCountForDocument(document.getId());
 
         long docTotalWords = 0;
         if (includeWordStats) {
