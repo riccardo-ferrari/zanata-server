@@ -268,6 +268,41 @@ public class VersionHomeAction extends AbstractSortAction implements
         return Lists.newArrayList(filtered);
     }
 
+    public List<HDocument> getPagedFilteredDocuments() {
+        List<List<HDocument>> partition =
+                Lists.partition(getFilteredDocuments(), documentsCountPerPage);
+        return partition.get(currentDocumentPage);
+    }
+
+    @Getter
+    private int documentsCountPerPage = 10;
+
+    @Getter
+    private int currentDocumentPage = 0;
+
+    public String getDocumentsRange() {
+        int totalDocuments = getFilteredDocumentSize();
+        int upperBound =
+                totalDocuments == 0 ? 0
+                        : (currentDocumentPage * documentsCountPerPage) + 1;
+        int lowerBound = (currentDocumentPage + 1) * documentsCountPerPage;
+        lowerBound = lowerBound > totalDocuments ? totalDocuments : lowerBound;
+        return upperBound + "-" + lowerBound;
+    }
+
+    public void nextPage() {
+        int totalPage =
+                (int) Math.ceil((double) getFilteredDocumentSize()
+                        / documentsCountPerPage) - 1;
+        currentDocumentPage =
+                currentDocumentPage++ > totalPage ? 0 : currentDocumentPage;
+    }
+
+    public void previousPage() {
+        currentDocumentPage =
+                currentDocumentPage-- < 0 ? 0 : currentDocumentPage;
+    }
+
     @Getter
     @AllArgsConstructor
     @EqualsAndHashCode

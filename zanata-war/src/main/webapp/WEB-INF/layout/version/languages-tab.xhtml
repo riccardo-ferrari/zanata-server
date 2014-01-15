@@ -33,6 +33,21 @@
   }
 </script>
 
+<a4j:jsFunction name="filterDocuments"
+  render="languages-document_list, document-range-label, total-documents-label"
+  limitRender="true">
+  <a4j:param name="val" assignTo="#{versionHomeAction.documentQuery}"/>
+</a4j:jsFunction>
+
+<a4j:jsFunction name="nextDocumentPage" action="#{versionHomeAction.nextPage}"
+  render="document-range-label, languages-document_list" limitRender="true">
+</a4j:jsFunction>
+
+<a4j:jsFunction name="previousDocumentPage"
+  action="#{versionHomeAction.previousPage}"
+  render="document-range-label, languages-document_list" limitRender="true">
+</a4j:jsFunction>
+
 <div class="panels--2">
 <div class="panels__panel panel">
   <div class="panels__panel__header panel__header">
@@ -102,7 +117,7 @@
           <li class="progress-bar__expander">
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedLocale(hLocale)}"
-              render="languages-document_list, language-label, export-options, #{rich:clientId('documentFilter-size')}"
+              render="languages-document_list, language-label, document-range-label, total-documents-label, export-options, #{rich:clientId('documentFilter-size')}"
               onclick="updateActiveRow(this);toggleColumn('languages_content')"
               styleClass="bx--block">
               <div class="list__item">
@@ -149,51 +164,54 @@
       render="languages-document_list"
       sortingList="#{versionHomeAction.documentSortingList}"/>
 
-    <s:div id="export-options"
-      styleClass="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
-      <a class="dropdown__toggle js-dropdown__toggle" href="#"
-        title="#{messages['jsf.tooltip.MoreActions']}"
-        data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
-        class="i i--ellipsis"></i></a>
-      <s:fragment
-        rendered="#{identity.loggedIn and versionHomeAction.selectedLocale != null}">
-        <ul class="dropdown__content js-dropdown__content" role="content"
-          aria-labelledby="dropdownContent">
-          <s:fragment
-            rendered="#{projectIterationFilesAction.zipFileDownloadAllowed}">
-            <li>
-              <a4j:commandLink
-                action="#{projectIterationZipFileAction.prepareIterationZipFile(versionHomeAction.projectSlug, versionHomeAction.versionSlug, projectIterationFilesAction.poProject, versionHomeAction.selectedLocale.localeId)}"
-                onclick="if(!downloadAllFilesClick()){ return false; }"
-                render="downloadProgressBar" styleClass="i__item--right"
-                title="#{projectIterationFilesAction.zipFileDownloadTitle}">
-                <s:fragment rendered="#{projectIterationFilesAction.poProject}">
-                  #{messages['jsf.iteration.files.DownloadAll']}
-                </s:fragment>
-                <s:fragment
-                  rendered="#{not projectIterationFilesAction.poProject}">
-                  #{messages['jsf.iteration.files.DownloadAllOfflinePo']}
-                </s:fragment>
-                <i class="i i--export i__item__icon"></i>
-              </a4j:commandLink>
-            </li>
-          </s:fragment>
+    <h:form styleClass="l--push-bottom-0 bx--inline">
+      <s:div id="export-options"
+        styleClass="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+        <a class="dropdown__toggle js-dropdown__toggle" href="#"
+          title="#{messages['jsf.tooltip.MoreActions']}"
+          data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
+          class="i i--ellipsis"></i></a>
+        <s:fragment
+          rendered="#{identity.loggedIn and versionHomeAction.selectedLocale != null}">
+          <ul class="dropdown__content js-dropdown__content" role="content"
+            aria-labelledby="dropdownContent">
+            <s:fragment
+              rendered="#{projectIterationFilesAction.zipFileDownloadAllowed}">
+              <li>
+                <a4j:commandLink execute="@this"
+                  action="#{projectIterationZipFileAction.prepareIterationZipFile(projectIterationFilesAction.poProject, versionHomeAction.projectSlug, versionHomeAction.versionSlug, versionHomeAction.selectedLocale.localeId)}"
+                  onclick="if(!downloadAllFilesClick()){ return false; }"
+                  render="downloadProgressBar" styleClass="i__item--right"
+                  title="#{projectIterationFilesAction.zipFileDownloadTitle}">
+                  <s:fragment
+                    rendered="#{projectIterationFilesAction.poProject}">
+                    #{messages['jsf.iteration.files.DownloadAll']}
+                  </s:fragment>
+                  <s:fragment
+                    rendered="#{not projectIterationFilesAction.poProject}">
+                    #{messages['jsf.iteration.files.DownloadAllOfflinePo']}
+                  </s:fragment>
+                  <i class="i i--export i__item__icon"></i>
+                </a4j:commandLink>
+              </li>
+            </s:fragment>
 
-          <li>
-            <h:outputLink styleClass="i__item--right"
-              onclick="return confirm('#{messages['jsf.ConfirmExportTMXIter']}')"
-              value="#{request.contextPath}/rest/tm/projects/#{versionHomeAction.projectSlug}/iterations/#{versionHomeAction.versionSlug}?locale=#{versionHomeAction.selectedLocale.localeId.id}">
-              <h:outputFormat
-                value="#{messages['jsf.iteration.ExportTMX.Language']}">
-                <f:param
-                  value="#{versionHomeAction.selectedLocale.retrieveDisplayName()}"/>
-              </h:outputFormat>
-              <i class="i i--export i__item__icon"></i>
-            </h:outputLink>
-          </li>
-        </ul>
-      </s:fragment>
-    </s:div>
+            <li>
+              <h:outputLink styleClass="i__item--right"
+                onclick="return confirm('#{messages['jsf.ConfirmExportTMXIter']}')"
+                value="#{request.contextPath}/rest/tm/projects/#{versionHomeAction.projectSlug}/iterations/#{versionHomeAction.versionSlug}?locale=#{versionHomeAction.selectedLocale.localeId.id}">
+                <h:outputFormat
+                  value="#{messages['jsf.iteration.ExportTMX.Language']}">
+                  <f:param
+                    value="#{versionHomeAction.selectedLocale.retrieveDisplayName()}"/>
+                </h:outputFormat>
+                <i class="i i--export i__item__icon"></i>
+              </h:outputLink>
+            </li>
+          </ul>
+        </s:fragment>
+      </s:div>
+    </h:form>
   </div>
 
   <a href="#" class="panel__header__back"
@@ -211,10 +229,58 @@
   </h2>
 </div>
 
-<zanata:list-filter queryField="#{versionHomeAction.documentQuery}"
-  getFilteredSize="#{versionHomeAction.filteredDocumentSize}"
-  render="languages-document_list" id="documentFilter"
-  iconClass="i--document"/>
+<div class="panel__sub-header js-reveal">
+  <div class="form--search panel__search reveal__target--appear"
+    id="document-search">
+    <label for="document-search__input" class="form--search__label"></label>
+    <input id="document-search__input" type="search"
+      placeholder="#{messages['jsf.document.search.placeholder']}…"
+      onkeyup="filterList(this, filterDocuments)"
+      class="form--search__input js-reveal__target__input"/>
+    <button class="button--link panel__search__cancel js-reveal__cancel"
+      onclick="filterDocuments('')"
+      data-target="#document-search">#{messages['jsf.Cancel']}</button>
+  </div>
+  <div class="panel__results">
+    <div class="panel__results__type">
+      <i class="i txt--neutral i--document"></i>
+    </div>
+    <ul class="panel__pager">
+      <li>
+        <button title="" class="panel__pager__button"
+          data-original-title="Previous (10201-10300)"
+          onclick="previousDocumentPage()">
+          <i class="i--huge i--arrow-left"></i>
+        </button>
+      </li>
+      <li>
+        <button title="" class="panel__pager__button"
+          data-original-title="Next (10401-10500)"
+          onclick="nextDocumentPage()">
+          <i class="i--huge i--arrow-right"></i>
+        </button>
+      </li>
+    </ul>
+    <span class="txt--meta">
+      <s:span id="document-range-label">
+        <strong>#{versionHomeAction.getDocumentsRange()}</strong>
+      </s:span>
+      <s:span
+        id="total-documents-label"> of #{versionHomeAction.getFilteredDocumentSize()}</s:span>
+      <button
+        class="button--link panel__search__reset js-reveal__reset is-hidden"
+        data-target="#document-search" onclick="filterDocuments('')"
+        data-original-title="#{messages['jsf.ClearSearch']}">
+        <i class="i--right i--cancel"></i>
+      </button>
+      <button class="button--link panel__search__button js-reveal__show"
+        data-target="#document-search">
+        #{messages['jsf.Search']}<i class="i--right i--search"></i>
+      </button>
+    </span>
+  </div>
+</div>
+
 
 <h:form id="languages-document_list" styleClass="l--push-bottom-0">
   <s:fragment rendered="#{versionHomeAction.selectedLocale == null}">
@@ -239,9 +305,10 @@
     </div>
   </s:fragment>
   <s:fragment
-    rendered="#{versionHomeAction.selectedLocale != null and !versionHomeAction.filteredDocuments.isEmpty()}">
+    rendered="#{versionHomeAction.selectedLocale != null and !versionHomeAction.pagedFilteredDocuments.isEmpty()}">
     <ul class="list--stats">
-      <ui:repeat value="#{versionHomeAction.filteredDocuments}" var="document">
+      <ui:repeat value="#{versionHomeAction.pagedFilteredDocuments}"
+        var="document">
         <li class="progress-bar__expander list__item--actionable">
           <div class="list__item__action">
             <div
