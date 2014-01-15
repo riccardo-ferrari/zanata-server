@@ -236,7 +236,7 @@ public class StatisticsServiceImpl implements StatisticsResource {
 
         long docTotalWords = 0;
         if (includeWordStats) {
-            docTotalWords = documentDAO.getTotalWordCountForDocument(document);
+            docTotalWords = documentDAO.getTotalWordCountForDocument(document.getId());
         }
 
         for (LocaleId locale : localeIds) {

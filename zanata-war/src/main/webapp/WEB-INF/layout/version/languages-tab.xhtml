@@ -74,13 +74,13 @@
       <div class="panel__results__type">
         <i class="i i--language txt--neutral"></i>
       </div>
-        <span
-          class="txt--meta"><strong>#{versionHomeAction.supportedLocale.size()}</strong></span>
+        <span class="txt--meta">
+          <strong>#{versionHomeAction.supportedLocale.size()}</strong>
+        </span>
     </div>
   </div>
   <h:form id="languages-language_form" styleClass="l--push-bottom-0">
-    <s:fragment
-      rendered="#{versionHomeAction.supportedLocale.isEmpty()}">
+    <s:fragment rendered="#{versionHomeAction.supportedLocale.isEmpty()}">
       <div class="l--pad-all-half">
         <p class="txt--meta">#{messages['jsf.NoActiveLanguages']}</p>
         <s:fragment
@@ -98,14 +98,11 @@
     <s:fragment
       rendered="#{!versionHomeAction.supportedLocale.isEmpty()}">
       <ul class="list--stats" id="languages-language_list">
-        <ui:repeat
-          value="#{versionHomeAction.supportedLocale}"
-          var="hLocale">
-          <li
-            class="progress-bar__expander">
+        <ui:repeat value="#{versionHomeAction.supportedLocale}" var="hLocale">
+          <li class="progress-bar__expander">
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedLocale(hLocale)}"
-              render="languages-document_list, language-label, #{rich:clientId('documentFilter-size')}"
+              render="languages-document_list, language-label, export-options, #{rich:clientId('documentFilter-size')}"
               onclick="updateActiveRow(this);toggleColumn('languages_content')"
               styleClass="bx--block">
               <div class="list__item">
@@ -119,14 +116,14 @@
                   rendered="#{versionHomeAction.pageRendered}">
                   <ui:param name="displayUnit"
                     value="#{versionHomeAction.getStatisticFigureForLocale(versionHomeAction.languageSortingList.selectedSortOption, hLocale.localeId)}"/>
-                     <span class="stats--small #{displayUnit.cssClass}">
-                        <span class="stats__figure">
-                          #{displayUnit.figure}
-                        </span>
-                        <span class="stats__unit">
-                          #{displayUnit.unit}
-                        </span>
-                     </span>
+                   <span class="stats--small #{displayUnit.cssClass}">
+                      <span class="stats__figure">
+                        #{displayUnit.figure}
+                      </span>
+                      <span class="stats__unit">
+                        #{displayUnit.unit}
+                      </span>
+                   </span>
                 </s:div>
               </div>
 
@@ -148,51 +145,40 @@
 <div class="panels__panel__header panel__header">
   <div class="panel__header__actions">
     <zanata:sortlist id="languages-document_sorting"
-      sortAction="#{versionHomeAction.sortProjectList(versionHomeAction.selectedLocale.localeId)}"
+      sortAction="#{versionHomeAction.sortDocumentList(versionHomeAction.selectedLocale.localeId)}"
       render="languages-document_list"
       sortingList="#{versionHomeAction.documentSortingList}"/>
 
-    <div
-      class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+    <s:div id="export-options"
+      styleClass="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
       <a class="dropdown__toggle js-dropdown__toggle" href="#"
         title="#{messages['jsf.tooltip.MoreActions']}"
         data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
         class="i i--ellipsis"></i></a>
-      <ul class="dropdown__content js-dropdown__content" role="content"
-        aria-labelledby="dropdownContent">
+      <s:fragment
+        rendered="#{identity.loggedIn and versionHomeAction.selectedLocale != null}">
+        <ul class="dropdown__content js-dropdown__content" role="content"
+          aria-labelledby="dropdownContent">
+          <s:fragment
+            rendered="#{projectIterationFilesAction.zipFileDownloadAllowed}">
+            <li>
+              <a4j:commandLink
+                action="#{projectIterationZipFileAction.prepareIterationZipFile(versionHomeAction.projectSlug, versionHomeAction.versionSlug, projectIterationFilesAction.poProject, versionHomeAction.selectedLocale.localeId)}"
+                onclick="if(!downloadAllFilesClick()){ return false; }"
+                render="downloadProgressBar" styleClass="i__item--right"
+                title="#{projectIterationFilesAction.zipFileDownloadTitle}">
+                <s:fragment rendered="#{projectIterationFilesAction.poProject}">
+                  #{messages['jsf.iteration.files.DownloadAll']}
+                </s:fragment>
+                <s:fragment
+                  rendered="#{not projectIterationFilesAction.poProject}">
+                  #{messages['jsf.iteration.files.DownloadAllOfflinePo']}
+                </s:fragment>
+                <i class="i i--export i__item__icon"></i>
+              </a4j:commandLink>
+            </li>
+          </s:fragment>
 
-        <s:fragment
-          rendered="#{projectIterationFilesAction.zipFileDownloadAllowed and projectIterationFilesAction.poProject}">
-          <li>
-            <a4j:commandLink
-              styleClass="i__item--right"
-              action="#{projectIterationZipFileAction.prepareIterationZipFile(projectIterationFilesAction.poProject)}"
-              onclick="if(!downloadAllFilesClick()){ return false; }"
-              render="downloadProgressBar"
-              title="#{projectIterationFilesAction.zipFileDownloadTitle}">
-              #{messages['jsf.iteration.files.DownloadAll']} <i
-              class="i i--export i__item__icon"></i>
-            </a4j:commandLink>
-          </li>
-        </s:fragment>
-
-        <s:fragment
-          rendered="#{projectIterationFilesAction.zipFileDownloadAllowed and not projectIterationFilesAction.poProject}">
-          <li>
-            <a4j:commandLink
-              styleClass="i__item--right"
-              action="#{projectIterationZipFileAction.prepareIterationZipFile(projectIterationFilesAction.poProject)}"
-              onclick="if(!downloadAllFilesClick()){ return false; }"
-              render="downloadProgressBar"
-              title="#{projectIterationFilesAction.zipFileDownloadTitle}">
-              #{messages['jsf.iteration.files.DownloadAllOfflinePo']} <i
-              class="i i--export i__item__icon"></i>
-            </a4j:commandLink>
-          </li>
-        </s:fragment>
-
-        <s:fragment
-          rendered="#{identity.loggedIn}">
           <li>
             <h:outputLink styleClass="i__item--right"
               onclick="return confirm('#{messages['jsf.ConfirmExportTMXIter']}')"
@@ -200,14 +186,14 @@
               <h:outputFormat
                 value="#{messages['jsf.iteration.ExportTMX.Language']}">
                 <f:param
-                  value="#{versionHomeAction.selectedLocale.retrieveDisplayName}"/>
+                  value="#{versionHomeAction.selectedLocale.retrieveDisplayName()}"/>
               </h:outputFormat>
               <i class="i i--export i__item__icon"></i>
             </h:outputLink>
           </li>
-        </s:fragment>
-      </ul>
-    </div>
+        </ul>
+      </s:fragment>
+    </s:div>
   </div>
 
   <a href="#" class="panel__header__back"
@@ -231,12 +217,9 @@
   iconClass="i--document"/>
 
 <h:form id="languages-document_list" styleClass="l--push-bottom-0">
-  <s:fragment
-    rendered="#{versionHomeAction.selectedLocale == null}">
+  <s:fragment rendered="#{versionHomeAction.selectedLocale == null}">
     <div class="l--pad-all-half">
-      <p class="txt--meta">
-        #{messages['jsf.SelectALanguageFromList']}
-      </p>
+      <p class="txt--meta">#{messages['jsf.SelectALanguageFromList']}</p>
     </div>
   </s:fragment>
   <s:fragment
@@ -258,9 +241,7 @@
   <s:fragment
     rendered="#{versionHomeAction.selectedLocale != null and !versionHomeAction.filteredDocuments.isEmpty()}">
     <ul class="list--stats">
-      <ui:repeat value="#{versionHomeAction.filteredDocuments}"
-        var="document">
-
+      <ui:repeat value="#{versionHomeAction.filteredDocuments}" var="document">
         <li class="progress-bar__expander list__item--actionable">
           <div class="list__item__action">
             <div
@@ -285,12 +266,12 @@
                         value="#{versionHomeAction.selectedLocale.localeId}"/>
                       <f:param name="locale" value="#{locale.language}"/>
                       <s:fragment
-                        rendered="#{projectIterationFilesAction.isUserAllowedToTranslate() or projectIterationFilesAction.isUserAllowedToReview()}">
+                        rendered="#{projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale) or projectIterationFilesAction.isUserAllowedToReview(versionHomeAction.selectedLocale)}">
                         #{messages['jsf.iteration.TranslateOnline']} <i
                         class="i i--translate i__item__icon"></i>
                       </s:fragment>
                       <s:fragment
-                        rendered="#{!projectIterationFilesAction.isUserAllowedToTranslate() and !projectIterationFilesAction.isUserAllowedToReview()}">
+                        rendered="#{!projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale) and !projectIterationFilesAction.isUserAllowedToReview(versionHomeAction.selectedLocale)}">
                         #{messages['jsf.iteration.ViewOnline']} <i
                         class="i i--translate i__item__icon"></i>
                       </s:fragment>
@@ -301,7 +282,7 @@
                   rendered="#{projectIterationFilesAction.isPoDocument(document.docId)}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{projectIterationFilesAction.localeId}/po">
+                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{versionHomeAction.selectedLocale.localeId}/po">
                       <f:param name="docId" value="#{document.docId}"/>
                       <h:outputText
                         value="#{messages['jsf.iteration.files.downloadForTranslation']}">
@@ -316,7 +297,7 @@
                   rendered="#{projectIterationFilesAction.knownProjectType and !projectIterationFilesAction.isPoDocument(document.docId)}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{projectIterationFilesAction.localeId}/offlinepo"
+                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{versionHomeAction.selectedLocale.localeId}/offlinepo"
                       title="#{messages['jsf.iteration.files.dotofflinepo.description']} #{messages['jsf.iteration.files.dotofflinepo.purpose']}">
                       <f:param name="docId" value="#{document.docId}"/>
                       <h:outputText
@@ -345,7 +326,7 @@
                   </li>
                 </s:fragment>
                 <s:fragment
-                  rendered="#{projectIterationFilesAction.fileUploadAllowed and projectIterationFilesAction.isUserAllowedToTranslate()}">
+                  rendered="#{projectIterationFilesAction.isFileUploadAllowed(versionHomeAction.selectedLocale) and projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale)}">
                   <li>
                     <a href="#"
                       onclick="openUploadPanel('#{document.docId}'); return false;"
@@ -387,7 +368,6 @@
               rendered="#{!versionHomeAction.pageRendered}"/>
           </a>
         </li>
-
       </ui:repeat>
     </ul>
   </s:fragment>
@@ -422,7 +402,7 @@
       </f:facet>
     </rich:progressBar>
 
-    <div align="right">
+    <div>
       <a4j:commandButton id="closeProgressPanelButton"
         action="#{projectIterationZipFileAction.cancelFileDownload}"
         value="#{messages['jsf.Cancel']}"

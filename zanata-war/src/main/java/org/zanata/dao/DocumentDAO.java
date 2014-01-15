@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LobHelper;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -38,6 +39,7 @@ import com.google.common.base.Optional;
 @Name("documentDAO")
 @AutoCreate
 @Scope(ScopeType.STATELESS)
+@Slf4j
 public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
     public DocumentDAO() {
         super(HDocument.class);
@@ -130,16 +132,17 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
 
     }
 
-    public Long getTotalWordCountForDocument(HDocument document) {
+    public Long getTotalWordCountForDocument(Long documentId) {
         Session session = getSession();
 
         Long totalWordCount =
                 (Long) session
                         .createQuery(
                                 "select sum(tf.wordCount) from HTextFlow tf "
-                                        + "where tf.document = :doc "
+                                        + "where tf.document.id = :documentId "
                                         + "and tf.obsolete = false")
-                        .setParameter("doc", document).setCacheable(true)
+                        .setParameter("documentId", documentId)
+                        .setCacheable(true)
                         .setComment("DocumentDAO.getTotalWordCountForDocument")
                         .uniqueResult();
 
@@ -194,8 +197,7 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
             wordStatistic.set(count.status, count.count.intValue());
         }
 
-        Long totalCount = getTotalCountForDocument(documentId);
-
+        Long totalCount = getTotalWordCountForDocument(documentId);
         wordStatistic.set(
                 ContentState.New,
                 totalCount.intValue()
@@ -216,11 +218,12 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
                                         + "sum(tft.textFlow.wordCount)) "
                                         + "from HTextFlowTarget tft "
                                         + "where tft.textFlow.document.id = :documentId "
-                                        + "and tft.locale.localeId = :locale "
+                                        + "and tft.locale.localeId = :localeId "
                                         + "and tft.textFlow.obsolete = false "
                                         + "and tft.textFlow.document.obsolete = false "
                                         + "group by tft.state ");
-        q.setParameter("documentId", documentId).setParameter("locale", localeId);
+        q.setParameter("documentId", documentId).setParameter("localeId",
+                localeId);
         q.setCacheable(true).setComment("DocumentDAO.getWordStatistics");
         @SuppressWarnings("unchecked")
         List<StatusCount> stats = q.list();
@@ -275,7 +278,7 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
                         .setParameter("id", docId)
                         .setParameter("locale", localeId).setCacheable(true)
                         .setComment("DocumentDAO.getStatistics-words").list();
-        Long totalWordCount = getTotalWordCountForDocument(getById(docId));
+        Long totalWordCount = getTotalWordCountForDocument(docId);
         TransUnitWords wordCount = new TransUnitWords();
         for (StatusCount count : wordStats) {
             wordCount.set(count.status, count.count.intValue());

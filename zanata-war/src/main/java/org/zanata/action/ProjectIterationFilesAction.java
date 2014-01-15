@@ -102,10 +102,16 @@ public class ProjectIterationFilesAction implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Getter
+    @Setter
     private String projectSlug;
 
+    @Getter
+    @Setter
     private String iterationSlug;
 
+    @Getter
+    @Setter
     private String localeId;
 
     @In
@@ -147,8 +153,12 @@ public class ProjectIterationFilesAction implements Serializable {
     @In
     private ZanataMessages zanataMessages;
 
+    @Getter
+    @Setter
     private List<HDocument> iterationDocuments;
 
+    @Getter
+    @Setter
     private String documentNameFilter;
 
     private TranslationFileUploadHelper translationFileUpload;
@@ -157,6 +167,8 @@ public class ProjectIterationFilesAction implements Serializable {
 
     private HProjectIteration projectIteration;
 
+    @Getter
+    @Setter
     private StatUnit statsOption = WORD;
 
     private Map<String, TranslationStatistics> statisticMap;
@@ -427,10 +439,14 @@ public class ProjectIterationFilesAction implements Serializable {
     }
 
     public boolean isFileUploadAllowed() {
+        return isFileUploadAllowed(getLocale());
+    }
+
+    public boolean isFileUploadAllowed(HLocale hLocale) {
         return isIterationActive()
                 && identity != null
                 && identity.hasPermission("modify-translation",
-                        getProjectIteration().getProject(), getLocale());
+                        getProjectIteration().getProject(), hLocale);
     }
 
     public boolean isDocumentUploadAllowed() {
@@ -443,38 +459,6 @@ public class ProjectIterationFilesAction implements Serializable {
     public boolean isDocumentRemovalAllowed() {
         // currently same permissions as uploading a document
         return this.isDocumentUploadAllowed();
-    }
-
-    public List<HDocument> getIterationDocuments() {
-        return iterationDocuments;
-    }
-
-    public void setIterationDocuments(List<HDocument> iterationDocuments) {
-        this.iterationDocuments = iterationDocuments;
-    }
-
-    public String getProjectSlug() {
-        return projectSlug;
-    }
-
-    public void setProjectSlug(String projectSlug) {
-        this.projectSlug = projectSlug;
-    }
-
-    public String getIterationSlug() {
-        return iterationSlug;
-    }
-
-    public void setIterationSlug(String iterationSlug) {
-        this.iterationSlug = iterationSlug;
-    }
-
-    public String getLocaleId() {
-        return localeId;
-    }
-
-    public void setLocaleId(String localeId) {
-        this.localeId = localeId;
     }
 
     public boolean isKnownProjectType() {
@@ -512,14 +496,6 @@ public class ProjectIterationFilesAction implements Serializable {
                         iterationSlug, docPath, docName);
     }
 
-    public String getDocumentNameFilter() {
-        return documentNameFilter;
-    }
-
-    public void setDocumentNameFilter(String documentNameFilter) {
-        this.documentNameFilter = documentNameFilter;
-    }
-
     public TranslationFileUploadHelper getTranslationFileUpload() {
         return translationFileUpload;
     }
@@ -536,26 +512,26 @@ public class ProjectIterationFilesAction implements Serializable {
         return this.projectIteration;
     }
 
-    public StatUnit getStatsOption() {
-        return statsOption;
-    }
-
-    public void setStatsOption(StatUnit statsOption) {
-        this.statsOption = statsOption;
-    }
-
     public boolean isUserAllowedToTranslate() {
+        return isUserAllowedToTranslate(getLocale());
+    }
+
+    public boolean isUserAllowedToTranslate(HLocale hLocale) {
         return isIterationActive()
                 && identity != null
                 && identity.hasPermission("add-translation",
-                        getProjectIteration().getProject(), getLocale());
+                        getProjectIteration().getProject(), hLocale);
     }
 
     public boolean isUserAllowedToReview() {
+        return isUserAllowedToReview(getLocale());
+    }
+
+    public boolean isUserAllowedToReview(HLocale hLocale) {
         return isIterationActive()
                 && identity != null
                 && identity.hasPermission("translation-review",
-                        getProjectIteration().getProject(), getLocale());
+                        getProjectIteration().getProject(), hLocale);
     }
 
     public boolean isIterationReadOnly() {
@@ -593,7 +569,7 @@ public class ProjectIterationFilesAction implements Serializable {
         } else {
             message =
                     zanataMessages
-                            .getMessage("jsf.iteration.files.DownloadAllFiles.title");
+                            .getMessage("jsf.iteration.files.DownloadAll");
         }
         return message;
     }

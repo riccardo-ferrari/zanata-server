@@ -31,6 +31,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -157,8 +158,6 @@ public class VersionHomeAction extends AbstractSortAction implements
     @Override
     protected void loadStatistic() {
         statisticMap = Maps.newHashMap();
-        documentStatisticMap = Maps.newHashMap();
-
         for (HLocale locale : getSupportedLocale()) {
             WordStatistic wordStatistic =
                     versionStateCacheImpl.getVersionStatistics(getVersion()
@@ -168,6 +167,14 @@ public class VersionHomeAction extends AbstractSortAction implements
             statisticMap.put(locale.getLocaleId(), wordStatistic);
         }
 
+        overallStatistic = new WordStatistic();
+        for (Map.Entry<LocaleId, WordStatistic> entry : statisticMap.entrySet()) {
+            overallStatistic.add(entry.getValue());
+        }
+        overallStatistic.setRemainingHours(StatisticsUtil
+                .getRemainingHours(overallStatistic));
+
+        documentStatisticMap = Maps.newHashMap();
         for (HDocument document : getVersion().getDocuments().values()) {
             for (HLocale locale : getSupportedLocale()) {
                 WordStatistic wordStatistic =
@@ -179,12 +186,6 @@ public class VersionHomeAction extends AbstractSortAction implements
                         document.getId(), locale.getLocaleId()), wordStatistic);
             }
         }
-        overallStatistic = new WordStatistic();
-        for (Map.Entry<LocaleId, WordStatistic> entry : statisticMap.entrySet()) {
-            overallStatistic.add(entry.getValue());
-        }
-        overallStatistic.setRemainingHours(StatisticsUtil
-                .getRemainingHours(overallStatistic));
     }
 
     @Override
@@ -213,12 +214,16 @@ public class VersionHomeAction extends AbstractSortAction implements
         return documents;
     }
 
+    private List<HIterationGroup> groups;
+
     public List<HIterationGroup> getGroups() {
-        HProjectIteration version = getVersion();
-        if (version != null) {
-            return Lists.newArrayList(version.getGroups());
+        if (groups == null) {
+            HProjectIteration version = getVersion();
+            if (version != null) {
+                groups = Lists.newArrayList(version.getGroups());
+            }
         }
-        return Lists.newArrayList();
+        return groups;
     }
 
     public HProjectIteration getVersion() {
@@ -237,10 +242,6 @@ public class VersionHomeAction extends AbstractSortAction implements
             throw new EntityNotFoundException(versionSlug,
                     HProjectIteration.class);
         }
-    }
-
-    public WordStatistic getStatisticsForLocale(LocaleId localeId) {
-        return statisticMap.get(localeId);
     }
 
     public int getFilteredDocumentSize() {
@@ -268,17 +269,34 @@ public class VersionHomeAction extends AbstractSortAction implements
     }
 
     @Getter
-    @Setter
     @AllArgsConstructor
+    @EqualsAndHashCode
     public class DocumentLocaleKey {
         private Long documentId;
         private LocaleId localeId;
+    }
+
+    public WordStatistic getStatisticsForLocale(LocaleId localeId) {
+        return statisticMap.get(localeId);
     }
 
     public WordStatistic getStatisticForDocument(Long documentId,
             LocaleId localeId) {
         return documentStatisticMap.get(new DocumentLocaleKey(documentId,
                 localeId));
+    }
+
+    public WordStatistic getDocumentStatistic(Long documentId) {
+        WordStatistic wordStatistic = new WordStatistic();
+        for (Map.Entry<DocumentLocaleKey, WordStatistic> entry : documentStatisticMap
+                .entrySet()) {
+            if (entry.getKey().getDocumentId().equals(documentId)) {
+                wordStatistic.add(entry.getValue());
+            }
+        }
+        wordStatistic.setRemainingHours(StatisticsUtil
+                .getRemainingHours(wordStatistic));
+        return wordStatistic;
     }
 
     public DisplayUnit getStatisticFigureForDocumentWithLocale(
@@ -336,16 +354,24 @@ public class VersionHomeAction extends AbstractSortAction implements
                     return docStat1.getLastTranslatedDate().compareTo(
                             docStat2.getLastTranslatedDate());
                 }
-            }
-            // else {
-            // WordStatistic wordStatistic1 = null;
-            // WordStatistic wordStatistic2 = null;
-            //
-            // ContainerTranslationStatistics stats =
-            // statisticsServiceImpl.getDocStatistics(documentId.getId(),
-            // action.getWorkspaceId().getLocaleId());
-            // }
+            } else {
+                WordStatistic wordStatistic1;
+                WordStatistic wordStatistic2;
+                if (selectedLocaleId != null) {
+                    wordStatistic1 =
+                            documentStatisticMap.get(new DocumentLocaleKey(
+                                    item1.getId(), selectedLocaleId));
+                    wordStatistic2 =
+                            documentStatisticMap.get(new DocumentLocaleKey(
+                                    item2.getId(), selectedLocaleId));
 
+                } else {
+                    wordStatistic1 = getDocumentStatistic(item1.getId());
+                    wordStatistic2 = getDocumentStatistic(item2.getId());
+                }
+                return compareWordStatistic(wordStatistic1, wordStatistic2,
+                        selectedSortOption);
+            }
             return 0;
         }
     }
@@ -377,44 +403,28 @@ public class VersionHomeAction extends AbstractSortAction implements
 
             // Need to get statistic for comparison
             if (!selectedSortOption.equals(SortingType.SortOption.ALPHABETICAL)) {
-                WordStatistic wordStatistic1 = null;
-                WordStatistic wordStatistic2 = null;
+                WordStatistic wordStatistic1;
+                WordStatistic wordStatistic2;
 
                 if (selectedDocumentId == null) {
                     wordStatistic1 =
                             getStatisticsForLocale(item1.getLocaleId());
                     wordStatistic2 =
                             getStatisticsForLocale(item2.getLocaleId());
+                } else {
+                    wordStatistic1 =
+                            getStatisticForDocument(selectedDocumentId,
+                                    item1.getLocaleId());
+                    wordStatistic2 =
+                            getStatisticForDocument(selectedDocumentId,
+                                    item2.getLocaleId());
                 }
-
-                // else {
-                // wordStatistic1 =
-                // statisticMap.get(new VersionLocaleKey(
-                // selectedVersionId, item1.getLocaleId()));
-                // wordStatistic2 =
-                // statisticMap.get(new VersionLocaleKey(
-                // selectedVersionId, item2.getLocaleId()));
-                // }
-
-                if (selectedSortOption
-                        .equals(SortingType.SortOption.PERCENTAGE)) {
-                    return Double.compare(
-                            wordStatistic1.getPercentTranslated(),
-                            wordStatistic2.getPercentTranslated());
-                } else if (selectedSortOption
-                        .equals(SortingType.SortOption.HOURS)) {
-                    return Double.compare(wordStatistic1.getRemainingHours(),
-                            wordStatistic2.getRemainingHours());
-                } else if (selectedSortOption
-                        .equals(SortingType.SortOption.WORDS)) {
-                    return Double.compare(wordStatistic1.getUntranslated(),
-                            wordStatistic2.getUntranslated());
-                }
+                return compareWordStatistic(wordStatistic1, wordStatistic2,
+                        selectedSortOption);
             } else {
                 return item1.retrieveDisplayName().compareTo(
                         item2.retrieveDisplayName());
             }
-            return 0;
         }
     }
 

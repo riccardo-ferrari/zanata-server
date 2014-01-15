@@ -86,7 +86,7 @@
                   <h3 class="list__title">#{version.project.name}</h3>
                     <span class="list__item__meta">
                       <i
-                         class="txt--neutral i i--version"></i> #{version.slug}
+                        class="txt--neutral i i--version"></i> #{version.slug}
                       <s:fragment
                         rendered="#{!versionGroupHomeAction.getMissingLocale(version).isEmpty()}">
                           <span
@@ -140,9 +140,9 @@
 
     <h2 class="panel__heading">
       <i class="i--left i--language"></i>
-      <a4j:outputPanel id="project-label" styleClass="i__text--right">
+      <s:span id="project-label" styleClass="i__text--right">
         #{versionGroupHomeAction.selectedVersion.project.slug}
-      </a4j:outputPanel>
+      </s:span>
       #{messages['Languages']}
     </h2>
   </div>

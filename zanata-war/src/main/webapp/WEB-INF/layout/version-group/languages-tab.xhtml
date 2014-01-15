@@ -86,12 +86,12 @@
                 <div class="list__item__info">
                     <span class="list__title">
                       #{hLocale.retrieveDisplayName()}
-                      <a4j:outputPanel
+                      <s:span
                         rendered="#{!versionGroupHomeAction.getMissingVersion(hLocale.localeId).isEmpty()}"
                         styleClass="badge--danger"
                         title="#{versionGroupHomeAction.getMissingVersionTitle(hLocale.localeId)}">
                         #{versionGroupHomeAction.getMissingVersion(hLocale.localeId).size()}
-                      </a4j:outputPanel>
+                      </s:span>
                     </span>
                 </div>
                 <s:div styleClass="list__item__stats"
@@ -139,9 +139,9 @@
 
     <h2 class="panel__heading">
       <i class="i--left i--project"></i>
-      <a4j:outputPanel id="language-label">
+      <s:span id="language-label">
         #{versionGroupHomeAction.selectedLocale.retrieveDisplayName()}
-      </a4j:outputPanel>
+      </s:span>
       #{messages['jsf.Projects']}
     </h2>
   </div>

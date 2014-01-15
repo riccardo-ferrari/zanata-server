@@ -751,6 +751,7 @@
     <param name="iterationSlug" value="#{versionHomeAction.versionSlug}" />
     <param name="projectSlug" value="#{projectIterationFilesAction.projectSlug}" />
     <param name="iterationSlug" value="#{projectIterationFilesAction.iterationSlug}" />
+
     <action execute="#{versionHomeAction.validateIteration}" />
     <action execute="#{projectIterationFilesAction.initialize()}" />
   </page>

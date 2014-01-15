@@ -63,8 +63,8 @@ public abstract class AbstractSortAction {
                             getMessage("jsf.stats.HoursRemaining"));
         } else if (sortOption.equals(SortingType.SortOption.WORDS)) {
             displayUnit =
-                    new DisplayUnit("", String.valueOf(statistic.getUntranslated()),
-                            getMessage("jsf.Words"));
+                    new DisplayUnit("", String.valueOf(statistic
+                            .getUntranslated()), getMessage("jsf.Words"));
         } else {
             String figure =
                     StatisticsUtil.formatPercentage(statistic
@@ -88,5 +88,21 @@ public abstract class AbstractSortAction {
         private String cssClass;
         private String figure;
         private String unit;
+    }
+
+    public int compareWordStatistic(WordStatistic stats1, WordStatistic stats2,
+            SortingType.SortOption sortOption) {
+        if (sortOption.equals(SortingType.SortOption.HOURS)) {
+            return Double.compare(stats1.getRemainingHours(),
+                    stats2.getRemainingHours());
+        } else if (sortOption.equals(SortingType.SortOption.PERCENTAGE)) {
+            return Double.compare(stats1.getPercentTranslated(),
+                    stats2.getPercentTranslated());
+
+        } else if (sortOption.equals(SortingType.SortOption.WORDS)) {
+            return Double.compare(stats1.getUntranslated(),
+                    stats2.getUntranslated());
+        }
+        return 0;
     }
 }
