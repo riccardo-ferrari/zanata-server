@@ -42,6 +42,7 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.framework.EntityNotFoundException;
 import org.zanata.annotation.CachedMethods;
+import org.zanata.common.EntityStatus;
 import org.zanata.common.LocaleId;
 import org.zanata.dao.DocumentDAO;
 import org.zanata.dao.ProjectIterationDAO;
@@ -49,6 +50,7 @@ import org.zanata.model.HDocument;
 import org.zanata.model.HIterationGroup;
 import org.zanata.model.HLocale;
 import org.zanata.model.HProjectIteration;
+import org.zanata.security.ZanataIdentity;
 import org.zanata.service.LocaleService;
 import org.zanata.service.TranslationStateCache;
 import org.zanata.service.VersionStateCache;
@@ -87,6 +89,9 @@ public class VersionHomeAction extends AbstractSortAction implements
     @In
     private ZanataMessages zanataMessages;
 
+    @In
+    private ZanataIdentity identity;
+
     @Setter
     @Getter
     private String versionSlug;
@@ -102,12 +107,7 @@ public class VersionHomeAction extends AbstractSortAction implements
     private WordStatistic overallStatistic;
 
     @Getter
-    @Setter
     private HLocale selectedLocale;
-
-    @Setter
-    @Getter
-    private String documentQuery;
 
     private List<HLocale> supportedLocale;
 
@@ -148,10 +148,12 @@ public class VersionHomeAction extends AbstractSortAction implements
     public void sortDocumentList(LocaleId localeId) {
         documentComparator.setSelectedLocaleId(localeId);
         Collections.sort(getDocuments(), documentComparator);
+        languageTabDocumentFilter.resetDocumentPage();
     }
 
     @Override
     public void resetPageData() {
+        languageTabDocumentFilter.resetDocumentPage();
         loadStatistic();
     }
 
@@ -244,63 +246,9 @@ public class VersionHomeAction extends AbstractSortAction implements
         }
     }
 
-    public int getFilteredDocumentSize() {
-        if (getSelectedLocale() == null) {
-            return 0;
-        } else {
-            return getFilteredDocuments().size();
-        }
-    }
-
-    public List<HDocument> getFilteredDocuments() {
-        List<HDocument> list = getDocuments();
-        if (StringUtils.isEmpty(documentQuery)) {
-            return list;
-        }
-        Collection<HDocument> filtered =
-                Collections2.filter(list, new Predicate<HDocument>() {
-                    @Override
-                    public boolean apply(@Nullable HDocument input) {
-                        return input.getName().toLowerCase()
-                                .contains(documentQuery.toLowerCase());
-                    }
-                });
-        return Lists.newArrayList(filtered);
-    }
-
-    public List<HDocument> getPagedFilteredDocuments() {
-        List<List<HDocument>> partition =
-                Lists.partition(getFilteredDocuments(), documentsCountPerPage);
-        return partition.get(currentDocumentPage);
-    }
-
-    @Getter
-    private int documentsCountPerPage = 10;
-
-    @Getter
-    private int currentDocumentPage = 0;
-
-    public String getDocumentsRange() {
-        int totalDocuments = getFilteredDocumentSize();
-        int upperBound =
-                totalDocuments == 0 ? 0
-                        : (currentDocumentPage * documentsCountPerPage) + 1;
-        int lowerBound = (currentDocumentPage + 1) * documentsCountPerPage;
-        lowerBound = lowerBound > totalDocuments ? totalDocuments : lowerBound;
-        return upperBound + "-" + lowerBound;
-    }
-
-    public void nextPage() {
-        int totalPage =
-                (int) Math.ceil((double) getFilteredDocumentSize()
-                        / documentsCountPerPage) - 1;
-        currentDocumentPage =
-                currentDocumentPage++ > totalPage ? 0 : currentDocumentPage;
-    }
-
-    public void previousPage() {
-        currentDocumentPage =
-                currentDocumentPage-- < 0 ? 0 : currentDocumentPage;
+    public void setSelectedLocale(HLocale hLocale) {
+        this.selectedLocale = hLocale;
+        resetPageData();
     }
 
     @Getter
@@ -346,6 +294,72 @@ public class VersionHomeAction extends AbstractSortAction implements
         WordStatistic statistic = getStatisticsForLocale(localeId);
         return getDisplayUnit(sortOption, statistic);
     }
+
+    public boolean isUserAllowedToTranslateOrReview(HLocale hLocale) {
+        return isVersionActive()
+                && identity != null
+                && (identity.hasPermission("add-translation", getVersion()
+                        .getProject(), hLocale) || identity.hasPermission(
+                        "translation-review", getVersion().getProject(),
+                        hLocale));
+    }
+
+    private boolean isVersionActive() {
+        return getVersion().getProject().getStatus() == EntityStatus.ACTIVE
+                || getVersion().getStatus() == EntityStatus.ACTIVE;
+    }
+
+    @Getter
+    private final AbstractDocumentsFilter languageTabDocumentFilter =
+            new AbstractDocumentsFilter() {
+
+                @Override
+                public int getFilteredDocumentSize() {
+                    if (getSelectedLocale() == null) {
+                        return 0;
+                    } else {
+                        return getFilteredDocuments().size();
+                    }
+                }
+
+                @Override
+                public List<HDocument> getPagedFilteredDocuments() {
+                    List<List<HDocument>> partition =
+                            Lists.partition(getFilteredDocuments(),
+                                    getDocumentCountPerPage());
+                    if (!partition.isEmpty()
+                            && getCurrentDocumentPage() <= partition.size()) {
+                        return partition.get(getCurrentDocumentPage());
+                    }
+                    return Lists.newArrayList();
+                }
+
+                @Override
+                public List<HDocument> getFilteredDocuments() {
+                    List<HDocument> list = getDocuments();
+                    if (StringUtils.isEmpty(getDocumentQuery())) {
+                        return list;
+                    }
+                    final String lowerCaseQuery =
+                            getDocumentQuery().toLowerCase();
+                    Collection<HDocument> filtered =
+                            Collections2.filter(list,
+                                    new Predicate<HDocument>() {
+                                        @Override
+                                        public boolean apply(
+                                                @Nullable HDocument input) {
+                                            return input.getName()
+                                                    .toLowerCase()
+                                                    .contains(lowerCaseQuery)
+                                                    || input.getPath()
+                                                            .toLowerCase()
+                                                            .contains(
+                                                                    lowerCaseQuery);
+                                        }
+                                    });
+                    return Lists.newArrayList(filtered);
+                }
+            };
 
     private class DocumentComparator implements Comparator<HDocument> {
         private SortingType sortingType;

@@ -145,9 +145,6 @@ public class ProjectIterationFilesAction implements Serializable {
     private DocumentService documentServiceImpl;
 
     @In
-    private StatisticsResource statisticsServiceImpl;
-
-    @In
     private VirusScanner virusScanner;
 
     @In
@@ -156,10 +153,6 @@ public class ProjectIterationFilesAction implements Serializable {
     @Getter
     @Setter
     private List<HDocument> iterationDocuments;
-
-    @Getter
-    @Setter
-    private String documentNameFilter;
 
     private TranslationFileUploadHelper translationFileUpload;
 
@@ -184,21 +177,6 @@ public class ProjectIterationFilesAction implements Serializable {
 
     public HLocale getLocale() {
         return localeDAO.findByLocaleId(new LocaleId(localeId));
-    }
-
-    public TranslationStatistics getStatsForDocument(HDocument doc) {
-        if (!statisticMap.containsKey(doc.getDocId())) {
-            ContainerTranslationStatistics docStatistics =
-                    statisticsServiceImpl.getStatistics(this.projectSlug,
-                            this.iterationSlug, doc.getDocId(), true,
-                            new String[] { this.localeId });
-            TranslationStatistics stats =
-                    docStatistics.getStats(this.localeId, statsOption);
-            statisticMap.put(doc.getDocId(), stats);
-            return stats;
-        } else {
-            return statisticMap.get(doc.getDocId());
-        }
     }
 
     @Restrict("#{projectIterationFilesAction.documentRemovalAllowed}")
@@ -510,28 +488,6 @@ public class ProjectIterationFilesAction implements Serializable {
                     projectIterationDAO.getBySlug(projectSlug, iterationSlug);
         }
         return this.projectIteration;
-    }
-
-    public boolean isUserAllowedToTranslate() {
-        return isUserAllowedToTranslate(getLocale());
-    }
-
-    public boolean isUserAllowedToTranslate(HLocale hLocale) {
-        return isIterationActive()
-                && identity != null
-                && identity.hasPermission("add-translation",
-                        getProjectIteration().getProject(), hLocale);
-    }
-
-    public boolean isUserAllowedToReview() {
-        return isUserAllowedToReview(getLocale());
-    }
-
-    public boolean isUserAllowedToReview(HLocale hLocale) {
-        return isIterationActive()
-                && identity != null
-                && identity.hasPermission("translation-review",
-                        getProjectIteration().getProject(), hLocale);
     }
 
     public boolean isIterationReadOnly() {

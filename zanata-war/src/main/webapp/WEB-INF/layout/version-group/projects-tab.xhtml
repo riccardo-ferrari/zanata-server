@@ -113,7 +113,7 @@
                 value="#{versionGroupHomeAction.getStatisticForProject(version.id)}"
                 rendered="#{versionGroupHomeAction.pageRendered}"/>
 
-              <zanata:loader type="large"
+              <zanata:loader
                 rendered="#{!versionGroupHomeAction.pageRendered}"/>
             </a4j:commandLink>
           </li>
@@ -148,7 +148,7 @@
   </div>
 
   <zanata:list-filter queryField="#{versionGroupHomeAction.languageQuery}"
-    getFilteredSize="#{versionGroupHomeAction.getFilteredLocalesSize()}"
+    getFilteredSize="#{versionGroupHomeAction.filteredLocalesSize}"
     render="projects-language_list" id="languageFilter"
     iconClass="i--language"/>
 

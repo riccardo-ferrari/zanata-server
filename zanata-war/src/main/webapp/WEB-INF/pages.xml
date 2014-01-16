@@ -786,30 +786,6 @@
     </navigation>
   </page>
 
-  <page view-id="/iteration/files.xhtml">
-    <param name="project" value="#{projectIterationFilesAction.projectSlug}" />
-    <param name="iteration"
-      value="#{projectIterationFilesAction.iterationSlug}" />
-    <param name="localeId" value="#{projectIterationFilesAction.localeId}" />
-
-    <param name="project"
-      value="#{projectIterationZipFileAction.projectSlug}" />
-    <param name="iteration"
-      value="#{projectIterationZipFileAction.iterationSlug}" />
-    <param name="localeId" value="#{projectIterationZipFileAction.localeId}" />
-
-    <action execute="#{projectIterationFilesAction.initialize()}" />
-    <action execute="#{breadcrumbs.clear}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/project.xhtml', projectIterationFilesAction.projectSlug).param('slug', projectIterationFilesAction.projectSlug)}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/iteration/view.xhtml', projectIterationFilesAction.iterationSlug).param('projectSlug', projectIterationFilesAction.projectSlug).param('iterationSlug', projectIterationFilesAction.iterationSlug)}" />
-    <action
-      execute="#{breadcrumbs.addLocation('', messages['jsf.Documents'].concat(' (').concat(projectIterationFilesAction.localeId).concat(')'))}" />
-  </page>
-
   <page view-id="/iteration/edit.xhtml">
     <param name="slug" value="#{projectIterationHome.slug}" />
     <param name="projectSlug" value="#{projectIterationHome.projectSlug}" />

@@ -33,21 +33,6 @@
   }
 </script>
 
-<a4j:jsFunction name="filterDocuments"
-  render="languages-document_list, document-range-label, total-documents-label"
-  limitRender="true">
-  <a4j:param name="val" assignTo="#{versionHomeAction.documentQuery}"/>
-</a4j:jsFunction>
-
-<a4j:jsFunction name="nextDocumentPage" action="#{versionHomeAction.nextPage}"
-  render="document-range-label, languages-document_list" limitRender="true">
-</a4j:jsFunction>
-
-<a4j:jsFunction name="previousDocumentPage"
-  action="#{versionHomeAction.previousPage}"
-  render="document-range-label, languages-document_list" limitRender="true">
-</a4j:jsFunction>
-
 <div class="panels--2">
 <div class="panels__panel panel">
   <div class="panels__panel__header panel__header">
@@ -60,7 +45,7 @@
       <div
         class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
         <a class="dropdown__toggle js-dropdown__toggle" href="#"
-          title="#{messages['jsf.tooltip.MoreActions']}"
+          title=""
           data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
           class="i i--ellipsis"></i></a>
         <ul class="dropdown__content js-dropdown__content" role="content"
@@ -117,14 +102,18 @@
           <li class="progress-bar__expander">
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedLocale(hLocale)}"
-              render="languages-document_list, language-label, document-range-label, total-documents-label, export-options, #{rich:clientId('documentFilter-size')}"
+              render="languages-document_list, language-label, languageDocumentSearchRange, languageDocumentSearchTotal, export-options, #{rich:clientId('documentFilter-size')}"
               onclick="updateActiveRow(this);toggleColumn('languages_content')"
               styleClass="bx--block">
               <div class="list__item">
                 <div class="list__item__info">
                   <h3 class="list__title">
-                    #{hLocale.retrieveDisplayName()} <i
-                    class="i--right i--translate txt--neutral"></i>
+                    #{hLocale.retrieveDisplayName()}
+
+                    <s:fragment
+                      rendered="#{versionHomeAction.isUserAllowedToTranslateOrReview(hLocale)}">
+                      <i class="i--right i--translate txt--neutral"></i>
+                    </s:fragment>
                   </h3>
                 </div>
                 <s:div styleClass="list__item__stats"
@@ -146,8 +135,7 @@
                 value="#{versionHomeAction.getStatisticsForLocale(hLocale.localeId)}"
                 rendered="#{versionHomeAction.pageRendered}"/>
 
-              <zanata:loader type="large"
-                rendered="#{!versionHomeAction.pageRendered}"/>
+              <zanata:loader rendered="#{!versionHomeAction.pageRendered}"/>
             </a4j:commandLink>
           </li>
         </ui:repeat>
@@ -229,58 +217,9 @@
   </h2>
 </div>
 
-<div class="panel__sub-header js-reveal">
-  <div class="form--search panel__search reveal__target--appear"
-    id="document-search">
-    <label for="document-search__input" class="form--search__label"></label>
-    <input id="document-search__input" type="search"
-      placeholder="#{messages['jsf.document.search.placeholder']}…"
-      onkeyup="filterList(this, filterDocuments)"
-      class="form--search__input js-reveal__target__input"/>
-    <button class="button--link panel__search__cancel js-reveal__cancel"
-      onclick="filterDocuments('')"
-      data-target="#document-search">#{messages['jsf.Cancel']}</button>
-  </div>
-  <div class="panel__results">
-    <div class="panel__results__type">
-      <i class="i txt--neutral i--document"></i>
-    </div>
-    <ul class="panel__pager">
-      <li>
-        <button title="" class="panel__pager__button"
-          data-original-title="Previous (10201-10300)"
-          onclick="previousDocumentPage()">
-          <i class="i--huge i--arrow-left"></i>
-        </button>
-      </li>
-      <li>
-        <button title="" class="panel__pager__button"
-          data-original-title="Next (10401-10500)"
-          onclick="nextDocumentPage()">
-          <i class="i--huge i--arrow-right"></i>
-        </button>
-      </li>
-    </ul>
-    <span class="txt--meta">
-      <s:span id="document-range-label">
-        <strong>#{versionHomeAction.getDocumentsRange()}</strong>
-      </s:span>
-      <s:span
-        id="total-documents-label"> of #{versionHomeAction.getFilteredDocumentSize()}</s:span>
-      <button
-        class="button--link panel__search__reset js-reveal__reset is-hidden"
-        data-target="#document-search" onclick="filterDocuments('')"
-        data-original-title="#{messages['jsf.ClearSearch']}">
-        <i class="i--right i--cancel"></i>
-      </button>
-      <button class="button--link panel__search__button js-reveal__show"
-        data-target="#document-search">
-        #{messages['jsf.Search']}<i class="i--right i--search"></i>
-      </button>
-    </span>
-  </div>
-</div>
-
+<zanata:document-filter render="languages-document_list"
+  id="languageDocumentSearch"
+  actionBean="#{versionHomeAction.languageTabDocumentFilter}"/>
 
 <h:form id="languages-document_list" styleClass="l--push-bottom-0">
   <s:fragment rendered="#{versionHomeAction.selectedLocale == null}">
@@ -289,7 +228,7 @@
     </div>
   </s:fragment>
   <s:fragment
-    rendered="#{versionHomeAction.selectedLocale != null and versionHomeAction.filteredDocuments.isEmpty()}">
+    rendered="#{versionHomeAction.selectedLocale != null and versionHomeAction.languageTabDocumentFilter.getFilteredDocuments().isEmpty()}">
     <div class="l--pad-all-half">
       <p
         class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
@@ -305,9 +244,10 @@
     </div>
   </s:fragment>
   <s:fragment
-    rendered="#{versionHomeAction.selectedLocale != null and !versionHomeAction.pagedFilteredDocuments.isEmpty()}">
+    rendered="#{versionHomeAction.selectedLocale != null and !versionHomeAction.languageTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
     <ul class="list--stats">
-      <ui:repeat value="#{versionHomeAction.pagedFilteredDocuments}"
+      <ui:repeat
+        value="#{versionHomeAction.languageTabDocumentFilter.getPagedFilteredDocuments()}"
         var="document">
         <li class="progress-bar__expander list__item--actionable">
           <div class="list__item__action">
@@ -324,21 +264,14 @@
                 <s:fragment rendered="#{identity.loggedIn}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/webtrans/Application.seam">
-                      <f:param name="project"
-                        value="#{versionHomeAction.projectSlug}"/>
-                      <f:param name="iteration"
-                        value="#{versionHomeAction.versionSlug}"/>
-                      <f:param name="localeId"
-                        value="#{versionHomeAction.selectedLocale.localeId}"/>
-                      <f:param name="locale" value="#{locale.language}"/>
+                      value="#{request.contextPath}/webtrans/Application.seam?project=#{versionHomeAction.projectSlug}&amp;iteration=#{versionHomeAction.versionSlug}&amp;localeId=#{versionHomeAction.selectedLocale.localeId}&amp;locale=#{locale.language}#view:doc;doc:#{document.docId}">
                       <s:fragment
-                        rendered="#{projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale) or projectIterationFilesAction.isUserAllowedToReview(versionHomeAction.selectedLocale)}">
+                        rendered="#{versionHomeAction.isUserAllowedToTranslateOrReview(versionHomeAction.selectedLocale)}">
                         #{messages['jsf.iteration.TranslateOnline']} <i
                         class="i i--translate i__item__icon"></i>
                       </s:fragment>
                       <s:fragment
-                        rendered="#{!projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale) and !projectIterationFilesAction.isUserAllowedToReview(versionHomeAction.selectedLocale)}">
+                        rendered="#{!versionHomeAction.isUserAllowedToTranslateOrReview(versionHomeAction.selectedLocale)}">
                         #{messages['jsf.iteration.ViewOnline']} <i
                         class="i i--translate i__item__icon"></i>
                       </s:fragment>
@@ -349,13 +282,9 @@
                   rendered="#{projectIterationFilesAction.isPoDocument(document.docId)}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{versionHomeAction.selectedLocale.localeId}/po">
+                      value="#{request.contextPath}/rest/file/translation/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/#{versionHomeAction.selectedLocale.localeId}/po">
                       <f:param name="docId" value="#{document.docId}"/>
-                      <h:outputText
-                        value="#{messages['jsf.iteration.files.downloadForTranslation']}">
-                        <f:param
-                          value="#{messages['jsf.iteration.files.dotpo']}"/>
-                      </h:outputText>
+                      #{messages['jsf.iteration.files.DownloadForTranslation']} [#{messages['jsf.iteration.files.dotpo']}]
                       <i class="i i--export i__item__icon"></i>
                     </h:outputLink>
                   </li>
@@ -364,14 +293,10 @@
                   rendered="#{projectIterationFilesAction.knownProjectType and !projectIterationFilesAction.isPoDocument(document.docId)}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{versionHomeAction.selectedLocale.localeId}/offlinepo"
+                      value="#{request.contextPath}/rest/file/translation/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/#{versionHomeAction.selectedLocale.localeId}/offlinepo"
                       title="#{messages['jsf.iteration.files.dotofflinepo.description']} #{messages['jsf.iteration.files.dotofflinepo.purpose']}">
                       <f:param name="docId" value="#{document.docId}"/>
-                      <h:outputText
-                        value="#{messages['jsf.iteration.files.downloadForTranslation']}">
-                        <f:param
-                          value="#{messages['jsf.iteration.files.dotofflinepo']}"/>
-                      </h:outputText>
+                      #{messages['jsf.iteration.files.DownloadForTranslation']} [#{messages['jsf.iteration.files.dotofflinepo']}]
                       <i class="i i--export i__item__icon"></i>
                     </h:outputLink>
                   </li>
@@ -380,20 +305,15 @@
                   rendered="#{!projectIterationFilesAction.knownProjectType}">
                   <li>
                     <h:outputLink styleClass="i__item--right"
-                      value="#{request.contextPath}/rest/file/translation/#{projectIterationFilesAction.projectSlug}/#{projectIterationFilesAction.iterationSlug}/#{projectIterationFilesAction.localeId}/baked">
+                      value="#{request.contextPath}/rest/file/translation/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/#{versionHomeAction.selectedLocale.localeId}/baked">
                       <f:param name="docId" value="#{document.docId}"/>
-                      <h:outputText
-                        value="#{messages['jsf.iteration.files.downloadForTranslation']}">
-                        <f:param
-                          value="#{projectIterationFilesAction.extensionOf(document.path, document.name)}"/>
-                      </h:outputText>
-
+                      #{messages['jsf.iteration.files.DownloadForTranslation']} [#{projectIterationFilesAction.extensionOf(document.path, document.name)}]
                       <i class="i i--export i__item__icon"></i>
                     </h:outputLink>
                   </li>
                 </s:fragment>
                 <s:fragment
-                  rendered="#{projectIterationFilesAction.isFileUploadAllowed(versionHomeAction.selectedLocale) and projectIterationFilesAction.isUserAllowedToTranslate(versionHomeAction.selectedLocale)}">
+                  rendered="#{projectIterationFilesAction.isFileUploadAllowed(versionHomeAction.selectedLocale) and versionHomeAction.isUserAllowedToTranslateOrReview(versionHomeAction.selectedLocale)}">
                   <li>
                     <a href="#"
                       onclick="openUploadPanel('#{document.docId}'); return false;"
@@ -431,8 +351,7 @@
               value="#{versionHomeAction.getStatisticForDocument(document.id, versionHomeAction.selectedLocale.localeId)}"
               rendered="#{versionHomeAction.pageRendered}"/>
 
-            <zanata:loader type="large"
-              rendered="#{!versionHomeAction.pageRendered}"/>
+            <zanata:loader rendered="#{!versionHomeAction.pageRendered}"/>
           </a>
         </li>
       </ui:repeat>

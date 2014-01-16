@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:composite="http://java.sun.com/jsf/composite"
+  xmlns:s="http://jboss.org/schema/seam/taglib"
+  xmlns:a4j="http://richfaces.org/a4j">
+
+<composite:interface>
+  <composite:attribute name="id" type="java.lang.String"
+    shortDescription="id of component (java naming)" required="true"/>
+
+  <composite:attribute name="actionBean"
+    type="org.zanata.action.AbstractDocumentsFilter"
+    shortDescription="action bean (org.zanata.action.AbstractDocumentsFilter)"
+    required="true"/>
+
+  <composite:attribute name="render" required="true"
+    shortDescription="Ids of component to render after filter"/>
+
+</composite:interface>
+
+<composite:implementation>
+  <a4j:jsFunction name="#{cc.attrs.id}FilterDocuments"
+    render="#{cc.attrs.id}Range, #{cc.attrs.id}Total, #{cc.attrs.render}"
+    limitRender="true">
+    <a4j:param name="val" assignTo="#{cc.attrs.actionBean.documentQuery}"/>
+  </a4j:jsFunction>
+
+  <a4j:jsFunction name="#{cc.attrs.id}NextDocumentPage"
+    action="#{cc.attrs.actionBean.nextPage}"
+    render="#{cc.attrs.id}Range, #{cc.attrs.render}"
+    limitRender="true">
+  </a4j:jsFunction>
+
+  <a4j:jsFunction name="#{cc.attrs.id}PreviousDocumentPage"
+    action="#{cc.attrs.actionBean.previousPage}"
+    render="#{cc.attrs.id}Range, #{cc.attrs.render}"
+    limitRender="true">
+  </a4j:jsFunction>
+
+  <div class="panel__sub-header js-reveal is-active">
+    <div class="form--search panel__search reveal__target--appear"
+      id="#{cc.attrs.id}">
+      <label for="#{cc.attrs.id}__input" class="form--search__label"></label>
+      <input id="#{cc.attrs.id}__input" type="search"
+        placeholder="#{messages['jsf.document.search.placeholder']}…"
+        onkeyup="filterList(this, #{cc.attrs.id}FilterDocuments)"
+        class="form--search__input js-reveal__target__input"/>
+      <button class="button--link panel__search__cancel js-reveal__cancel"
+        onclick="#{cc.attrs.id}FilterDocuments('')"
+        data-target="##{cc.attrs.id}">#{messages['jsf.Cancel']}</button>
+    </div>
+    <div class="panel__results">
+      <div class="panel__results__type">
+        <i class="i txt--neutral i--document"></i>
+      </div>
+      <ul class="panel__pager">
+        <li>
+          <button title="Previous" class="panel__pager__button"
+            data-original-title="Previous"
+            onclick="#{cc.attrs.id}PreviousDocumentPage()">
+            <i class="i--huge i--arrow-left"></i>
+          </button>
+        </li>
+        <li>
+          <button title="Next" class="panel__pager__button"
+            data-original-title="Next"
+            onclick="#{cc.attrs.id}NextDocumentPage()">
+            <i class="i--huge i--arrow-right"></i>
+          </button>
+        </li>
+      </ul>
+    <span class="txt--meta">
+      <s:span id="#{cc.attrs.id}Range">
+        <strong>#{cc.attrs.actionBean.getDocumentsRange()}</strong>
+      </s:span>
+      <s:span
+        id="#{cc.attrs.id}Total"> of #{cc.attrs.actionBean.getFilteredDocumentSize()}</s:span>
+      <button
+        class="button--link panel__search__reset js-reveal__reset is-hidden"
+        data-target="##{cc.attrs.id}"
+        onclick="#{cc.attrs.id}FilterDocuments('')"
+        data-original-title="#{messages['jsf.ClearSearch']}">
+        <i class="i--right i--cancel"></i>
+      </button>
+      <button class="button--link panel__search__button js-reveal__show"
+        data-target="##{cc.attrs.id}">
+        #{messages['jsf.Search']}<i class="i--right i--search"></i>
+      </button>
+    </span>
+    </div>
+  </div>
+</composite:implementation>
+</html>

@@ -16,7 +16,7 @@
         <div
           class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
           <a class="dropdown__toggle js-dropdown__toggle" href="#"
-            title="#{messages['jsf.tooltip.MoreActions']}"
+            title=""
             data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
             class="i i--ellipsis"></i></a>
           <ul class="dropdown__content js-dropdown__content" role="content"
@@ -55,7 +55,7 @@
                 class="dropdown dropdown--small dropdown--inline dropdown--single list__item__dropdown js-dropdown">
                 <a href="#"
                   class="dropdown__toggle js-dropdown__toggle txt--meta"
-                  title="#{messages['jsf.tooltip.TranslateOptions']}"
+                  title=""
                   data-original-title="#{messages['jsf.tooltip.TranslateOptions']}">
                   <span class="is-invisible">
                     #{messages['jsf.tooltip.TranslateOptions']}
@@ -146,8 +146,7 @@
                 value="#{projectHomeAction.getStatisticForVersion(versionItem.version.slug)}"
                 rendered="#{projectHomeAction.pageRendered}"/>
 
-              <zanata:loader type="large"
-                rendered="#{!projectHomeAction.pageRendered}"/>
+              <zanata:loader rendered="#{!projectHomeAction.pageRendered}"/>
             </s:link>
           </li>
         </ui:repeat>
