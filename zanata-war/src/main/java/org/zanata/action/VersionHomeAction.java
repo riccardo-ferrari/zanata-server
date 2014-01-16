@@ -109,6 +109,10 @@ public class VersionHomeAction extends AbstractSortAction implements
     @Getter
     private HLocale selectedLocale;
 
+    @Getter
+    @Setter
+    private HDocument selectedDocument;
+
     private List<HLocale> supportedLocale;
 
     private List<HDocument> documents;
@@ -147,6 +151,12 @@ public class VersionHomeAction extends AbstractSortAction implements
      */
     public void sortDocumentList(LocaleId localeId) {
         documentComparator.setSelectedLocaleId(localeId);
+        Collections.sort(getDocuments(), documentComparator);
+        languageTabDocumentFilter.resetDocumentPage();
+    }
+
+    public void sortDocumentList() {
+        documentComparator.setSelectedLocaleId(null);
         Collections.sort(getDocuments(), documentComparator);
         languageTabDocumentFilter.resetDocumentPage();
     }
@@ -335,7 +345,7 @@ public class VersionHomeAction extends AbstractSortAction implements
                 }
 
                 @Override
-                public List<HDocument> getFilteredDocuments() {
+                List<HDocument> getFilteredDocuments() {
                     List<HDocument> list = getDocuments();
                     if (StringUtils.isEmpty(getDocumentQuery())) {
                         return list;
@@ -355,6 +365,58 @@ public class VersionHomeAction extends AbstractSortAction implements
                                                             .toLowerCase()
                                                             .contains(
                                                                     lowerCaseQuery);
+                                        }
+                                    });
+                    return Lists.newArrayList(filtered);
+                }
+            };
+
+    @Getter
+    private final AbstractDocumentsFilter documentTabDocumentFilter =
+            new AbstractDocumentsFilter() {
+
+                @Override
+                public int getFilteredDocumentSize() {
+                    if (getSelectedLocale() == null) {
+                        return 0;
+                    } else {
+                        return getFilteredDocuments().size();
+                    }
+                }
+
+                @Override
+                public List<HDocument> getPagedFilteredDocuments() {
+                    List<List<HDocument>> partition =
+                            Lists.partition(getFilteredDocuments(),
+                                    getDocumentCountPerPage());
+                    if (!partition.isEmpty()
+                            && getCurrentDocumentPage() <= partition.size()) {
+                        return partition.get(getCurrentDocumentPage());
+                    }
+                    return Lists.newArrayList();
+                }
+
+                @Override
+                public List<HDocument> getFilteredDocuments() {
+                    List<HDocument> list = getDocuments();
+                    if (StringUtils.isEmpty(getDocumentQuery())) {
+                        return list;
+                    }
+                    final String lowerCaseQuery =
+                            getDocumentQuery().toLowerCase();
+                    Collection<HDocument> filtered =
+                            Collections2.filter(list,
+                                    new Predicate<HDocument>() {
+                                        @Override
+                                        public boolean apply(
+                                                @Nullable HDocument input) {
+                                            return input.getName()
+                                                    .toLowerCase()
+                                                    .contains(lowerCaseQuery)
+                                                    || input.getPath()
+                                                            .toLowerCase()
+                                                            .contains(
+                                                                lowerCaseQuery);
                                         }
                                     });
                     return Lists.newArrayList(filtered);

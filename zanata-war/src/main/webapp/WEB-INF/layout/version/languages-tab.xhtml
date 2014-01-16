@@ -102,7 +102,7 @@
           <li class="progress-bar__expander">
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedLocale(hLocale)}"
-              render="languages-document_list, language-label, languageDocumentSearchRange, languageDocumentSearchTotal, export-options, #{rich:clientId('documentFilter-size')}"
+              render="languages-document_list, language-label, languageDocumentSearchRange, languageDocumentSearchTotal, #{rich:clientId('export-options')}"
               onclick="updateActiveRow(this);toggleColumn('languages_content')"
               styleClass="bx--block">
               <div class="list__item">
@@ -228,19 +228,10 @@
     </div>
   </s:fragment>
   <s:fragment
-    rendered="#{versionHomeAction.selectedLocale != null and versionHomeAction.languageTabDocumentFilter.getFilteredDocuments().isEmpty()}">
+    rendered="#{versionHomeAction.selectedLocale != null and versionHomeAction.languageTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
     <div class="l--pad-all-half">
       <p
         class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
-      <s:fragment
-        rendered="#{s:hasPermission(versionGroupHome.instance, 'update')}">
-        <p>
-          <a href="#settings-documents" class="button--primary"
-            onclick="updateHashAndGotoUrl(this)">
-            #{messages['jsf.iteration.AddDocuments']}
-          </a>
-        </p>
-      </s:fragment>
     </div>
   </s:fragment>
   <s:fragment
