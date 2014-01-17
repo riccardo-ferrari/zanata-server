@@ -27,13 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
-
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
@@ -58,11 +52,15 @@ import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
 import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.DocumentStatus;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @Name("versionHomeAction")
 @Scope(ScopeType.PAGE)
@@ -146,7 +144,7 @@ public class VersionHomeAction extends AbstractSortAction implements
 
     /**
      * Sort document list based on selected locale
-     *
+     * 
      * @param localeId
      */
     public void sortDocumentList(LocaleId localeId) {
@@ -292,10 +290,16 @@ public class VersionHomeAction extends AbstractSortAction implements
         return wordStatistic;
     }
 
-    public DisplayUnit getStatisticFigureForDocumentWithLocale(
+    public DisplayUnit getStatisticFigureForDocument(
             SortingType.SortOption sortOption, LocaleId localeId,
             Long documentId) {
         WordStatistic statistic = getStatisticForDocument(documentId, localeId);
+        return getDisplayUnit(sortOption, statistic);
+    }
+
+    public DisplayUnit getStatisticFigureForDocument(
+            SortingType.SortOption sortOption, Long documentId) {
+        WordStatistic statistic = getDocumentStatistic(documentId);
         return getDisplayUnit(sortOption, statistic);
     }
 
@@ -377,7 +381,7 @@ public class VersionHomeAction extends AbstractSortAction implements
 
                 @Override
                 public int getFilteredDocumentSize() {
-                    if (getSelectedLocale() == null) {
+                    if (getSelectedDocument() == null) {
                         return 0;
                     } else {
                         return getFilteredDocuments().size();
@@ -397,7 +401,7 @@ public class VersionHomeAction extends AbstractSortAction implements
                 }
 
                 @Override
-                public List<HDocument> getFilteredDocuments() {
+                List<HDocument> getFilteredDocuments() {
                     List<HDocument> list = getDocuments();
                     if (StringUtils.isEmpty(getDocumentQuery())) {
                         return list;
@@ -416,7 +420,7 @@ public class VersionHomeAction extends AbstractSortAction implements
                                                     || input.getPath()
                                                             .toLowerCase()
                                                             .contains(
-                                                                lowerCaseQuery);
+                                                                    lowerCaseQuery);
                                         }
                                     });
                     return Lists.newArrayList(filtered);

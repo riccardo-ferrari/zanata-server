@@ -8,13 +8,41 @@
   xmlns:rich="http://richfaces.org/rich">
 
 <script type="text/javascript">
-  function openUploadDocPanel() {
-    #{rich:component('uploadDocPanel')}
+  function openUploadSrcDocPanel() {
+    #{rich:component('uploadSrcDocPanel')}
   .
     show();
     checkIfGeneralFileSelected()
     return false;
   }
+
+  function openUploadSrcPanel(docId) {
+    #{rich:element('uploadSrcPanelHeader')}
+  .
+    innerHTML = '#{messages['jsf.iteration.files.UploadDocument']}: ' + docId;
+    #{rich:element('uploadSrcDocId')}
+  .
+    value = docId;
+    #{rich:component('uploadSrcPanel')}
+  .
+    show();
+    checkIfSpecificFileSelected();
+  }
+
+  function hideUploadSrcPanel() {
+    #{rich:component('uploadSrcPanel')}
+  .
+    hide();
+    return false;
+  }
+
+  function hideSrcDocUploadPanel() {
+    #{rich:component('uploadSrcDocPanel')}
+  .
+    hide();
+    return false;
+  }
+
 
   function checkIfGeneralFileSelected() {
     var fileInput = #{rich:element('generalDocFileUpload')};
@@ -32,6 +60,11 @@
     }
   }
 
+  function checkIfSpecificFileSelected() {
+    checkIfFileSelected(#{rich:element('specificDocFileInput')},
+      #{rich:element('specificDocSubmitUploadButton')});
+  }
+
   function checkIfFileSelected(fileInput, submitButton) {
     var noFileSelected = fileInput.value === undefined ||
       fileInput.value === "";
@@ -41,81 +74,276 @@
 </script>
 
 <div class="panels--2">
-  <div class="panels__panel panel">
-    <div class="panels__panel__header panel__header">
-      <div class="panel__header__actions">
-        <zanata:sortlist id="documents-document_sorting"
-          sortAction="#{versionHomeAction.sortDocumentList()}"
-          render="documents-document_form"
-          sortingList="#{versionHomeAction.documentSortingList}"/>
+<div class="panels__panel panel">
+  <div class="panels__panel__header panel__header">
+    <div class="panel__header__actions">
+      <zanata:sortlist id="documents-document_sorting"
+        sortAction="#{versionHomeAction.sortDocumentList()}"
+        render="documents-document_form"
+        sortingList="#{versionHomeAction.documentSortingList}"/>
 
-        <div
-          class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
-          <a class="dropdown__toggle js-dropdown__toggle" href="#"
-            title=""
-            data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
-            class="i i--ellipsis"></i></a>
-          <ul class="dropdown__content js-dropdown__content" role="content"
-            aria-labelledby="dropdownContent">
-
-          </ul>
-        </div>
-      </div>
-      <h2 class="panel__heading">
-        <i class="i--document i--left"></i>#{messages['jsf.Documents']}
-      </h2>
-    </div>
-
-    <zanata:document-filter render="documents-document_list"
-      id="DocumentsDocumentSearch"
-      actionBean="#{versionHomeAction.documentTabDocumentFilter}"/>
-
-    <h:form id="documents-document_form" styleClass="l--push-bottom-0">
-      <s:fragment
-        rendered="#{versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
-        <div class="l--pad-all-half">
-          <p
-            class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
+      <div
+        class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+        <a class="dropdown__toggle js-dropdown__toggle" href="#"
+          title=""
+          data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
+          class="i i--ellipsis"></i></a>
+        <ul class="dropdown__content js-dropdown__content" role="content"
+          aria-labelledby="dropdownContent">
           <s:fragment
             rendered="#{projectIterationFilesAction.documentUploadAllowed}">
-            <p>
-              <a href="#" class="button--primary"
+            <li>
+              <a href="#" class="i i--import i__item__icon"
                 data-original-title="#{messages['jsf.SupportedUploadFormats']}"
-                onclick="openUploadDocPanel()">
+                onclick="openUploadSrcDocPanel()">
                 #{messages['jsf.UploadSourceDocuments']}
               </a>
-            </p>
+            </li>
           </s:fragment>
-        </div>
-      </s:fragment>
+        </ul>
+      </div>
+    </div>
+    <h2 class="panel__heading">
+      <i class="i--document i--left"></i>#{messages['jsf.Documents']}
+    </h2>
+  </div>
 
-      <s:fragment
-        rendered="#{!versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
-        <ul class="list--stats" id="documents-document_list">
-          <ui:repeat
-            value="#{versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments()}"
-            var="document">
-            <li class="progress-bar__expander">
-              <a4j:commandLink
-                action="#{versionHomeAction.setSelectedDocument(document)}"
-                render="documents-language_list, document-label, documentsDocumentSearchRange, documentsDocumentSearchTotal, #{rich:clientId('export-options')}"
-                onclick="updateActiveRow(this);toggleColumn('documents_content')"
-                styleClass="bx--block">
-                <div class="list__item">
-                  <div class="list__item__info">
-                    <h3 class="list__title">
-                      #{hLocale.retrieveDisplayName()}
+  <zanata:document-filter render="documents-document_form"
+    id="documentsDocumentSearch"
+    actionBean="#{versionHomeAction.documentTabDocumentFilter}"/>
 
-                      <s:fragment
-                        rendered="#{versionHomeAction.isUserAllowedToTranslateOrReview(hLocale)}">
-                        <i class="i--right i--translate txt--neutral"></i>
-                      </s:fragment>
-                    </h3>
-                  </div>
-                  <s:div styleClass="list__item__stats"
-                    rendered="#{versionHomeAction.pageRendered}">
-                    <ui:param name="displayUnit"
-                      value="#{versionHomeAction.getStatisticFigureForLocale(versionHomeAction.languageSortingList.selectedSortOption, hLocale.localeId)}"/>
+  <h:form id="documents-document_form" styleClass="l--push-bottom-0">
+    <s:fragment
+      rendered="#{versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
+      <div class="l--pad-all-half">
+        <p
+          class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
+        <s:fragment
+          rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+          <p>
+            <a href="#" class="button--primary"
+              data-original-title="#{messages['jsf.SupportedUploadFormats']}"
+              onclick="openUploadSrcDocPanel()">
+              #{messages['jsf.UploadSourceDocuments']}
+            </a>
+          </p>
+        </s:fragment>
+      </div>
+    </s:fragment>
+
+    <s:fragment
+      rendered="#{!versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
+      <ul class="list--stats" id="documents-document_list">
+        <ui:repeat
+          value="#{versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments()}"
+          var="document">
+          <li class="progress-bar__expander list__item--actionable">
+            <div class="list__item__action">
+              <div
+                class="dropdown dropdown--small dropdown--inline dropdown--single js-dropdown">
+                <a class="dropdown__toggle js-dropdown__toggle txt--meta"
+                  title="" href="#"
+                  data-original-title="#{messages['jsf.tooltip.TranslateOptions']}">
+                  <span class="is-invisible">
+                    #{messages['jsf.tooltip.TranslateOptions']}
+                  </span>
+                </a>
+                <ul class="dropdown__content js-dropdown__content">
+                  <s:fragment
+                    rendered="#{projectIterationFilesAction.isPoDocument(document.docId)}">
+                    <li>
+                      <h:outputLink styleClass="i__item--right"
+                        value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/pot">
+                        <f:param name="docId" value="#{document.docId}"/>
+                        <h:outputText
+                          value="#{messages['jsf.iteration.files.DownloadSource']}">
+                          <f:param
+                            value="#{messages['jsf.iteration.files.dotpot']}"/>
+                        </h:outputText>
+                        <i class="i i--export i__item__icon"></i>
+                      </h:outputLink>
+                    </li>
+                  </s:fragment>
+                  <s:fragment
+                    rendered="#{!projectIterationFilesAction.isPoDocument(document.docId)}">
+                    <li>
+                      <h:outputLink styleClass="i__item--right"
+                        value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/offlinepot"
+                        title="#{messages['jsf.iteration.files.dotofflinepot.description']} #{messages['jsf.iteration.files.dotofflinepot.purpose']}">
+                        <f:param name="docId" value="#{document.docId}"/>
+                        <h:outputText
+                          value="#{messages['jsf.iteration.files.DownloadSource']}">
+                          <f:param
+                            value="#{messages['jsf.iteration.files.dotofflinepot']}"/>
+                        </h:outputText>
+                        <i class="i i--export i__item__icon"></i>
+                      </h:outputLink>
+                    </li>
+                  </s:fragment>
+
+                  <s:fragment
+                    rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}">
+                    <li>
+                      <h:outputLink styleClass="i__item--right"
+                        rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}"
+                        value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/raw">
+                        <f:param name="docId" value="#{document.docId}"/>
+
+                        <h:outputText
+                          value="#{messages['jsf.iteration.files.DownloadSource']}">
+                          <f:param
+                            value="#{projectIterationFilesAction.extensionOf(document.path, document.name)}"/>
+                        </h:outputText>
+                        <i class="i i--export i__item__icon"></i>
+                      </h:outputLink>
+                    </li>
+                  </s:fragment>
+
+                  <s:fragment
+                    rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+                    <li>
+                      <a href="#"
+                        onclick="openUploadSrcPanel('#{document.docId}'); return false;">
+                        #{messages['jsf.iteration.files.UploadDocument']}
+                        <i class="i i--import i__item__icon"></i>
+                      </a>
+                    </li>
+                  </s:fragment>
+                  <s:fragment
+                    rendered="#{projectIterationFilesAction.documentRemovalAllowed}">
+                    <li>
+                      <a4j:commandLink
+                        action="#{projectIterationFilesAction.deleteDocument(document)}"
+                        onclick="return confirm('#{messages['jsf.iteration.files.ConfirmDocDeletion']}')">
+                        #{messages['jsf.iteration.files.DeleteSource']}
+                        <i class="i i--remove i__item__icon"></i>
+                      </a4j:commandLink>
+                    </li>
+                  </s:fragment>
+                </ul>
+              </div>
+            </div>
+            <a4j:commandLink
+              action="#{versionHomeAction.setSelectedDocument(document)}"
+              render="documents-language_list, document-label, documentsDocumentSearchRange, documentsDocumentSearchTotal, documents-export_options"
+              onclick="updateActiveRow(this);toggleColumn('documents_content')">
+              <div class="list__item__content">
+                <div class="list__item__info">
+                  <h3 class="list__title">#{document.name}</h3>
+                  <span class="list__item__meta">#{document.path}</span>
+                </div>
+                <s:div styleClass="list__item__stats"
+                  rendered="#{versionHomeAction.pageRendered}">
+                  <ui:param name="displayUnit"
+                    value="#{versionHomeAction.getStatisticFigureForDocument(versionHomeAction.documentSortingList.selectedSortOption, document.id)}"/>
+                       <span class="stats--small #{displayUnit.cssClass}">
+                          <span
+                            class="stats__figure">#{displayUnit.figure}</span>
+                          <span class="stats__unit">#{displayUnit.unit}</span>
+                       </span>
+                </s:div>
+              </div>
+              <zanata:statistic
+                value="#{versionHomeAction.getDocumentStatistic(document.id)}"
+                rendered="#{versionHomeAction.pageRendered}"/>
+              <zanata:loader rendered="#{!versionHomeAction.pageRendered}"/>
+            </a4j:commandLink>
+          </li>
+        </ui:repeat>
+      </ul>
+    </s:fragment>
+  </h:form>
+</div>
+
+<div class="panels__panel panel">
+  <div class="panels__panel__header panel__header">
+    <div class="panel__header__actions">
+      <zanata:sortlist id="documents-language_sorting"
+        sortAction="#{versionHomeAction.sortLanguageList()}"
+        render="documents-language_list"
+        sortingList="#{versionHomeAction.languageSortingList}"/>
+
+      <div
+        class="dropdown dropdown--header dropdown--small dropdown--right dropdown--inline js-dropdown">
+        <a class="dropdown__toggle js-dropdown__toggle" href="#" title=""
+          data-original-title="#{messages['jsf.tooltip.MoreActions']}"><i
+          class="i i--ellipsis"></i></a>
+        <ul class="dropdown__content js-dropdown__content" role="content"
+          aria-labelledby="dropdownContent">
+          <s:fragment
+            rendered="#{s:hasPermission(versionHomeAction.version, 'update')}">
+            <li>
+              <a
+                href="#settings-languages" onclick="updateHashAndGotoUrl(this)">
+                #{messages['jsf.ManageLanguage']} <i
+                class="i i--settings i__item__icon"></i>
+              </a>
+            </li>
+          </s:fragment>
+        </ul>
+      </div>
+    </div>
+    <h2 class="panel__heading">
+      <i class="i--language i--left"></i>
+      <a4j:outputPanel id="document-label">
+        #{versionHomeAction.selectedDocument.name}
+      </a4j:outputPanel>
+      #{messages['jsf.Languages']}
+    </h2>
+  </div>
+  <div class="panel__sub-header">
+    <div class="panel__results">
+      <div class="panel__results__type">
+        <i class="i i--language txt--neutral"></i>
+      </div>
+        <span class="txt--meta">
+          <strong>#{versionHomeAction.supportedLocale.size()}</strong>
+        </span>
+    </div>
+  </div>
+  <h:form id="documents-language_list" styleClass="l--push-bottom-0">
+    <s:fragment rendered="#{versionHomeAction.selectedDocument == null}">
+      <div class="l--pad-all-half">
+        <p class="txt--meta">#{messages['jsf.SelectADocumentFromList']}</p>
+      </div>
+    </s:fragment>
+    <s:fragment
+      rendered="#{versionHomeAction.selectedDocument != null and versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
+      <div class="l--pad-all-half">
+        <p
+          class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
+        <s:fragment
+          rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+          <p>
+            <a href="#" class="button--primary"
+              data-original-title="#{messages['jsf.SupportedUploadFormats']}"
+              onclick="openUploadSrcDocPanel()">
+              #{messages['jsf.UploadSourceDocuments']}
+            </a>
+          </p>
+        </s:fragment>
+      </div>
+    </s:fragment>
+    <s:fragment
+      rendered="#{versionHomeAction.selectedDocument != null and !versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
+      <ul class="list--stats">
+        <ui:repeat value="#{versionHomeAction.supportedLocale}" var="hLocale">
+          <li class="progress-bar__expander">
+            <a href="#">
+              <div class="list__item">
+                <div class="list__item__info">
+                  <h3 class="list__title">
+                    #{hLocale.retrieveDisplayName()}
+                    <s:fragment
+                      rendered="#{versionHomeAction.isUserAllowedToTranslateOrReview(hLocale)}">
+                      <i class="i--right i--translate txt--neutral"></i>
+                    </s:fragment>
+                  </h3>
+                </div>
+                <s:div styleClass="list__item__stats"
+                  rendered="#{versionHomeAction.pageRendered}">
+                  <ui:param name="displayUnit"
+                    value="#{versionHomeAction.getStatisticFigureForDocument(versionHomeAction.languageSortingList.selectedSortOption, hLocale.localeId, versionHomeAction.selectedDocument.id)}"/>
                    <span class="stats--small #{displayUnit.cssClass}">
                       <span class="stats__figure">
                         #{displayUnit.figure}
@@ -124,24 +352,77 @@
                         #{displayUnit.unit}
                       </span>
                    </span>
-                  </s:div>
-                </div>
-
-                <zanata:statistic
-                  value="#{versionHomeAction.getDocumentStatistic(document.id)}"
-                  rendered="#{versionHomeAction.pageRendered}"/>
-
-                <zanata:loader rendered="#{!versionHomeAction.pageRendered}"/>
-              </a4j:commandLink>
-            </li>
-          </ui:repeat>
-        </ul>
-      </s:fragment>
-    </h:form>
-  </div>
+                </s:div>
+              </div>
+              <zanata:statistic
+                value="#{versionHomeAction.getStatisticForDocument(versionHomeAction.selectedDocument.id, hLocale.localeId)}"
+                rendered="#{versionHomeAction.pageRendered}"/>
+              <zanata:loader rendered="#{!versionHomeAction.pageRendered}"/>
+            </a>
+          </li>
+        </ui:repeat>
+      </ul>
+    </s:fragment>
+  </h:form>
+</div>
 </div>
 
-<rich:popupPanel id="uploadDocPanel"
+<rich:popupPanel id="uploadSrcPanel"
+  moveable="#{false}"
+  resizeable="#{false}"
+  autosized="#{true}"
+  rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+  <f:facet name="header">
+    <h:outputText id="uploadSrcPanelHeader"/>
+  </f:facet>
+  <h:form id="uploadSrcForm" enctype="multipart/form-data">
+    <s:fileUpload id="specificDocFileInput"
+      accept="*"
+      onchange="checkIfSpecificFileSelected();"
+      data="#{projectIterationFilesAction.documentFileUpload.fileContents}"
+      fileName="#{projectIterationFilesAction.documentFileUpload.fileName}"/>
+    <h:inputHidden id="uploadSrcDocId"
+      value="#{projectIterationFilesAction.documentFileUpload.docId}"/>
+    <br/>
+    <h:selectOneMenu
+      value="#{projectIterationFilesAction.documentFileUpload.sourceLang}">
+      <s:selectItems
+        value="#{projectIterationFilesAction.availableSourceLocales}"
+        var="locale"
+        label="#{locale.retrieveNativeName()}"
+        itemValue="#{locale.localeId.toString()}"
+        escape="true"/>
+      <h:outputLabel value="#{messages['jsf.SourceLanguage']}"/>
+    </h:selectOneMenu>
+    <br/>
+    <rich:collapsiblePanel
+      header="#{messages['jsf.iteration.files.CustomParams']}"
+      switchType="client"
+      expanded="false">
+      <h:outputLabel for="adapterParams"
+        value="#{messages['jsf.iteration.files.CustomParams.description']}"/>
+      <br/>
+      <h:inputTextarea id="adapterParams"
+        value="#{projectIterationFilesAction.documentFileUpload.adapterParams}"/>
+      <br/>
+      <a target="_blank"
+        href="https://github.com/zanata/zanata-server/wiki/Custom-document-parameters">
+        #{messages['jsf.iteration.files.CustomParams.linkText']}
+      </a>
+    </rich:collapsiblePanel>
+
+    <div style="text-align:right">
+      <h:commandButton id="specificDocSubmitUploadButton"
+        value="#{messages['jsf.Upload']}"
+        action="#{projectIterationFilesAction.uploadDocumentFile}"/>
+      <h:commandButton value="#{messages['jsf.Cancel']}"
+        onclick="return hideUploadSrcPanel();"/>
+    </div>
+  </h:form>
+</rich:popupPanel>
+
+
+<rich:popupPanel id="uploadSrcDocPanel"
   moveable="#{false}"
   resizeable="#{false}"
   autosized="#{true}"
@@ -203,7 +484,7 @@
         action="#{projectIterationFilesAction.uploadDocumentFile}"/>
       <h:commandButton id="generalDocCancelUploadButton"
         value="#{messages['jsf.Cancel']}"
-        onclick="return hideDocUploadPanel();"/>
+        onclick="return hideSrcDocUploadPanel();"/>
     </div>
   </h:form>
 </rich:popupPanel>

@@ -28,11 +28,11 @@
 
   <h:form>
     <a4j:jsFunction name="refreshStatistics"
-      render="overall_statistic, languages-language_form, languages-document_list, language-label"
+      render="overall_statistic, languages-language_form, languages-document_list, documents-document_form, documents-language_list, language-label, document-label"
       action="#{versionHomeAction.resetPageData}"/>
 
     <a4j:jsFunction name="renderStatistics"
-      render="overall_statistic, languages-language_form"
+      render="overall_statistic, languages-language_form, documents-document_form"
       action="#{versionHomeAction.setPageRendered(true)}"/>
   </h:form>
 
