@@ -155,11 +155,7 @@
                       <h:outputLink styleClass="i__item--right"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/pot">
                         <f:param name="docId" value="#{document.docId}"/>
-                        <h:outputText
-                          value="#{messages['jsf.iteration.files.DownloadSource']}">
-                          <f:param
-                            value="#{messages['jsf.iteration.files.dotpot']}"/>
-                        </h:outputText>
+                        #{messages['jsf.iteration.files.DownloadSource']} [#{messages['jsf.iteration.files.dotpot']}]
                         <i class="i i--export i__item__icon"></i>
                       </h:outputLink>
                     </li>
@@ -171,11 +167,7 @@
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/offlinepot"
                         title="#{messages['jsf.iteration.files.dotofflinepot.description']} #{messages['jsf.iteration.files.dotofflinepot.purpose']}">
                         <f:param name="docId" value="#{document.docId}"/>
-                        <h:outputText
-                          value="#{messages['jsf.iteration.files.DownloadSource']}">
-                          <f:param
-                            value="#{messages['jsf.iteration.files.dotofflinepot']}"/>
-                        </h:outputText>
+                        #{messages['jsf.iteration.files.DownloadSource']} [#{messages['jsf.iteration.files.dotofflinepot']}]
                         <i class="i i--export i__item__icon"></i>
                       </h:outputLink>
                     </li>
@@ -188,12 +180,7 @@
                         rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/raw">
                         <f:param name="docId" value="#{document.docId}"/>
-
-                        <h:outputText
-                          value="#{messages['jsf.iteration.files.DownloadSource']}">
-                          <f:param
-                            value="#{projectIterationFilesAction.extensionOf(document.path, document.name)}"/>
-                        </h:outputText>
+                        #{messages['jsf.iteration.files.DownloadSource']} [#{projectIterationFilesAction.extensionOf(document.path, document.name)]
                         <i class="i i--export i__item__icon"></i>
                       </h:outputLink>
                     </li>
@@ -202,7 +189,7 @@
                   <s:fragment
                     rendered="#{projectIterationFilesAction.documentUploadAllowed}">
                     <li>
-                      <a href="#"
+                      <a href="#" class="i__item--right"
                         onclick="openUploadSrcPanel('#{document.docId}'); return false;">
                         #{messages['jsf.iteration.files.UploadDocument']}
                         <i class="i i--import i__item__icon"></i>
@@ -212,7 +199,7 @@
                   <s:fragment
                     rendered="#{projectIterationFilesAction.documentRemovalAllowed}">
                     <li>
-                      <a4j:commandLink
+                      <a4j:commandLink styleClass="i__item--right"
                         action="#{projectIterationFilesAction.deleteDocument(document)}"
                         onclick="return confirm('#{messages['jsf.iteration.files.ConfirmDocDeletion']}')">
                         #{messages['jsf.iteration.files.DeleteSource']}

@@ -416,7 +416,7 @@
 
     <div align="right">
       <h:commandButton value="#{messages['jsf.Upload']}"
-        action="#{projectIterationFilesAction.uploadTranslationFile}"/>
+        action="#{projectIterationFilesAction.uploadTranslationFile(versionHomeAction.selectedLocale)}"/>
       <h:commandButton value="#{messages['jsf.Cancel']}"
         onclick="return hideUploadPanel();"/>
     </div>

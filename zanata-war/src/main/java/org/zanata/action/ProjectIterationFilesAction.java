@@ -20,28 +20,19 @@
  */
 package org.zanata.action;
 
-import static org.zanata.rest.dto.stats.TranslationStatistics.StatUnit.WORD;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 import javax.faces.context.FacesContext;
 import javax.validation.ConstraintViolationException;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
@@ -49,8 +40,8 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.security.Restrict;
 import org.jboss.seam.faces.FacesMessages;
+import org.jboss.seam.international.StatusMessage;
 import org.jboss.seam.international.StatusMessage.Severity;
-import org.jboss.seam.security.management.JpaIdentityStore;
 import org.jboss.seam.util.Hex;
 import org.zanata.annotation.CachedMethods;
 import org.zanata.common.DocumentType;
@@ -60,39 +51,35 @@ import org.zanata.common.MergeType;
 import org.zanata.common.ProjectType;
 import org.zanata.dao.DocumentDAO;
 import org.zanata.dao.LocaleDAO;
-import org.zanata.dao.PersonDAO;
 import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.exception.VirusDetectedException;
 import org.zanata.exception.ZanataServiceException;
 import org.zanata.file.FilePersistService;
 import org.zanata.file.GlobalDocumentId;
-import org.zanata.model.HAccount;
-import org.zanata.model.HAccountRole;
 import org.zanata.model.HDocument;
 import org.zanata.model.HLocale;
-import org.zanata.model.HProject;
 import org.zanata.model.HProjectIteration;
 import org.zanata.model.HRawDocument;
 import org.zanata.rest.StringSet;
 import org.zanata.rest.dto.extensions.ExtensionType;
 import org.zanata.rest.dto.resource.Resource;
 import org.zanata.rest.dto.resource.TranslationsResource;
-import org.zanata.rest.dto.stats.ContainerTranslationStatistics;
 import org.zanata.rest.dto.stats.TranslationStatistics;
 import org.zanata.rest.dto.stats.TranslationStatistics.StatUnit;
-import org.zanata.rest.service.StatisticsResource;
 import org.zanata.rest.service.VirusScanner;
-import org.zanata.security.SecurityFunctions;
+import org.zanata.seam.scope.FlashScopeBean;
 import org.zanata.security.ZanataIdentity;
 import org.zanata.service.DocumentService;
 import org.zanata.service.TranslationFileService;
 import org.zanata.service.TranslationService;
-import org.zanata.util.StringUtil;
 import org.zanata.util.ZanataMessages;
-
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import static org.zanata.rest.dto.stats.TranslationStatistics.StatUnit.WORD;
 
 @Name("projectIterationFilesAction")
 @Scope(ScopeType.PAGE)
@@ -110,15 +97,11 @@ public class ProjectIterationFilesAction implements Serializable {
     @Setter
     private String iterationSlug;
 
-    @Getter
-    @Setter
-    private String localeId;
-
     @In
     private ZanataIdentity identity;
 
-    @In(required = false, value = JpaIdentityStore.AUTHENTICATED_USER)
-    private HAccount authenticatedAccount;
+    @In
+    private FlashScopeBean flashScope;
 
     @In
     private DocumentDAO documentDAO;
@@ -131,9 +114,6 @@ public class ProjectIterationFilesAction implements Serializable {
 
     @In
     private ProjectIterationDAO projectIterationDAO;
-
-    @In
-    private PersonDAO personDAO;
 
     @In
     private TranslationFileService translationFileServiceImpl;
@@ -175,26 +155,30 @@ public class ProjectIterationFilesAction implements Serializable {
         this.statisticMap = new HashMap<String, TranslationStatistics>();
     }
 
-    public HLocale getLocale() {
-        return localeDAO.findByLocaleId(new LocaleId(localeId));
-    }
-
     @Restrict("#{projectIterationFilesAction.documentRemovalAllowed}")
     public void deleteDocument(HDocument doc) {
         doc = documentDAO.getById(doc.getId()); // refresh the instance
         documentServiceImpl.makeObsolete(doc);
     }
 
-    @Restrict("#{projectIterationFilesAction.fileUploadAllowed}")
-    public String uploadTranslationFile() {
+    public void hasPermissionModifyTranslation(HLocale hLocale) {
+        if (identity != null) {
+            identity.checkPermission("modify-translation", hLocale,
+                    getProjectIteration().getProject());
+        }
+    }
+
+    public void uploadTranslationFile(HLocale hLocale) {
+        clearMessage();
+        hasPermissionModifyTranslation(hLocale);
         try {
             // process the file
             TranslationsResource transRes =
                     translationFileServiceImpl.parseTranslationFile(
                             translationFileUpload.getFileContents(),
-                            translationFileUpload.getFileName(), localeId,
-                            projectSlug, iterationSlug,
-                            translationFileUpload.docId);
+                            translationFileUpload.getFileName(), hLocale
+                                    .getLocaleId().getId(), projectSlug,
+                            iterationSlug, translationFileUpload.docId);
 
             // translate it
             Set<String> extensions;
@@ -209,37 +193,73 @@ public class ProjectIterationFilesAction implements Serializable {
                                     projectSlug,
                                     iterationSlug,
                                     translationFileUpload.getDocId(),
-                                    new LocaleId(localeId),
+                                    hLocale.getLocaleId(),
                                     transRes,
                                     extensions,
                                     translationFileUpload
                                             .getMergeTranslations() ? MergeType.AUTO
                                             : MergeType.IMPORT);
 
-            StringBuilder facesInfoMssg =
-                    new StringBuilder("File {0} uploaded.");
+            StringBuilder infoMsg =
+                    new StringBuilder("File ").append(
+                            translationFileUpload.getFileName()).append(
+                            " uploaded.");
+
             if (!warnings.isEmpty()) {
-                facesInfoMssg.append(" There were some warnings, see below.");
+                infoMsg.append(" There were some warnings, see below.");
             }
 
-            FacesMessages.instance().add(Severity.INFO,
-                    facesInfoMssg.toString(),
-                    translationFileUpload.getFileName());
+            addMessage(StatusMessage.Severity.INFO, infoMsg.toString());
+
             for (String warning : warnings) {
-                FacesMessages.instance().add(Severity.WARN, warning);
+                addMessage(StatusMessage.Severity.WARN, warning);
             }
         } catch (ZanataServiceException e) {
-            FacesMessages.instance().add(Severity.ERROR, e.getMessage(),
-                    translationFileUpload.getFileName());
+            addMessage(StatusMessage.Severity.ERROR,
+                    translationFileUpload.getFileName() + "-" + e.getMessage());
         }
-
-        // NB This needs to be done as for some reason seam is losing the
-        // parameters when redirecting
-        // This is efectively the same as returning void
-        return FacesContext.getCurrentInstance().getViewRoot().getViewId();
     }
 
-    @Restrict("#{projectIterationFilesAction.documentUploadAllowed}")
+    /**
+     * Use FlashScopeBean to store message in page. Multiple ajax requests for
+     * re-rendering statistics after updating will clear FacesMessages.
+     * 
+     * @param severity
+     * @param message
+     */
+    private void addMessage(StatusMessage.Severity severity, String message) {
+        StatusMessage statusMessage =
+                new StatusMessage(severity, null, null, message, null);
+        statusMessage.interpolate();
+
+        flashScope.setAttribute("message", statusMessage);
+    }
+
+    private void clearMessage() {
+        flashScope.getAndClearAttribute("message");
+    }
+
+    public boolean isDocumentUploadAllowed() {
+        HProjectIteration projectIteration =
+                this.projectIterationDAO.getBySlug(projectSlug, iterationSlug);
+        return isIterationActive()
+                && identity != null
+                && identity.hasPermission("import-template",
+                        getProjectIteration());
+    }
+
+    public boolean isDocumentRemovalAllowed() {
+        // currently same permissions as uploading a document
+        return this.isDocumentUploadAllowed();
+    }
+
+    public void hasPermissionUploadDocument() {
+        if (identity != null) {
+            identity.hasPermission("import-template", getProjectIteration());
+        }
+    }
+
+    @Restrict("#{projectIterationFilesAction.hasPermissionUploadDocument}")
     public String uploadDocumentFile() {
         if (this.documentFileUpload.getFileName().endsWith(".pot")) {
             uploadPotFile();
@@ -272,7 +292,7 @@ public class ProjectIterationFilesAction implements Serializable {
      * <p>
      * Upload a pot file. File may be new or overwriting an existing file.
      * </p>
-     *
+     * 
      * <p>
      * If there is an existing file that is not a pot file, the pot file will be
      * parsed using msgctxt as Zanata id, otherwise id will be generated from a
@@ -416,27 +436,11 @@ public class ProjectIterationFilesAction implements Serializable {
         return localeDAO.findAllActive();
     }
 
-    public boolean isFileUploadAllowed() {
-        return isFileUploadAllowed(getLocale());
-    }
-
     public boolean isFileUploadAllowed(HLocale hLocale) {
         return isIterationActive()
                 && identity != null
                 && identity.hasPermission("modify-translation",
                         getProjectIteration().getProject(), hLocale);
-    }
-
-    public boolean isDocumentUploadAllowed() {
-        HProjectIteration projectIteration =
-                this.projectIterationDAO.getBySlug(projectSlug, iterationSlug);
-        return isIterationActive() && identity != null
-                && identity.hasPermission("import-template", projectIteration);
-    }
-
-    public boolean isDocumentRemovalAllowed() {
-        // currently same permissions as uploading a document
-        return this.isDocumentUploadAllowed();
     }
 
     public boolean isKnownProjectType() {
@@ -490,16 +494,6 @@ public class ProjectIterationFilesAction implements Serializable {
         return this.projectIteration;
     }
 
-    public boolean isIterationReadOnly() {
-        return getProjectIteration().getProject().getStatus() == EntityStatus.READONLY
-                || getProjectIteration().getStatus() == EntityStatus.READONLY;
-    }
-
-    public boolean isIterationObsolete() {
-        return getProjectIteration().getProject().getStatus() == EntityStatus.OBSOLETE
-                || getProjectIteration().getStatus() == EntityStatus.OBSOLETE;
-    }
-
     public boolean isIterationActive() {
         return getProjectIteration().getProject().getStatus() == EntityStatus.ACTIVE
                 || getProjectIteration().getStatus() == EntityStatus.ACTIVE;
@@ -528,65 +522,6 @@ public class ProjectIterationFilesAction implements Serializable {
                             .getMessage("jsf.iteration.files.DownloadAll");
         }
         return message;
-    }
-
-    /**
-     * Returns the display zanataMessages to show when a user cannot translate.
-     */
-    public List<String> getTranslationDeniedReasonMessages() {
-        List<String> displayMessages = new ArrayList<String>(5);
-
-        // Account not logged in
-        if (identity == null) {
-            displayMessages
-                    .add(zanataMessages
-                            .getMessage("jsf.iteration.files.translateDenied.NotLoggedIn"));
-            return displayMessages;
-        }
-
-        // Iteration is read only
-        if (isIterationReadOnly()) {
-            displayMessages
-                    .add(zanataMessages
-                            .getMessage("jsf.iteration.files.translateDenied.VersionIsReadOnly"));
-        }
-
-        // Iteration is Obsolete
-        if (isIterationObsolete()) {
-            displayMessages
-                    .add(zanataMessages
-                            .getMessage("jsf.iteration.files.translateDenied.VersionIsObsolete"));
-        }
-
-        // User not member of language team
-        if (!personDAO
-                .isUserInLanguageTeamWithRoles(
-                        authenticatedAccount.getPerson(), getLocale(), true,
-                        null, null)) {
-            displayMessages
-                    .add(zanataMessages
-                            .getMessage(
-                                    "jsf.iteration.files.translateDenied.UserNotTranslatorInLanguageTeam",
-                                    getLocale().retrieveDisplayName()));
-        }
-
-        // User not part of the allowed roles
-        HProject project = getProjectIteration().getProject();
-        if (!SecurityFunctions.isUserAllowedAccess(project)) {
-            // jsf.iteration.files.translateDenied.UserNotInProjectRole
-            displayMessages.add(zanataMessages.getMessage(
-                    "jsf.iteration.files.translateDenied.UserNotInProjectRole",
-                    StringUtil.concat(project.getAllowedRoles(), ',',
-                            new Function<HAccountRole, String>() {
-                                @Override
-                                public String
-                                        apply(@Nullable HAccountRole from) {
-                                    return from.getName();
-                                }
-                            })));
-        }
-
-        return displayMessages;
     }
 
     private Optional<String> getOptionalParams() {
