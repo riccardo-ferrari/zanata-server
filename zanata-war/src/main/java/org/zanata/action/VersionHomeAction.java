@@ -381,11 +381,7 @@ public class VersionHomeAction extends AbstractSortAction implements
 
                 @Override
                 public int getFilteredDocumentSize() {
-                    if (getSelectedDocument() == null) {
-                        return 0;
-                    } else {
-                        return getFilteredDocuments().size();
-                    }
+                    return getFilteredDocuments().size();
                 }
 
                 @Override

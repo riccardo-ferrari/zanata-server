@@ -117,7 +117,7 @@
       rendered="#{versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
       <div class="l--pad-all-half">
         <p
-          class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
+          class="txt--meta">#{messages['jsf.iteration.NoDocumentInVersion']}</p>
         <s:fragment
           rendered="#{projectIterationFilesAction.documentUploadAllowed}">
           <p>
@@ -130,7 +130,6 @@
         </s:fragment>
       </div>
     </s:fragment>
-
     <s:fragment
       rendered="#{!versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
       <ul class="list--stats" id="documents-document_list">
@@ -180,7 +179,7 @@
                         rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/raw">
                         <f:param name="docId" value="#{document.docId}"/>
-                        #{messages['jsf.iteration.files.DownloadSource']} [#{projectIterationFilesAction.extensionOf(document.path, document.name)]
+                        #{messages['jsf.iteration.files.DownloadSource']} [#{projectIterationFilesAction.extensionOf(document.path, document.name)}]
                         <i class="i i--export i__item__icon"></i>
                       </h:outputLink>
                     </li>
@@ -212,7 +211,7 @@
             </div>
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedDocument(document)}"
-              render="documents-language_list, document-label, documentsDocumentSearchRange, documentsDocumentSearchTotal, documents-export_options"
+              render="documents-language_list, document-label"
               onclick="updateActiveRow(this);toggleColumn('documents_content')">
               <div class="list__item__content">
                 <div class="list__item__info">
@@ -298,14 +297,14 @@
       rendered="#{versionHomeAction.selectedDocument != null and versionHomeAction.documentTabDocumentFilter.getPagedFilteredDocuments().isEmpty()}">
       <div class="l--pad-all-half">
         <p
-          class="txt--meta">#{messages['jsf.iteration.NoDocumentsInVersion']}</p>
+          class="txt--meta">#{messages['jsf.iteration.NoLanguagesInVersion']}</p>
         <s:fragment
-          rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+          rendered="#{s:hasPermission(versionHomeAction.version, 'update')}">>
           <p>
-            <a href="#" class="button--primary"
-              data-original-title="#{messages['jsf.SupportedUploadFormats']}"
-              onclick="openUploadSrcDocPanel()">
-              #{messages['jsf.UploadSourceDocuments']}
+            <a class="button--primary" href="#settings-languages"
+              onclick="updateHashAndGotoUrl(this)">
+              #{messages['jsf.ManageLanguage']} <i
+              class="i i--settings i__item__icon"></i>
             </a>
           </p>
         </s:fragment>
