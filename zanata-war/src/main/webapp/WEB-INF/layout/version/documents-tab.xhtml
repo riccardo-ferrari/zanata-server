@@ -8,36 +8,36 @@
   xmlns:rich="http://richfaces.org/rich">
 
 <script type="text/javascript">
-  function openUploadSrcDocPanel() {
-    #{rich:component('uploadSrcDocPanel')}
+  function openUploadSourceDocPanel() {
+    #{rich:component('uploadSourceDocPanel')}
   .
     show();
     checkIfGeneralFileSelected()
     return false;
   }
 
-  function openUploadSrcPanel(docId) {
-    #{rich:element('uploadSrcPanelHeader')}
+  function openUploadSourcePanel(docId) {
+    #{rich:element('uploadSourcePanelHeader')}
   .
     innerHTML = '#{messages['jsf.iteration.files.UploadDocument']}: ' + docId;
-    #{rich:element('uploadSrcDocId')}
+    #{rich:element('uploadSourceDocId')}
   .
     value = docId;
-    #{rich:component('uploadSrcPanel')}
+    #{rich:component('uploadSourcePanel')}
   .
     show();
     checkIfSpecificFileSelected();
   }
 
-  function hideUploadSrcPanel() {
-    #{rich:component('uploadSrcPanel')}
+  function hideUploadSourcePanel() {
+    #{rich:component('uploadSourcePanel')}
   .
     hide();
     return false;
   }
 
-  function hideSrcDocUploadPanel() {
-    #{rich:component('uploadSrcDocPanel')}
+  function hideSourceDocUploadPanel() {
+    #{rich:component('uploadSourceDocPanel')}
   .
     hide();
     return false;
@@ -91,12 +91,13 @@
         <ul class="dropdown__content js-dropdown__content" role="content"
           aria-labelledby="dropdownContent">
           <s:fragment
-            rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+            rendered="#{versionHomeAction.documentUploadAllowed}">
             <li>
-              <a href="#" class="i i--import i__item__icon"
+              <a href="#" class="i__item--right"
                 data-original-title="#{messages['jsf.SupportedUploadFormats']}"
-                onclick="openUploadSrcDocPanel()">
+                onclick="openUploadSourceDocPanel()">
                 #{messages['jsf.UploadSourceDocuments']}
+                <i class="i i--import i__item__icon"></i>
               </a>
             </li>
           </s:fragment>
@@ -119,11 +120,11 @@
         <p
           class="txt--meta">#{messages['jsf.iteration.NoDocumentInVersion']}</p>
         <s:fragment
-          rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+          rendered="#{versionHomeAction.documentUploadAllowed}">
           <p>
             <a href="#" class="button--primary"
               data-original-title="#{messages['jsf.SupportedUploadFormats']}"
-              onclick="openUploadSrcDocPanel()">
+              onclick="openUploadSourceDocPanel()">
               #{messages['jsf.UploadSourceDocuments']}
             </a>
           </p>
@@ -149,7 +150,7 @@
                 </a>
                 <ul class="dropdown__content js-dropdown__content">
                   <s:fragment
-                    rendered="#{projectIterationFilesAction.isPoDocument(document.docId)}">
+                    rendered="#{versionHomeAction.isPoDocument(document.docId)}">
                     <li>
                       <h:outputLink styleClass="i__item--right"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/pot">
@@ -160,7 +161,7 @@
                     </li>
                   </s:fragment>
                   <s:fragment
-                    rendered="#{!projectIterationFilesAction.isPoDocument(document.docId)}">
+                    rendered="#{!versionHomeAction.isPoDocument(document.docId)}">
                     <li>
                       <h:outputLink styleClass="i__item--right"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/offlinepot"
@@ -173,33 +174,33 @@
                   </s:fragment>
 
                   <s:fragment
-                    rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}">
+                    rendered="#{versionHomeAction.hasOriginal(document.path, document.name)}">
                     <li>
                       <h:outputLink styleClass="i__item--right"
-                        rendered="#{projectIterationFilesAction.hasOriginal(document.path, document.name)}"
+                        rendered="#{versionHomeAction.hasOriginal(document.path, document.name)}"
                         value="#{request.contextPath}/rest/file/source/#{versionHomeAction.projectSlug}/#{versionHomeAction.versionSlug}/raw">
                         <f:param name="docId" value="#{document.docId}"/>
-                        #{messages['jsf.iteration.files.DownloadSource']} [#{projectIterationFilesAction.extensionOf(document.path, document.name)}]
+                        #{messages['jsf.iteration.files.DownloadSource']} [#{versionHomeAction.extensionOf(document.path, document.name)}]
                         <i class="i i--export i__item__icon"></i>
                       </h:outputLink>
                     </li>
                   </s:fragment>
 
                   <s:fragment
-                    rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+                    rendered="#{versionHomeAction.documentUploadAllowed}">
                     <li>
                       <a href="#" class="i__item--right"
-                        onclick="openUploadSrcPanel('#{document.docId}'); return false;">
+                        onclick="openUploadSourcePanel('#{document.docId}'); return false;">
                         #{messages['jsf.iteration.files.UploadDocument']}
                         <i class="i i--import i__item__icon"></i>
                       </a>
                     </li>
                   </s:fragment>
                   <s:fragment
-                    rendered="#{projectIterationFilesAction.documentRemovalAllowed}">
+                    rendered="#{versionHomeAction.documentRemovalAllowed}">
                     <li>
-                      <a4j:commandLink styleClass="i__item--right"
-                        action="#{projectIterationFilesAction.deleteDocument(document)}"
+                      <a4j:commandLink styleClass="i__item--right" render="documents-size, documents-document_form, documentsDocumentSearchRange, documentsDocumentSearchTotal"
+                        action="#{versionHomeAction.deleteDocument(document)}"
                         onclick="return confirm('#{messages['jsf.iteration.files.ConfirmDocDeletion']}')">
                         #{messages['jsf.iteration.files.DeleteSource']}
                         <i class="i i--remove i__item__icon"></i>
@@ -211,7 +212,7 @@
             </div>
             <a4j:commandLink
               action="#{versionHomeAction.setSelectedDocument(document)}"
-              render="documents-language_list, document-label"
+              render="documents-language_list, document-label, documents-language-size"
               onclick="updateActiveRow(this);toggleColumn('documents_content')">
               <div class="list__item__content">
                 <div class="list__item__info">
@@ -282,9 +283,15 @@
       <div class="panel__results__type">
         <i class="i i--language txt--neutral"></i>
       </div>
-        <span class="txt--meta">
-          <strong>#{versionHomeAction.supportedLocale.size()}</strong>
-        </span>
+        <s:span styleClass="txt--meta" id="documents-language-size">
+          <s:fragment rendered="#{versionHomeAction.selectedDocument == null}">
+            <strong>0</strong>
+          </s:fragment>
+          <s:fragment rendered="#{versionHomeAction.selectedDocument != null}">
+            <strong>#{versionHomeAction.supportedLocale.size()}</strong>
+          </s:fragment>
+
+        </s:span>
     </div>
   </div>
   <h:form id="documents-language_list" styleClass="l--push-bottom-0">
@@ -325,6 +332,7 @@
                       <i class="i--right i--translate txt--neutral"></i>
                     </s:fragment>
                   </h3>
+                  <span class="list__item__meta">#{hLocale.localeId}</span>
                 </div>
                 <s:div styleClass="list__item__stats"
                   rendered="#{versionHomeAction.pageRendered}">
@@ -353,28 +361,27 @@
 </div>
 </div>
 
-<rich:popupPanel id="uploadSrcPanel"
+<rich:popupPanel id="uploadSourcePanel"
   moveable="#{false}"
   resizeable="#{false}"
   autosized="#{true}"
-  rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+  rendered="#{versionHomeAction.documentUploadAllowed}">
   <f:facet name="header">
-    <h:outputText id="uploadSrcPanelHeader"/>
+    <h:outputText id="uploadSourcePanelHeader"/>
   </f:facet>
   <h:form id="uploadSrcForm" enctype="multipart/form-data">
     <s:fileUpload id="specificDocFileInput"
       accept="*"
       onchange="checkIfSpecificFileSelected();"
-      data="#{projectIterationFilesAction.documentFileUpload.fileContents}"
-      fileName="#{projectIterationFilesAction.documentFileUpload.fileName}"/>
-    <h:inputHidden id="uploadSrcDocId"
-      value="#{projectIterationFilesAction.documentFileUpload.docId}"/>
+      data="#{versionHomeAction.sourceFileUpload.fileContents}"
+      fileName="#{versionHomeAction.sourceFileUpload.fileName}"/>
+    <h:inputHidden id="uploadSourceDocId"
+      value="#{versionHomeAction.sourceFileUpload.docId}"/>
     <br/>
     <h:selectOneMenu
-      value="#{projectIterationFilesAction.documentFileUpload.sourceLang}">
+      value="#{versionHomeAction.sourceFileUpload.sourceLang}">
       <s:selectItems
-        value="#{projectIterationFilesAction.availableSourceLocales}"
-        var="locale"
+        value="#{versionHomeAction.availableSourceLocales}" var="locale"
         label="#{locale.retrieveNativeName()}"
         itemValue="#{locale.localeId.toString()}"
         escape="true"/>
@@ -389,7 +396,7 @@
         value="#{messages['jsf.iteration.files.CustomParams.description']}"/>
       <br/>
       <h:inputTextarea id="adapterParams"
-        value="#{projectIterationFilesAction.documentFileUpload.adapterParams}"/>
+        value="#{versionHomeAction.sourceFileUpload.adapterParams}"/>
       <br/>
       <a target="_blank"
         href="https://github.com/zanata/zanata-server/wiki/Custom-document-parameters">
@@ -400,19 +407,19 @@
     <div style="text-align:right">
       <h:commandButton id="specificDocSubmitUploadButton"
         value="#{messages['jsf.Upload']}"
-        action="#{projectIterationFilesAction.uploadDocumentFile}"/>
+        action="#{versionHomeAction.uploadSourceFile}"/>
       <h:commandButton value="#{messages['jsf.Cancel']}"
-        onclick="return hideUploadSrcPanel();"/>
+        onclick="return hideUploadSourcePanel();"/>
     </div>
   </h:form>
 </rich:popupPanel>
 
 
-<rich:popupPanel id="uploadSrcDocPanel"
+<rich:popupPanel id="uploadSourceDocPanel"
   moveable="#{false}"
   resizeable="#{false}"
   autosized="#{true}"
-  rendered="#{projectIterationFilesAction.documentUploadAllowed}">
+  rendered="#{versionHomeAction.documentUploadAllowed}">
   <f:facet name="header">
     <h:outputText value="#{messages['jsf.iteration.files.UploadDocument']}"/>
   </f:facet>
@@ -420,8 +427,8 @@
     <s:fileUpload id="generalDocFileUpload"
       accept="*"
       onchange="checkIfGeneralFileSelected();"
-      data="#{projectIterationFilesAction.documentFileUpload.fileContents}"
-      fileName="#{projectIterationFilesAction.documentFileUpload.fileName}"/>
+      data="#{versionHomeAction.sourceFileUpload.fileContents}"
+      fileName="#{versionHomeAction.sourceFileUpload.fileName}"/>
 
     <div id="invalidFilenameError" style="display: none;
                                                       color: red;
@@ -433,14 +440,14 @@
       <h:outputLabel for="docPath"
         value="#{messages['jsf.iteration.files.DocumentPath']}"/>
       <h:inputText id="docPath"
-        value="#{projectIterationFilesAction.documentFileUpload.documentPath}">
+        value="#{versionHomeAction.sourceFileUpload.documentPath}">
       </h:inputText>
     </div>
     <div>
       <h:selectOneMenu
-        value="#{projectIterationFilesAction.documentFileUpload.sourceLang}">
+        value="#{versionHomeAction.sourceFileUpload.sourceLang}">
         <s:selectItems
-          value="#{projectIterationFilesAction.availableSourceLocales}"
+          value="#{versionHomeAction.availableSourceLocales}"
           var="locale"
           label="#{locale.retrieveNativeName()}"
           itemValue="#{locale.localeId.toString()}"
@@ -456,7 +463,7 @@
         value="#{messages['jsf.iteration.files.CustomParams.description']}"/>
       <br/>
       <h:inputTextarea id="adapterParams"
-        value="#{projectIterationFilesAction.documentFileUpload.adapterParams}"/>
+        value="#{versionHomeAction.sourceFileUpload.adapterParams}"/>
       <br/>
       <a target="_blank"
         href="https://github.com/zanata/zanata-server/wiki/Custom-document-parameters">
@@ -464,10 +471,10 @@
       </a>
     </rich:collapsiblePanel>
 
-    <div align="right">
+    <div style="text-align:right">
       <h:commandButton id="generalDocSubmitUploadButton"
         value="#{messages['jsf.Upload']}"
-        action="#{projectIterationFilesAction.uploadDocumentFile}"/>
+        action="#{versionHomeAction.uploadSourceFile}"/>
       <h:commandButton id="generalDocCancelUploadButton"
         value="#{messages['jsf.Cancel']}"
         onclick="return hideSrcDocUploadPanel();"/>

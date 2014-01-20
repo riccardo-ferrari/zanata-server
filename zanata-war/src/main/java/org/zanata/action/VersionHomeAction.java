@@ -21,50 +21,84 @@
  */
 package org.zanata.action;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.annotation.Nullable;
+import javax.validation.ConstraintViolationException;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.annotations.security.Restrict;
 import org.jboss.seam.framework.EntityNotFoundException;
+import org.jboss.seam.international.StatusMessage;
+import org.jboss.seam.util.Hex;
 import org.zanata.annotation.CachedMethods;
+import org.zanata.common.DocumentType;
 import org.zanata.common.EntityStatus;
 import org.zanata.common.LocaleId;
+import org.zanata.common.MergeType;
+import org.zanata.common.ProjectType;
 import org.zanata.dao.DocumentDAO;
+import org.zanata.dao.LocaleDAO;
 import org.zanata.dao.ProjectIterationDAO;
+import org.zanata.exception.VirusDetectedException;
+import org.zanata.exception.ZanataServiceException;
+import org.zanata.file.FilePersistService;
+import org.zanata.file.GlobalDocumentId;
 import org.zanata.model.HDocument;
 import org.zanata.model.HIterationGroup;
 import org.zanata.model.HLocale;
 import org.zanata.model.HProjectIteration;
+import org.zanata.model.HRawDocument;
+import org.zanata.rest.StringSet;
+import org.zanata.rest.dto.extensions.ExtensionType;
+import org.zanata.rest.dto.resource.Resource;
+import org.zanata.rest.dto.resource.TranslationsResource;
+import org.zanata.rest.service.VirusScanner;
+import org.zanata.seam.scope.FlashScopeBean;
 import org.zanata.security.ZanataIdentity;
+import org.zanata.service.DocumentService;
 import org.zanata.service.LocaleService;
+import org.zanata.service.TranslationFileService;
+import org.zanata.service.TranslationService;
 import org.zanata.service.TranslationStateCache;
 import org.zanata.service.VersionStateCache;
 import org.zanata.ui.model.statistic.WordStatistic;
 import org.zanata.util.StatisticsUtil;
 import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.DocumentStatus;
+
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
 @Name("versionHomeAction")
 @Scope(ScopeType.PAGE)
 @CachedMethods
+@Slf4j
 public class VersionHomeAction extends AbstractSortAction implements
         Serializable {
     private static final long serialVersionUID = 1L;
@@ -88,7 +122,22 @@ public class VersionHomeAction extends AbstractSortAction implements
     private ZanataMessages zanataMessages;
 
     @In
+    private DocumentService documentServiceImpl;
+
+    @In
     private ZanataIdentity identity;
+
+    @In
+    private TranslationFileService translationFileServiceImpl;
+
+    @In
+    private VirusScanner virusScanner;
+
+    @In
+    private LocaleDAO localeDAO;
+
+    @In
+    private TranslationService translationServiceImpl;
 
     @Setter
     @Getter
@@ -111,6 +160,12 @@ public class VersionHomeAction extends AbstractSortAction implements
     @Setter
     private HDocument selectedDocument;
 
+    @In
+    private FlashScopeBean flashScope;
+
+    @In("filePersistService")
+    private FilePersistService filePersistService;
+
     private List<HLocale> supportedLocale;
 
     private List<HDocument> documents;
@@ -118,6 +173,16 @@ public class VersionHomeAction extends AbstractSortAction implements
     private Map<LocaleId, WordStatistic> statisticMap;
 
     private Map<DocumentLocaleKey, WordStatistic> documentStatisticMap;
+
+    private List<HIterationGroup> groups;
+
+    @Getter
+    private SourceFileUploadHelper sourceFileUpload =
+            new SourceFileUploadHelper();
+
+    @Getter
+    private TranslationFileUploadHelper translationFileUpload =
+            new TranslationFileUploadHelper();
 
     @Getter
     private SortingType documentSortingList = new SortingType(
@@ -144,7 +209,7 @@ public class VersionHomeAction extends AbstractSortAction implements
 
     /**
      * Sort document list based on selected locale
-     * 
+     *
      * @param localeId
      */
     public void sortDocumentList(LocaleId localeId) {
@@ -162,6 +227,8 @@ public class VersionHomeAction extends AbstractSortAction implements
     @Override
     public void resetPageData() {
         languageTabDocumentFilter.resetDocumentPage();
+        documentTabDocumentFilter.resetDocumentPage();
+        documents = null;
         loadStatistic();
     }
 
@@ -185,7 +252,7 @@ public class VersionHomeAction extends AbstractSortAction implements
                 .getRemainingHours(overallStatistic));
 
         documentStatisticMap = Maps.newHashMap();
-        for (HDocument document : getVersion().getDocuments().values()) {
+        for (HDocument document : getDocuments()) {
             for (HLocale locale : getSupportedLocale()) {
                 WordStatistic wordStatistic =
                         documentDAO.getWordStatistics(document.getId(),
@@ -223,8 +290,6 @@ public class VersionHomeAction extends AbstractSortAction implements
         }
         return documents;
     }
-
-    private List<HIterationGroup> groups;
 
     public List<HIterationGroup> getGroups() {
         if (groups == null) {
@@ -321,6 +386,348 @@ public class VersionHomeAction extends AbstractSortAction implements
     private boolean isVersionActive() {
         return getVersion().getProject().getStatus() == EntityStatus.ACTIVE
                 || getVersion().getStatus() == EntityStatus.ACTIVE;
+    }
+
+    @Restrict("#{versionHomeAction.documentRemovalAllowed}")
+    public void deleteDocument(HDocument doc) {
+        clearMessage();
+        doc = documentDAO.getById(doc.getId()); // refresh the instance
+        documentServiceImpl.makeObsolete(doc);
+        resetPageData();
+        addMessage(StatusMessage.Severity.INFO, doc.getDocId()
+                + " has been removed.");
+    }
+
+    public List<HLocale> getAvailableSourceLocales() {
+        return localeDAO.findAllActive();
+    }
+
+    /**
+     * Use FlashScopeBean to store message in page. Multiple ajax requests for
+     * re-rendering statistics after updating will clear FacesMessages.
+     *
+     * @param severity
+     * @param message
+     */
+    private void addMessage(StatusMessage.Severity severity, String message) {
+        StatusMessage statusMessage =
+                new StatusMessage(severity, null, null, message, null);
+        statusMessage.interpolate();
+
+        flashScope.setAttribute("message", statusMessage);
+    }
+
+    private void clearMessage() {
+        flashScope.getAndClearAttribute("message");
+    }
+
+    public boolean isDocumentRemovalAllowed() {
+        // currently same permissions as uploading a document
+        return this.isDocumentUploadAllowed();
+    }
+
+    public boolean isDocumentUploadAllowed() {
+        return isVersionActive() && identity != null
+                && identity.hasPermission("import-template", getVersion());
+    }
+
+    public boolean isZipFileDownloadAllowed() {
+        return getVersion().getProjectType() != null;
+    }
+
+    public boolean isPoProject() {
+        HProjectIteration projectIteration =
+                projectIterationDAO.getBySlug(projectSlug, versionSlug);
+        ProjectType type = projectIteration.getProjectType();
+        if (type == null) {
+            type = projectIteration.getProject().getDefaultProjectType();
+        }
+        return type == ProjectType.Gettext || type == ProjectType.Podir;
+    }
+
+    public String getZipFileDownloadTitle() {
+        String message = null;
+        if (!isZipFileDownloadAllowed()) {
+            if (getVersion().getProjectType() == null) {
+                message =
+                        zanataMessages
+                                .getMessage("jsf.iteration.files.DownloadAllFiles.ProjectTypeNotSet");
+            } else if (getVersion().getProjectType() != ProjectType.Gettext
+                    && getVersion().getProjectType() != ProjectType.Podir) {
+                message =
+                        zanataMessages
+                                .getMessage("jsf.iteration.files.DownloadAllFiles.ProjectTypeNotAllowed");
+            }
+        } else {
+            message =
+                    zanataMessages
+                            .getMessage("jsf.iteration.files.DownloadAll");
+        }
+        return message;
+    }
+
+    public boolean isKnownProjectType() {
+        ProjectType type =
+                projectIterationDAO.getBySlug(projectSlug, versionSlug)
+                        .getProjectType();
+        return type != null;
+    }
+
+    public boolean isFileUploadAllowed(HLocale hLocale) {
+        return isVersionActive()
+                && identity != null
+                && identity.hasPermission("modify-translation", getVersion()
+                        .getProject(), hLocale);
+    }
+
+    public void uploadSourceFile() {
+        clearMessage();
+        identity.checkPermission("import-template", getVersion());
+
+        if (sourceFileUpload.getFileName().endsWith(".pot")) {
+            uploadPotFile();
+        } else {
+            DocumentType type =
+                    translationFileServiceImpl.getDocumentType(sourceFileUpload
+                            .getFileName());
+            if (translationFileServiceImpl.hasAdapterFor(type)) {
+                uploadAdapterFile();
+            } else {
+                addMessage(
+                        StatusMessage.Severity.ERROR,
+                        "Unrecognized file extension for "
+                                + sourceFileUpload.getFileName());
+            }
+        }
+        resetPageData();
+    }
+
+    public boolean isPoDocument(String docId) {
+        return translationFileServiceImpl.isPoDocument(projectSlug,
+                versionSlug, docId);
+    }
+
+    public String extensionOf(String docPath, String docName) {
+        return "."
+                + translationFileServiceImpl.getFileExtension(projectSlug,
+                        versionSlug, docPath, docName);
+    }
+
+    public boolean hasOriginal(String docPath, String docName) {
+        GlobalDocumentId id =
+                new GlobalDocumentId(projectSlug, versionSlug, docPath
+                        + docName);
+        return filePersistService.hasPersistedDocument(id);
+    }
+
+    private void showUploadSuccessMessage() {
+        addMessage(StatusMessage.Severity.INFO, "Document file "
+                + sourceFileUpload.getFileName() + " uploaded.");
+    }
+
+    /**
+     * <p>
+     * Upload a pot file. File may be new or overwriting an existing file.
+     * </p>
+     *
+     * <p>
+     * If there is an existing file that is not a pot file, the pot file will be
+     * parsed using msgctxt as Zanata id, otherwise id will be generated from a
+     * hash of msgctxt and msgid.
+     * </p>
+     */
+    private void uploadPotFile() {
+        String docId = sourceFileUpload.getDocId();
+        if (docId == null) {
+            docId =
+                    translationFileServiceImpl.generateDocId(
+                            sourceFileUpload.getDocumentPath(),
+                            sourceFileUpload.getFileName());
+        }
+        HDocument existingDoc =
+                documentDAO.getByProjectIterationAndDocId(projectSlug,
+                        versionSlug, docId);
+        boolean docExists = existingDoc != null;
+        boolean useOfflinePo = docExists && !isPoDocument(docId);
+
+        try {
+            Resource doc =
+                    translationFileServiceImpl.parseUpdatedPotFile(
+                            sourceFileUpload.getFileContents(), docId,
+                            sourceFileUpload.getFileName(), useOfflinePo);
+
+            doc.setLang(new LocaleId(sourceFileUpload.getSourceLang()));
+
+            // TODO Copy Trans values
+            documentServiceImpl.saveDocument(projectSlug, versionSlug, doc,
+                    new StringSet(ExtensionType.GetText.toString()), false);
+
+            showUploadSuccessMessage();
+        } catch (ZanataServiceException e) {
+            addMessage(StatusMessage.Severity.ERROR, e.getMessage() + "-"
+                    + sourceFileUpload.getFileName());
+        } catch (ConstraintViolationException e) {
+            addMessage(StatusMessage.Severity.ERROR, "Invalid arguments");
+        }
+    }
+
+    private Optional<String> getOptionalParams() {
+        return Optional.fromNullable(Strings.emptyToNull(sourceFileUpload
+                .getAdapterParams()));
+    }
+
+    // TODO add logging for disk writing errors
+    // TODO damason: unify this with Source/TranslationDocumentUpload
+    private void uploadAdapterFile() {
+        String fileName = sourceFileUpload.getFileName();
+        String docId = sourceFileUpload.getDocId();
+        String documentPath = "";
+        if (docId == null) {
+            documentPath = sourceFileUpload.getDocumentPath();
+        } else if (docId.contains("/")) {
+            documentPath = docId.substring(0, docId.lastIndexOf('/'));
+        }
+
+        File tempFile = null;
+        byte[] md5hash;
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            InputStream fileContents =
+                    new DigestInputStream(sourceFileUpload.getFileContents(),
+                            md);
+            tempFile =
+                    translationFileServiceImpl.persistToTempFile(fileContents);
+            md5hash = md.digest();
+        } catch (ZanataServiceException e) {
+            VersionHomeAction.log.error(
+                    "Failed writing temp file for document {}", e,
+                    sourceFileUpload.getDocId());
+            addMessage(StatusMessage.Severity.ERROR,
+                    "Error saving uploaded document " + fileName
+                            + " to server.");
+            return;
+        } catch (NoSuchAlgorithmException e) {
+            VersionHomeAction.log.error("MD5 hash algorithm not available", e);
+            addMessage(StatusMessage.Severity.ERROR,
+                    "Error generating hash for uploaded document " + fileName
+                            + ".");
+            return;
+        }
+
+        HDocument document = null;
+        try {
+            Resource doc;
+            if (docId == null) {
+                doc =
+                        translationFileServiceImpl.parseAdapterDocumentFile(
+                                tempFile.toURI(), documentPath, fileName,
+                                getOptionalParams());
+            } else {
+                doc =
+                        translationFileServiceImpl
+                                .parseUpdatedAdapterDocumentFile(
+                                        tempFile.toURI(), docId, fileName,
+                                        getOptionalParams());
+            }
+            doc.setLang(new LocaleId(sourceFileUpload.getSourceLang()));
+            Set<String> extensions = Collections.<String> emptySet();
+            // TODO Copy Trans values
+            document =
+                    documentServiceImpl.saveDocument(projectSlug, versionSlug,
+                            doc, extensions, false);
+            showUploadSuccessMessage();
+        } catch (SecurityException e) {
+            addMessage(StatusMessage.Severity.ERROR,
+                    "Error reading uploaded document " + fileName
+                            + " on server.");
+        } catch (ZanataServiceException e) {
+            addMessage(StatusMessage.Severity.ERROR,
+                    "Invalid document format for " + fileName);
+        }
+
+        if (document == null) {
+            // error message for failed parse already added.
+        } else {
+            HRawDocument rawDocument = new HRawDocument();
+            rawDocument.setDocument(document);
+            rawDocument.setContentHash(new String(Hex.encodeHex(md5hash)));
+            rawDocument.setType(DocumentType.typeFor(translationFileServiceImpl
+                    .extractExtension(fileName)));
+            rawDocument.setUploadedBy(identity.getCredentials().getUsername());
+
+            Optional<String> params = getOptionalParams();
+            if (params.isPresent()) {
+                rawDocument.setAdapterParameters(params.get());
+            }
+
+            try {
+                String name = projectSlug + ":" + versionSlug + ":" + docId;
+                virusScanner.scan(tempFile, name);
+            } catch (VirusDetectedException e) {
+                VersionHomeAction.log.warn("File failed virus scan: {}",
+                        e.getMessage());
+                addMessage(StatusMessage.Severity.ERROR,
+                        "uploaded file did not pass virus scan");
+            }
+            filePersistService.persistRawDocumentContentFromFile(rawDocument,
+                    tempFile);
+            documentDAO.addRawDocument(document, rawDocument);
+            documentDAO.flush();
+        }
+
+        translationFileServiceImpl.removeTempFile(tempFile);
+    }
+
+    public void uploadTranslationFile(HLocale hLocale) {
+        clearMessage();
+        identity.checkPermission("modify-translation", hLocale, getVersion()
+                .getProject());
+        try {
+            // process the file
+            TranslationsResource transRes =
+                    translationFileServiceImpl.parseTranslationFile(
+                            translationFileUpload.getFileContents(),
+                            translationFileUpload.getFileName(), hLocale
+                                    .getLocaleId().getId(), projectSlug,
+                            versionSlug, translationFileUpload.docId);
+
+            // translate it
+            Set<String> extensions;
+            if (translationFileUpload.getFileName().endsWith(".po")) {
+                extensions = new StringSet(ExtensionType.GetText.toString());
+            } else {
+                extensions = Collections.<String> emptySet();
+            }
+            List<String> warnings =
+                    translationServiceImpl
+                            .translateAllInDoc(
+                                    projectSlug,
+                                    versionSlug,
+                                    translationFileUpload.getDocId(),
+                                    hLocale.getLocaleId(),
+                                    transRes,
+                                    extensions,
+                                    translationFileUpload.isMergeTranslations() ? MergeType.AUTO
+                                            : MergeType.IMPORT);
+
+            StringBuilder infoMsg =
+                    new StringBuilder("File ").append(
+                            translationFileUpload.getFileName()).append(
+                            " uploaded.");
+
+            if (!warnings.isEmpty()) {
+                infoMsg.append(" There were some warnings, see below.");
+            }
+            addMessage(StatusMessage.Severity.INFO, infoMsg.toString());
+
+            for (String warning : warnings) {
+                addMessage(StatusMessage.Severity.WARN, warning);
+            }
+        } catch (ZanataServiceException e) {
+            addMessage(StatusMessage.Severity.ERROR,
+                    translationFileUpload.getFileName() + "-" + e.getMessage());
+        }
+        resetPageData();
     }
 
     @Getter
@@ -539,4 +946,42 @@ public class VersionHomeAction extends AbstractSortAction implements
         }
     }
 
+    /**
+     * Helper class to upload documents.
+     */
+    @Getter
+    @Setter
+    public static class SourceFileUploadHelper implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private InputStream fileContents;
+
+        private String docId;
+
+        private String fileName;
+
+        // TODO rename to customDocumentPath (update in EL also)
+        private String documentPath;
+
+        private String sourceLang = "en-US"; // en-US by default
+
+        private String adapterParams = "";
+    }
+
+    /**
+     * Helper class to upload translation files.
+     */
+    @Getter
+    @Setter
+    public static class TranslationFileUploadHelper implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private String docId;
+
+        private InputStream fileContents;
+
+        private String fileName;
+
+        private boolean mergeTranslations = true; // Merge by default
+    }
 }

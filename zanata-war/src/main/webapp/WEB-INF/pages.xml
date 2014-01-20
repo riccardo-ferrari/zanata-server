@@ -749,41 +749,7 @@
   <page view-id="/iteration/view.xhtml">
     <param name="projectSlug" value="#{versionHomeAction.projectSlug}" />
     <param name="iterationSlug" value="#{versionHomeAction.versionSlug}" />
-    <param name="projectSlug" value="#{projectIterationFilesAction.projectSlug}" />
-    <param name="iterationSlug" value="#{projectIterationFilesAction.iterationSlug}" />
-
     <action execute="#{versionHomeAction.validateIteration}" />
-    <action execute="#{projectIterationFilesAction.initialize()}" />
-  </page>
-
-  <page view-id="/iteration/source_files.xhtml">
-    <param name="project" value="#{projectIterationFilesAction.projectSlug}" />
-    <param name="iteration"
-      value="#{projectIterationFilesAction.iterationSlug}" />
-
-    <action execute="#{projectIterationFilesAction.initialize()}" />
-    <action execute="#{breadcrumbs.clear}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/project/project.xhtml', projectIterationFilesAction.projectSlug).param('slug', projectIterationFilesAction.projectSlug)}" />
-    <action
-      execute="#{breadcrumbs.addLocation('/iteration/view.xhtml', projectIterationFilesAction.iterationSlug).param('projectSlug', projectIterationFilesAction.projectSlug).param('iterationSlug', projectIterationFilesAction.iterationSlug)}" />
-    <action
-      execute="#{breadcrumbs.addLocation('', messages['jsf.SourceDocuments'])}" />
-
-    <navigation
-      from-action="#{projectIterationFilesAction.deleteDocument(doc)}">
-      <redirect view-id="/iteration/source_files.xhtml">
-        <message
-          severity="INFO">#{messages['jsf.iteration.files.DocumentDeleted']}
-        </message>
-        <param name="project"
-          value="#{projectIterationFilesAction.projectSlug}" />
-        <param name="iteration"
-          value="#{projectIterationFilesAction.iterationSlug}" />
-      </redirect>
-    </navigation>
   </page>
 
   <page view-id="/iteration/edit.xhtml">
