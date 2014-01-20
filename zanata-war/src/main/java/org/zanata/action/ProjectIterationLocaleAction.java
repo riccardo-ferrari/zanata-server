@@ -54,7 +54,7 @@ public class ProjectIterationLocaleAction implements Serializable {
     private boolean setting;
 
     @In
-    private ProjectIterationHome projectIterationHome;
+    private VersionHome versionHome;
 
     @In
     LocaleService localeServiceImpl;
@@ -101,7 +101,7 @@ public class ProjectIterationLocaleAction implements Serializable {
     @Factory("iterationAvailableItems")
     public Map<String, String> loadItems() {
         log.debug("load iterationCustomizedItems");
-        HProjectIteration iteration = projectIterationHome.getInstance();
+        HProjectIteration iteration = versionHome.getInstance();
         availableItems = new TreeMap<String, String>();
         iterationCustomizedItems =
                 localeServiceImpl.getIterationCustomizedLocalesItems(iteration
@@ -129,11 +129,11 @@ public class ProjectIterationLocaleAction implements Serializable {
 
     public boolean getSetting() {
         if (iterationOverrideLocales == null) {
-            if (projectIterationHome.getInstance() == null) {
+            if (versionHome.getInstance() == null) {
                 setting = false;
             } else {
                 setting =
-                        projectIterationHome.getInstance().isOverrideLocales();
+                    versionHome.getInstance().isOverrideLocales();
             }
             iterationOverrideLocales = setting;
         }

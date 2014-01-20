@@ -39,46 +39,53 @@ public class ProjectSearch implements Serializable {
     // project slug
     private String selectedItem;
 
-    @Setter
-    @Getter
-    private String suggestQuery;
-
     @In
     private ProjectDAO projectDAO;
 
     @In
     private ZanataIdentity identity;
 
+    @Getter
+    private final AbstractAutocomplete<SearchResult> projectAutocomplete =
+            new AbstractAutocomplete<SearchResult>() {
+
+                @Override
+                public List<SearchResult> suggest() {
+                    List<SearchResult> result = Lists.newArrayList();
+                    if (StringUtils.isEmpty(getQuery())) {
+                        return result;
+                    }
+                    try {
+                        boolean includeObsolete =
+                                identity != null
+                                        && identity.hasPermission("HProject",
+                                                "view-obsolete");
+                        List<HProject> searchResult =
+                                projectDAO.searchProjects(getQuery(),
+                                        INITIAL_RESULT_COUNT, 0,
+                                        includeObsolete);
+
+                        for (HProject project : searchResult) {
+                            result.add(new SearchResult(project));
+                        }
+                        result.add(new SearchResult());
+                        return result;
+                    } catch (ParseException pe) {
+                        return result;
+                    }
+                }
+
+                @Override
+                public void onSelectItemAction() {
+                    // nothing here
+                }
+            };
+
     private QueryProjectPagedListDataModel queryProjectPagedListDataModel =
             new QueryProjectPagedListDataModel(DEFAULT_PAGE_SIZE);
 
     // Count of result to be return as part of autocomplete
     private final static int INITIAL_RESULT_COUNT = 5;
-
-    /**
-     * Return results on project search
-     */
-    public List<SearchResult> suggestProjects() {
-        List<SearchResult> result = Lists.newArrayList();
-        if (StringUtils.isEmpty(suggestQuery)) {
-            return result;
-        }
-        try {
-            List<HProject> searchResult =
-                    projectDAO
-                            .searchProjects(suggestQuery, INITIAL_RESULT_COUNT,
-                                    0, identity.hasPermission("HProject",
-                                            "view-obsolete"));
-
-            for (HProject project : searchResult) {
-                result.add(new SearchResult(project));
-            }
-            result.add(new SearchResult());
-            return result;
-        } catch (ParseException pe) {
-            return result;
-        }
-    }
 
     public int getPageSize() {
         return queryProjectPagedListDataModel.getPageSize();

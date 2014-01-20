@@ -36,11 +36,8 @@
           #{messages['jsf.SearchProjects']}
         </label>
 
-        <zanata:autocomplete
-          selectedField="#{projectSearch.selectedItem}"
-          getResultAction="#{projectSearch.suggestProjects()}"
+        <zanata:autocomplete actionBean="#{projectSearch.projectAutocomplete}"
           maxlength="100" minlength="1" id="projectAutocomplete"
-          queryField="#{projectSearch.suggestQuery}"
           fetchValue="#{result.project.slug}"
           placeholder="#{messages['jsf.SearchProjects']}"
           onSelectItem="selectItem"

@@ -312,13 +312,6 @@ public class VersionHomeAction extends AbstractSortAction implements
         this.pageRendered = pageRendered;
     }
 
-    public void validateIteration() {
-        if (getVersion() == null) {
-            throw new EntityNotFoundException(versionSlug,
-                    HProjectIteration.class);
-        }
-    }
-
     public void setSelectedLocale(HLocale hLocale) {
         this.selectedLocale = hLocale;
         resetPageData();

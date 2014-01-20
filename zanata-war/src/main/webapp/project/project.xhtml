@@ -196,19 +196,19 @@
             src="../WEB-INF/layout/project/versions-tab.xhtml"/>
         </div>
 
-        <div id="maintainers_content" class="is-hidden">
+        <s:div id="maintainers_content" styleClass="is-hidden">
           <zanata:maintainers-tab
             value="#{projectHome.instance.maintainers.toArray()}"/>
-        </div>
+        </s:div>
 
-        <div id="notes_content" class="is-hidden">
+        <s:div id="notes_content" styleClass="is-hidden">
           <s:formattedText value="#{projectHome.instance.homeContent}"
             rendered="#{not empty projectHome.instance.homeContent}"/>
 
           <s:fragment rendered="#{empty projectHome.instance.homeContent}">
             #{messages['jsf.project.NoHomeContent']}
           </s:fragment>
-        </div>
+        </s:div>
 
         <s:fragment
           rendered="#{s:hasPermission(projectHome.instance, 'update')}">

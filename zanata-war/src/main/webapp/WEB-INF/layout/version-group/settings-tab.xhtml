@@ -16,35 +16,35 @@
   }
 </script>
 
-<h1>#{messages['Settings']}</h1>
+<h1>#{messages['jsf.Settings']}</h1>
 
 <div class="tabs--vertical js-tabs">
 <ul class="tabs__nav js-tabs-nav">
   <li class="is-active">
     <a href="#settings-general" id="settings-general_tab"
       title="#{messages['General']}">
-      <i class="i--left i--settings"></i>
+      <i class="i i--settings"></i>
       <span class="is-hidden--m-down">#{messages['jsf.General']}</span>
     </a>
   </li>
   <li>
     <a href="#settings-languages" id="settings-languages_tab"
       title="#{messages['Languages']}">
-      <i class="i--left i--language"></i>
+      <i class="i i--language"></i>
       <span class="is-hidden--m-down">#{messages['jsf.Languages']}</span>
     </a>
   </li>
   <li>
     <a href="#settings-projects" id="settings-projects_tab"
       title="#{messages['Projects']}">
-      <i class="i--left i--project"></i>
+      <i class="i i--project"></i>
       <span class="is-hidden--m-down">#{messages['jsf.Projects']}</span>
     </a>
   </li>
   <li>
     <a href="#settings-maintainers" id="settings-maintainers_tab"
       title="#{messages['Maintainers']}">
-      <i class="i--left i--users"></i>
+      <i class="i i--users"></i>
       <span class="is-hidden--m-down">#{messages['jsf.Maintainers']}</span>
     </a>
   </li>
@@ -125,12 +125,9 @@
           </label>
 
           <zanata:autocomplete
-            selectedField="#{versionGroupHome.selectedLocale}"
-            getResultAction="#{versionGroupHome.suggestLocales()}"
-            onSelectItemAction="#{versionGroupHome.addLanguage()}"
+            actionBean="#{versionGroupHome.localeAutocomplete}"
             maxlength="80" minlength="1" searchWhenFocus="true"
             id="languageAutocomplete"
-            queryField="#{versionGroupHome.languageQuery}"
             fetchValue="#{result.localeId}" render="settings-languages-form"
             oncomplete="refreshStatistics();focusCurrentActiveInput()"
             placeholder="#{messages['jsf.SearchLanguages']}">
@@ -175,11 +172,8 @@
           </label>
 
           <zanata:autocomplete
-            selectedField="#{versionGroupHome.selectedVersion}"
-            getResultAction="#{versionGroupHome.suggestVersions()}"
-            onSelectItemAction="#{versionGroupHome.addVersion()}"
+            actionBean="#{versionGroupHome.versionAutocomplete}"
             maxlength="40" minlength="3" id="versionAutocomplete"
-            queryField="#{versionGroupHome.versionQuery}"
             fetchValue="#{result.id}"
             render="settings-projects-form"
             oncomplete="refreshStatistics();focusCurrentActiveInput();"
@@ -222,11 +216,8 @@
           </label>
 
           <zanata:autocomplete
-            selectedField="#{versionGroupHome.selectedMaintainer}"
-            getResultAction="#{versionGroupHome.suggestMaintainers()}"
-            onSelectItemAction="#{versionGroupHome.addMaintainer()}"
+            actionBean="#{versionGroupHome.maintainerAutocomplete}"
             maxlength="80" minlength="3" id="maintainerAutocomplete"
-            queryField="#{versionGroupHome.maintainerQuery}"
             fetchValue="#{result.account.username}"
             render="settings-maintainers-form,pageMessages"
             oncomplete="focusCurrentActiveInput()"

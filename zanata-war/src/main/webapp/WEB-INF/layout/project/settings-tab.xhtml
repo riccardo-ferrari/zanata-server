@@ -7,5 +7,180 @@
   xmlns:f="http://java.sun.com/jsf/core"
   xmlns:zanata="http://java.sun.com/jsf/composite/zanata">
 
-  <h1>#{messages['Settings']}</h1>
+  <script type="text/javascript">
+    function focusCurrentActiveInput() {
+      jQuery(jQuery('.js-tabs-nav').children('li.is-active').children('a').attr('href')).find('.js-tabs-nav-focus-input').each(function () {
+        jQuery(this).value = "";
+        jQuery(this).focus();
+      });
+    }
+  </script>
+
+  <h1>#{messages['jsf.Settings']}</h1>
+
+  <div class="tabs--vertical js-tabs">
+    <ul class="tabs__nav js-tabs-nav">
+      <li class="is-active">
+        <a href="#settings-general" id="settings-general_tab">
+          <i class="i i--settings"></i>
+          <span class="is-hidden--m-down">#{messages['jsf.General']}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#settings-languages" id="settings-languages_tab">
+          <i class="i i--language"></i>
+          <span class="is-hidden--m-down">#{messages['jsf.Languages']}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#settings-translation" id="settings-translation_tab">
+          <i class="i i--translate"></i>
+          <span class="is-hidden--m-down">#{messages['jsf.Translation']}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#settings-permissions" id="settings-permissions_tab">
+          <i class="i i--users"></i>
+          <span class="is-hidden--m-down">#{messages['jsf.Permissions']}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#settings-notes" id="settings-notes_tab">
+          <i class="i i--info"></i>
+          <span
+            class="is-hidden--m-down">#{messages['jsf.project.Notes']}</span>
+        </a>
+      </li>
+    </ul>
+    <ul class="tabs__content js-tabs-content">
+      <li class="is-active" id="settings-general">
+        <h2 class="l--push-all-0 gamma d--bottom">
+          #{messages['jsf.General']}
+        </h2>
+        <h:form styleClass="l--push-bottom-0">
+          <div class="l--constrain-medium">
+            General
+          </div>
+        </h:form>
+      </li>
+      <li id="settings-languages">
+        <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
+          #{messages['jsf.Languages']}
+        </h2>
+        <h:form id="settings-languages-form" styleClass="l--push-bottom-0">
+          <ul class="list--slat list--highlight l--push-top-half">
+            Languages
+          </ul>
+        </h:form>
+      </li>
+      <li id="settings-translation">
+        <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
+          #{messages['jsf.Translation']}
+        </h2>
+        <h:form id="settings-translation-form" styleClass="l--push-bottom-0">
+          Translation
+        </h:form>
+      </li>
+      <li id="settings-permissions">
+        <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
+          #{messages['jsf.Permissions']}
+        </h2>
+        <h:form id="settings-permissions-form" styleClass="l--push-bottom-0">
+          <ul class="list--slat list--highlight l--push-top-half">
+            <ui:repeat value="#{projectHome.getInstanceMaintainers()}"
+              var="maintainer">
+              <li class="reveal--list-item">
+                <span class="w--r-1 bx--round l--push-right-quarter">
+                  <img
+                    src="#{gravatarServiceImpl.getUserImageUrl(48, maintainer.email)}"
+                    alt="#{maintainer.account.username}"/>
+                </span> #{maintainer.name}
+                <span class="txt--meta">@#{maintainer.account.username}</span>
+                <a4j:commandLink
+                  action="#{projectHome.removeMaintainer(maintainer)}"
+                  styleClass="l--float-right txt--danger reveal__target"
+                  render="settings-permissions-form,maintainers-size,maintainers_content">
+                  <i class="i--large i--remove"></i>
+                </a4j:commandLink>
+              </li>
+            </ui:repeat>
+
+            <li class="list--highlight__item--none">
+              <label
+                for="#{rich:clientId('maintainerAutocomplete')}-autocomplete__input">
+                #{messages['jsf.AddAMaintainer']}
+              </label>
+
+              <zanata:autocomplete
+                actionBean="#{projectHome.maintainerAutocomplete}"
+                maxlength="80" minlength="3" id="maintainerAutocomplete"
+                fetchValue="#{result.account.username}"
+                render="settings-permissions-form,pageMessages"
+                oncomplete="focusCurrentActiveInput()"
+                placeholder="#{messages['jsf.SearchUsers']}">
+
+                <span class="w--r-1 bx--round l--push-right-quarter">
+                  <img
+                    src="#{gravatarServiceImpl.getUserImageUrl(48, result.email)}"
+                    alt="#{result.name}"/>
+                </span>#{result.name}
+                <span
+                  class="txt--meta">@#{result.account.username}</span>
+              </zanata:autocomplete>
+            </li>
+          </ul>
+          <hr/>
+
+          <div class="js-reveal l--push-bottom-half">
+            <div class="form__checkbox">
+              <h:selectBooleanCheckbox styleClass="form__checkbox__input"
+                id="restrict-access"
+                value="#{projectRoleRestrictionAction.restrictByRoles}">
+                <a4j:ajax event="change"/>
+              </h:selectBooleanCheckbox>
+              <label for="restrict-access"
+                class="form__checkbox__label js-reveal__toggle l--push-bottom-0"
+                data-target="#user-roles">#{messages['jsf.RestrictRoleAccessMessage']}</label>
+            </div>
+            <div class="bg--high l--pad-top-quarter l--pad-h-quarter is-hidden"
+              id="user-roles">
+              <ul class="g--tighter">
+                <ui:repeat
+                  value="#{projectRoleRestrictionAction.availableRoles}"
+                  var="role">
+                  <li class="form__checkbox g__item w--1-3 w--1-2-s">
+                    <h:selectBooleanCheckbox styleClass="form__checkbox__input"
+                      value="#{projectRoleRestrictionAction.roleRestrictions[role.name]}"/>
+                    <label class="form__checkbox__label">#{role.name}</label>
+                  </li>
+                </ui:repeat>
+              </ul>
+            </div>
+          </div>
+
+        </h:form>
+      </li>
+      <li id="settings-notes">
+        <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
+          #{messages['jsf.project.Notes']}
+        </h2>
+
+        <p class="message--highlight">
+          #{messages['jsf.project.notes.message']}
+        </p>
+        <h:form id="settings-notes-form" styleClass="l--push-bottom-0">
+          <rich:editor id="homeContent"
+            required="false"
+            value="#{projectHome.instance.homeContent}">
+          </rich:editor>
+
+          <a4j:commandLink value="#{messages['jsf.project.saveNotes']}"
+            action="#{projectHome.update}"
+            rendered="#{projectHome.managed}"
+            render="notes_content"
+            styleClass="l--push-top-1 button button--primary"/>
+        </h:form>
+      </li>
+    </ul>
+  </div>
 </ui:composition>

@@ -749,40 +749,44 @@
   <page view-id="/iteration/view.xhtml">
     <param name="projectSlug" value="#{versionHomeAction.projectSlug}" />
     <param name="iterationSlug" value="#{versionHomeAction.versionSlug}" />
-    <action execute="#{versionHomeAction.validateIteration}" />
+
+    <param name="projectSlug" value="#{versionHome.projectSlug}" />
+    <param name="iterationSlug" value="#{versionHome.slug}" />
+
+    <action execute="#{versionHome.validateSuppliedId}" />
   </page>
 
   <page view-id="/iteration/edit.xhtml">
-    <param name="slug" value="#{projectIterationHome.slug}" />
-    <param name="projectSlug" value="#{projectIterationHome.projectSlug}" />
+    <param name="slug" value="#{versionHome.slug}" />
+    <param name="projectSlug" value="#{versionHome.projectSlug}" />
     <param name="slug" value="#{validationOptionsAction.versionSlug}" />
     <param name="projectSlug" value="#{validationOptionsAction.projectSlug}" />
 
-    <action execute="#{projectIterationHome.validateSuppliedId}" />
+    <action execute="#{versionHome.validateSuppliedId}" />
     <!-- can't use <restrict> here either -->
     <action
-      execute="#{identity.checkPermission(projectIterationHome.instance, 'update')}" />
+      execute="#{identity.checkPermission(versionHome.instance, 'update')}" />
     <action execute="#{breadcrumbs.clear}" />
     <action
       execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
     <action
-      execute="#{breadcrumbs.addLocation('/project/project.xhtml', projectIterationHome.instance.project.slug).param('slug', projectIterationHome.projectSlug)}" />
+      execute="#{breadcrumbs.addLocation('/project/project.xhtml', versionHome.instance.project.slug).param('slug', versionHome.projectSlug)}" />
     <action
-      execute="#{breadcrumbs.addLocation('/iteration/view.xhtml', projectIterationHome.slug).param('projectSlug', projectIterationHome.projectSlug).param('iterationSlug', projectIterationHome.slug)}" />
+      execute="#{breadcrumbs.addLocation('/iteration/view.xhtml', versionHome.slug).param('projectSlug', versionHome.projectSlug).param('iterationSlug', versionHome.slug)}" />
     <action
       execute="#{breadcrumbs.addLocation('', messages['jsf.EditVersion'])}" />
 
-    <navigation from-action="#{projectIterationHome.update}">
+    <navigation from-action="#{versionHome.update}">
       <redirect view-id="/iteration/view.xhtml">
-        <param name="projectSlug" value="#{projectIterationHome.projectSlug}" />
-        <param name="iterationSlug" value="#{projectIterationHome.slug}" />
+        <param name="projectSlug" value="#{versionHome.projectSlug}" />
+        <param name="iterationSlug" value="#{versionHome.slug}" />
       </redirect>
     </navigation>
 
-    <navigation from-action="#{projectIterationHome.cancel}">
+    <navigation from-action="#{versionHome.cancel}">
       <redirect view-id="/iteration/view.xhtml">
-        <param name="projectSlug" value="#{projectIterationHome.projectSlug}" />
-        <param name="iterationSlug" value="#{projectIterationHome.slug}" />
+        <param name="projectSlug" value="#{versionHome.projectSlug}" />
+        <param name="iterationSlug" value="#{versionHome.slug}" />
       </redirect>
     </navigation>
   </page>

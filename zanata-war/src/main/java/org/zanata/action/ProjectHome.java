@@ -27,9 +27,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 import javax.faces.event.ValueChangeEvent;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -38,22 +46,26 @@ import org.hibernate.criterion.Restrictions;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Transactional;
+import org.jboss.seam.annotations.security.Restrict;
 import org.jboss.seam.core.Events;
 import org.jboss.seam.faces.FacesMessages;
+import org.jboss.seam.international.StatusMessage;
 import org.jboss.seam.security.management.JpaIdentityStore;
 import org.zanata.common.EntityStatus;
+import org.zanata.dao.PersonDAO;
 import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.model.HAccount;
 import org.zanata.model.HAccountRole;
 import org.zanata.model.HLocale;
+import org.zanata.model.HPerson;
 import org.zanata.model.HProject;
 import org.zanata.model.HProjectIteration;
+import org.zanata.seam.scope.FlashScopeBean;
 import org.zanata.security.ZanataIdentity;
 import org.zanata.service.LocaleService;
 import org.zanata.service.SlugEntityService;
+import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.ValidationAction;
-import lombok.Getter;
-import lombok.Setter;
 
 @Name("projectHome")
 public class ProjectHome extends SlugHome<HProject> {
@@ -98,10 +110,16 @@ public class ProjectHome extends SlugHome<HProject> {
     private SlugEntityService slugEntityServiceImpl;
 
     @In
-    private ProjectIterationDAO projectIterationDAO;
+    private PersonDAO personDAO;
+
+    @In
+    private FlashScopeBean flashScope;
 
     @In
     private EntityManager entityManager;
+
+    @In
+    private ZanataMessages zanataMessages;
 
     @Override
     protected HProject loadInstance() {
@@ -109,6 +127,50 @@ public class ProjectHome extends SlugHome<HProject> {
         return (HProject) session.byNaturalId(HProject.class)
                 .using("slug", getSlug()).load();
     }
+
+    @Getter
+    private final AbstractAutocomplete<HPerson> maintainerAutocomplete =
+            new AbstractAutocomplete<HPerson>() {
+
+                @Override
+                public List<HPerson> suggest() {
+                    List<HPerson> personList =
+                            personDAO.findAllContainingName(getQuery());
+
+                    Collection<HPerson> filtered =
+                            Collections2.filter(personList,
+                                    new Predicate<HPerson>() {
+                                        @Override
+                                        public boolean apply(
+                                                @Nullable HPerson input) {
+                                            return !getInstance()
+                                                    .getMaintainers().contains(
+                                                            input);
+                                        }
+                                    });
+
+                    return Lists.newArrayList(filtered);
+                }
+
+                @Override
+                @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+                public void onSelectItemAction() {
+                    if (StringUtils.isEmpty(getSelectedItem())) {
+                        return;
+                    }
+
+                    HPerson maintainer =
+                            personDAO.findByUsername(getSelectedItem());
+                    getInstance().getMaintainers().add(maintainer);
+                    update();
+                    reset();
+
+                    addMessage(StatusMessage.Severity.INFO,
+                            zanataMessages.getMessage(
+                                    "jsf.MaintainerAddedToProject",
+                                    maintainer.getName()));
+                }
+            };
 
     public void validateSuppliedId() {
         HProject ip = getInstance(); // this will raise an EntityNotFound
@@ -156,6 +218,51 @@ public class ProjectHome extends SlugHome<HProject> {
             Events.instance().raiseEvent("projectAdded");
         }
         return retValue;
+    }
+
+    public final static Comparator<HPerson> PERSON_COMPARATOR =
+            new Comparator<HPerson>() {
+                @Override
+                public int compare(HPerson hPerson, HPerson hPerson2) {
+                    return hPerson.getName().compareTo(hPerson2.getName());
+                }
+            };
+
+    public List<HPerson> getInstanceMaintainers() {
+        List<HPerson> list = Lists.newArrayList(getInstance().getMaintainers());
+
+        Collections.sort(list, PERSON_COMPARATOR);
+
+        return list;
+    }
+
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public void removeMaintainer(HPerson maintainer) {
+        clearMessage();
+        getInstance().getMaintainers().remove(maintainer);
+        super.update();
+
+        addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
+                "jsf.MaintainerRemoveFromProject", maintainer.getName()));
+    }
+
+    /**
+     * Use FlashScopeBean to store message in page. Multiple ajax requests for
+     * re-rendering statistics after updating will clear FacesMessages.
+     *
+     * @param severity
+     * @param message
+     */
+    private void addMessage(StatusMessage.Severity severity, String message) {
+        StatusMessage statusMessage =
+                new StatusMessage(severity, null, null, message, null);
+        statusMessage.interpolate();
+
+        flashScope.setAttribute("message", statusMessage);
+    }
+
+    private void clearMessage() {
+        flashScope.getAndClearAttribute("message");
     }
 
     public List<HProjectIteration> getVersions() {
@@ -255,8 +362,7 @@ public class ProjectHome extends SlugHome<HProject> {
                     version.setStatus(EntityStatus.READONLY);
                     entityManager.merge(version);
                     Events.instance().raiseEvent(
-                            ProjectIterationHome.PROJECT_ITERATION_UPDATE,
-                            version);
+                            VersionHome.PROJECT_ITERATION_UPDATE, version);
                 }
             }
         } else if (getInstance().getStatus() == EntityStatus.OBSOLETE) {
@@ -266,8 +372,7 @@ public class ProjectHome extends SlugHome<HProject> {
                     version.setStatus(EntityStatus.OBSOLETE);
                     entityManager.merge(version);
                     Events.instance().raiseEvent(
-                            ProjectIterationHome.PROJECT_ITERATION_UPDATE,
-                            version);
+                            VersionHome.PROJECT_ITERATION_UPDATE, version);
                 }
             }
         }
@@ -296,7 +401,7 @@ public class ProjectHome extends SlugHome<HProject> {
             getInstance().getCustomizedValidations().clear();
             for (ValidationAction action : customizedValidations) {
                 getInstance().getCustomizedValidations().put(
-                    action.getId().name(), action.getState().name());
+                        action.getId().name(), action.getState().name());
             }
         }
     }
@@ -320,23 +425,5 @@ public class ProjectHome extends SlugHome<HProject> {
     public boolean checkViewObsolete() {
         return identity != null
                 && identity.hasPermission("HProject", "view-obsolete");
-    }
-
-    public boolean isUserAllowedToTranslateOrReview(String versionSlug,
-            HLocale localeId) {
-        return !StringUtils.isEmpty(versionSlug)
-                && localeId != null
-                && isIterationActive(versionSlug)
-                && identity != null
-                && (identity.hasPermission("add-translation", getInstance(),
-                        localeId) || identity.hasPermission(
-                        "translation-review", getInstance(), localeId));
-    }
-
-    private boolean isIterationActive(String versionSlug) {
-        HProjectIteration version =
-                projectIterationDAO.getBySlug(getSlug(), versionSlug);
-        return getInstance().getStatus() == EntityStatus.ACTIVE
-                || version.getStatus() == EntityStatus.ACTIVE;
     }
 }
