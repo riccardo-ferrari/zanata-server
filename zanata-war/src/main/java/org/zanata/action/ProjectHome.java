@@ -33,9 +33,6 @@ import javax.faces.event.ValueChangeEvent;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,6 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.criterion.NaturalIdentifier;
 import org.hibernate.criterion.Restrictions;
+import org.jboss.seam.Component;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Transactional;
@@ -52,8 +50,8 @@ import org.jboss.seam.faces.FacesMessages;
 import org.jboss.seam.international.StatusMessage;
 import org.jboss.seam.security.management.JpaIdentityStore;
 import org.zanata.common.EntityStatus;
+import org.zanata.dao.AccountRoleDAO;
 import org.zanata.dao.PersonDAO;
-import org.zanata.dao.ProjectIterationDAO;
 import org.zanata.model.HAccount;
 import org.zanata.model.HAccountRole;
 import org.zanata.model.HLocale;
@@ -66,6 +64,12 @@ import org.zanata.service.LocaleService;
 import org.zanata.service.SlugEntityService;
 import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.ValidationAction;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 @Name("projectHome")
 public class ProjectHome extends SlugHome<HProject> {
@@ -91,14 +95,6 @@ public class ProjectHome extends SlugHome<HProject> {
     @In(required = false)
     private Boolean overrideLocales;
 
-    /* Outjected from ProjectRoleRestrictionAction */
-    @In(required = false)
-    private Set<HAccountRole> customizedProjectRoleRestrictions;
-
-    /* Outjected from ProjectRoleRestrictionAction */
-    @In(required = false)
-    private Boolean restrictByRoles;
-
     /* Outjected from ValidationOptionsAction */
     @In(required = false)
     private Collection<ValidationAction> customizedValidations;
@@ -110,9 +106,6 @@ public class ProjectHome extends SlugHome<HProject> {
     private SlugEntityService slugEntityServiceImpl;
 
     @In
-    private PersonDAO personDAO;
-
-    @In
     private FlashScopeBean flashScope;
 
     @In
@@ -120,6 +113,11 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @In
     private ZanataMessages zanataMessages;
+
+    @In
+    private AccountRoleDAO accountRoleDAO;
+
+    private Map<String, Boolean> roleRestrictions;
 
     @Override
     protected HProject loadInstance() {
@@ -132,7 +130,13 @@ public class ProjectHome extends SlugHome<HProject> {
     private final AbstractAutocomplete<HPerson> maintainerAutocomplete =
             new AbstractAutocomplete<HPerson>() {
 
-                @Override
+                private PersonDAO personDAO = (PersonDAO) Component
+                        .getInstance(PersonDAO.class);
+
+                private ZanataMessages zanataMessages =
+                        (ZanataMessages) Component
+                                .getInstance(ZanataMessages.class);
+
                 public List<HPerson> suggest() {
                     List<HPerson> personList =
                             personDAO.findAllContainingName(getQuery());
@@ -211,7 +215,6 @@ public class ProjectHome extends SlugHome<HProject> {
 
         if (authenticatedAccount != null) {
             updateOverrideLocales();
-            updateRoleRestrictions();
             updateOverrideValidations();
             getInstance().addMaintainer(authenticatedAccount.getPerson());
             retValue = super.persist();
@@ -240,10 +243,51 @@ public class ProjectHome extends SlugHome<HProject> {
     public void removeMaintainer(HPerson maintainer) {
         clearMessage();
         getInstance().getMaintainers().remove(maintainer);
-        super.update();
+        update();
 
         addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
                 "jsf.MaintainerRemoveFromProject", maintainer.getName()));
+    }
+
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public void updateRoles() {
+        getInstance().getAllowedRoles().clear();
+        if (getInstance().isRestrictedByRoles()) {
+            for (Map.Entry<String, Boolean> entry : getRoleRestrictions()
+                    .entrySet()) {
+                if (entry.getValue()) {
+                    getInstance().getAllowedRoles().add(
+                            accountRoleDAO.findByName(entry.getKey()));
+                }
+            }
+        }
+        update();
+        addMessage(StatusMessage.Severity.INFO,
+                zanataMessages.getMessage("jsf.RolesUpdated"));
+    }
+
+    public Map<String, Boolean> getRoleRestrictions() {
+        if (roleRestrictions == null) {
+            roleRestrictions = Maps.newHashMap();
+
+            for (HAccountRole role : getInstance().getAllowedRoles()) {
+                roleRestrictions.put(role.getName(), true);
+            }
+        }
+        return roleRestrictions;
+    }
+
+    public List<HAccountRole> getAvailableRoles() {
+        List<HAccountRole> allRoles = accountRoleDAO.findAll();
+
+        Collections.sort(allRoles, new Comparator<HAccountRole>() {
+            @Override
+            public int compare(HAccountRole o1, HAccountRole o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        return allRoles;
     }
 
     /**
@@ -258,11 +302,22 @@ public class ProjectHome extends SlugHome<HProject> {
                 new StatusMessage(severity, null, null, message, null);
         statusMessage.interpolate();
 
+        if (flashScope == null) {
+            initFlashScope();
+        }
         flashScope.setAttribute("message", statusMessage);
     }
 
     private void clearMessage() {
+        if (flashScope == null) {
+            initFlashScope();
+        }
         flashScope.getAndClearAttribute("message");
+    }
+
+    private void initFlashScope() {
+        flashScope =
+                (FlashScopeBean) Component.getInstance(FlashScopeBean.class);
     }
 
     public List<HProjectIteration> getVersions() {
@@ -349,8 +404,8 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @Override
     public String update() {
+        clearMessage();
         updateOverrideLocales();
-        updateRoleRestrictions();
         updateOverrideValidations();
         String state = super.update();
         Events.instance().raiseEvent(PROJECT_UPDATE, getInstance());
@@ -402,18 +457,6 @@ public class ProjectHome extends SlugHome<HProject> {
             for (ValidationAction action : customizedValidations) {
                 getInstance().getCustomizedValidations().put(
                         action.getId().name(), action.getState().name());
-            }
-        }
-    }
-
-    private void updateRoleRestrictions() {
-        if (restrictByRoles != null) {
-            getInstance().setRestrictedByRoles(restrictByRoles);
-            getInstance().getAllowedRoles().clear();
-
-            if (restrictByRoles) {
-                getInstance().getAllowedRoles().addAll(
-                        customizedProjectRoleRestrictions);
             }
         }
     }

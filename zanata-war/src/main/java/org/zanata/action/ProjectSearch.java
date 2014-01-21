@@ -2,10 +2,17 @@ package org.zanata.action;
 
 import java.io.Serializable;
 import java.util.List;
+
 import javax.faces.model.DataModel;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.queryParser.ParseException;
+import org.jboss.seam.Component;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.AutoCreate;
 import org.jboss.seam.annotations.In;
@@ -14,12 +21,8 @@ import org.jboss.seam.annotations.Scope;
 import org.zanata.dao.ProjectDAO;
 import org.zanata.model.HProject;
 import org.zanata.security.ZanataIdentity;
-import com.google.common.collect.Lists;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.google.common.collect.Lists;
 
 @Name("projectSearch")
 @Scope(ScopeType.CONVERSATION)
@@ -34,20 +37,14 @@ public class ProjectSearch implements Serializable {
     @Setter
     private int scrollerPage = 1;
 
-    @Setter
-    @Getter
-    // project slug
-    private String selectedItem;
-
-    @In
-    private ProjectDAO projectDAO;
-
     @In
     private ZanataIdentity identity;
 
     @Getter
     private final AbstractAutocomplete<SearchResult> projectAutocomplete =
             new AbstractAutocomplete<SearchResult>() {
+                private ProjectDAO projectDAO = (ProjectDAO) Component
+                        .getInstance(ProjectDAO.class);
 
                 @Override
                 public List<SearchResult> suggest() {
@@ -56,14 +53,14 @@ public class ProjectSearch implements Serializable {
                         return result;
                     }
                     try {
-                        boolean includeObsolete =
-                                identity != null
-                                        && identity.hasPermission("HProject",
-                                                "view-obsolete");
                         List<HProject> searchResult =
-                                projectDAO.searchProjects(getQuery(),
-                                        INITIAL_RESULT_COUNT, 0,
-                                        includeObsolete);
+                                projectDAO.searchProjects(
+                                        getQuery(),
+                                        INITIAL_RESULT_COUNT,
+                                        0,
+                                        ZanataIdentity.instance()
+                                                .hasPermission("HProject",
+                                                        "view-obsolete"));
 
                         for (HProject project : searchResult) {
                             result.add(new SearchResult(project));
@@ -78,6 +75,12 @@ public class ProjectSearch implements Serializable {
                 @Override
                 public void onSelectItemAction() {
                     // nothing here
+                }
+
+                @Override
+                public void setQuery(String query) {
+                    queryProjectPagedListDataModel.setQuery(query);
+                    super.setQuery(query);
                 }
             };
 
@@ -95,14 +98,6 @@ public class ProjectSearch implements Serializable {
         queryProjectPagedListDataModel.setIncludeObsolete(identity
                 .hasPermission("HProject", "view-obsolete"));
         return queryProjectPagedListDataModel;
-    }
-
-    public void setSearchQuery(String searchQuery) {
-        queryProjectPagedListDataModel.setQuery(searchQuery);
-    }
-
-    public String getSearchQuery() {
-        return queryProjectPagedListDataModel.getQuery();
     }
 
     @AllArgsConstructor

@@ -14,7 +14,7 @@
 
   <!-- Project Search -->
   <page view-id="/search.xhtml">
-    <param name="query" value="#{projectSearch.searchQuery}" />
+    <param name="query" value="#{projectSearch.projectAutocomplete.query}" />
     <action execute="#{breadcrumbs.clear}" />
     <action
       execute="#{breadcrumbs.addLocation('', messages['jsf.SearchProjects'])}" />

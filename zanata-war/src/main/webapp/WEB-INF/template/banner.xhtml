@@ -51,8 +51,8 @@
 
           <s:link view="/search.xhtml" rendered="#{result.isProjectNull()}">
             <i class="i i--search"></i> Search Zanata for
-            '#{projectSearch.suggestQuery}'
-            <f:param name="query" value="#{projectSearch.suggestQuery}"/>
+            '#{projectSearch.projectAutocomplete.query}'
+            <f:param name="query" value="#{projectSearch.projectAutocomplete.query}"/>
           </s:link>
 
         </zanata:autocomplete>

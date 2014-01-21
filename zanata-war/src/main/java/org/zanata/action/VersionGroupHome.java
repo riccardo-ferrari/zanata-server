@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.criterion.NaturalIdentifier;
 import org.hibernate.criterion.Restrictions;
+import org.jboss.seam.Component;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.security.Restrict;
@@ -54,6 +55,8 @@ import org.zanata.seam.scope.FlashScopeBean;
 import org.zanata.service.LocaleService;
 import org.zanata.service.SlugEntityService;
 import org.zanata.service.VersionGroupService;
+import org.zanata.service.impl.LocaleServiceImpl;
+import org.zanata.service.impl.VersionGroupServiceImpl;
 import org.zanata.util.ZanataMessages;
 
 import com.google.common.base.Predicate;
@@ -81,19 +84,7 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
     private SlugEntityService slugEntityServiceImpl;
 
     @In
-    private LocaleService localeServiceImpl;
-
-    @In
-    private PersonDAO personDAO;
-
-    @In
-    private VersionGroupService versionGroupServiceImpl;
-
-    @In
     private ZanataMessages zanataMessages;
-
-    @In
-    private ProjectIterationDAO projectIterationDAO;
 
     @In
     private FlashScopeBean flashScope;
@@ -101,8 +92,16 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
     private List<SelectItem> statusList;
 
     @Getter
-    private final AbstractAutocomplete<HPerson> maintainerAutocomplete =
+    private AbstractAutocomplete<HPerson> maintainerAutocomplete =
             new AbstractAutocomplete<HPerson>() {
+
+                private PersonDAO personDAO = (PersonDAO) Component
+                        .getInstance(PersonDAO.class);
+
+                private ZanataMessages zanataMessages =
+                        (ZanataMessages) Component
+                                .getInstance(ZanataMessages.class);
+
                 @Override
                 public List<HPerson> suggest() {
                     List<HPerson> personList =
@@ -145,8 +144,20 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
             };
 
     @Getter
-    private final AbstractAutocomplete<HProjectIteration> versionAutocomplete =
+    private AbstractAutocomplete<HProjectIteration> versionAutocomplete =
             new AbstractAutocomplete<HProjectIteration>() {
+                private ProjectIterationDAO projectIterationDAO =
+                        (ProjectIterationDAO) Component
+                                .getInstance(ProjectIterationDAO.class);
+
+                private VersionGroupService versionGroupServiceImpl =
+                        (VersionGroupService) Component
+                                .getInstance(VersionGroupServiceImpl.class);
+
+                private ZanataMessages zanataMessages =
+                        (ZanataMessages) Component
+                                .getInstance(ZanataMessages.class);
+
                 @Override
                 public List<HProjectIteration> suggest() {
                     List<HProjectIteration> versionList =
@@ -192,8 +203,17 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
             };
 
     @Getter
-    private final AbstractAutocomplete<HLocale> localeAutocomplete =
+    private AbstractAutocomplete<HLocale> localeAutocomplete =
             new AbstractAutocomplete<HLocale>() {
+
+                private LocaleService localeServiceImpl =
+                        (LocaleService) Component
+                                .getInstance(LocaleServiceImpl.class);
+
+                private ZanataMessages zanataMessages =
+                        (ZanataMessages) Component
+                                .getInstance(ZanataMessages.class);
+
                 @Override
                 public List<HLocale> suggest() {
                     if (StringUtils.isEmpty(getQuery())) {
@@ -315,11 +335,21 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
         StatusMessage statusMessage =
                 new StatusMessage(severity, null, null, message, null);
         statusMessage.interpolate();
-
+        if (flashScope == null) {
+            initFlashScope();
+        }
         flashScope.setAttribute("message", statusMessage);
     }
 
+    private void initFlashScope() {
+        flashScope =
+                (FlashScopeBean) Component.getInstance(FlashScopeBean.class);
+    }
+
     private void clearMessage() {
+        if (flashScope == null) {
+            initFlashScope();
+        }
         flashScope.getAndClearAttribute("message");
     }
 

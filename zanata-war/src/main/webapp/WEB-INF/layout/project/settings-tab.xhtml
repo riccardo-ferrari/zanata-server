@@ -85,6 +85,8 @@
         <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
           #{messages['jsf.Permissions']}
         </h2>
+
+        <h3 class="heading--secondary">#{messages['jsf.Maintainers']}</h3>
         <h:form id="settings-permissions-form" styleClass="l--push-bottom-0">
           <ul class="list--slat list--highlight l--push-top-half">
             <ui:repeat value="#{projectHome.getInstanceMaintainers()}"
@@ -115,7 +117,7 @@
                 actionBean="#{projectHome.maintainerAutocomplete}"
                 maxlength="80" minlength="3" id="maintainerAutocomplete"
                 fetchValue="#{result.account.username}"
-                render="settings-permissions-form,pageMessages"
+                render="settings-permissions-form,maintainers-size, maintainers_content, pageMessages"
                 oncomplete="focusCurrentActiveInput()"
                 placeholder="#{messages['jsf.SearchUsers']}">
 
@@ -131,31 +133,35 @@
           </ul>
           <hr/>
 
-          <div class="js-reveal l--push-bottom-half">
+          <div class="l--push-bottom-half">
             <div class="form__checkbox">
               <h:selectBooleanCheckbox styleClass="form__checkbox__input"
                 id="restrict-access"
-                value="#{projectRoleRestrictionAction.restrictByRoles}">
-                <a4j:ajax event="change"/>
+                value="#{projectHome.instance.restrictedByRoles}">
+                <a4j:ajax event="change" render="user-roles"/>
               </h:selectBooleanCheckbox>
-              <label for="restrict-access"
-                class="form__checkbox__label js-reveal__toggle l--push-bottom-0"
+              <label for="#{rich:clientId('restrict-access')}"
+                class="form__checkbox__label l--push-bottom-0"
                 data-target="#user-roles">#{messages['jsf.RestrictRoleAccessMessage']}</label>
             </div>
-            <div class="bg--high l--pad-top-quarter l--pad-h-quarter is-hidden"
+            <s:div
+              styleClass="#{projectHome.instance.restrictedByRoles?'is-active': 'is-hidden'} bg--high l--pad-top-quarter l--pad-h-quarter"
               id="user-roles">
               <ul class="g--tighter">
-                <ui:repeat
-                  value="#{projectRoleRestrictionAction.availableRoles}"
-                  var="role">
+                <ui:repeat value="#{projectHome.availableRoles}" var="role">
                   <li class="form__checkbox g__item w--1-3 w--1-2-s">
-                    <h:selectBooleanCheckbox styleClass="form__checkbox__input"
-                      value="#{projectRoleRestrictionAction.roleRestrictions[role.name]}"/>
-                    <label class="form__checkbox__label">#{role.name}</label>
+                    <h:selectBooleanCheckbox id="role"
+                      styleClass="form__checkbox__input"
+                      value="#{projectHome.roleRestrictions[role.name]}">
+                      <a4j:ajax event="click"
+                        listener="#{projectHome.updateRoles()}"/>
+                    </h:selectBooleanCheckbox>
+                    <label for="#{rich:clientId('role')}"
+                      class="form__checkbox__label">#{role.name}</label>
                   </li>
                 </ui:repeat>
               </ul>
-            </div>
+            </s:div>
           </div>
 
         </h:form>
@@ -169,10 +175,10 @@
           #{messages['jsf.project.notes.message']}
         </p>
         <h:form id="settings-notes-form" styleClass="l--push-bottom-0">
-          <rich:editor id="homeContent"
+
+          <h:inputTextarea id="homeContent"
             required="false"
-            value="#{projectHome.instance.homeContent}">
-          </rich:editor>
+            value="#{projectHome.instance.homeContent}"/>
 
           <a4j:commandLink value="#{messages['jsf.project.saveNotes']}"
             action="#{projectHome.update}"
