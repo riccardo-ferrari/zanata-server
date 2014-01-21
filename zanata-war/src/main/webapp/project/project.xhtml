@@ -34,7 +34,7 @@
         value="#{messages['jsf.Projects']}"/>
     </p>
 
-    <div class="media l--push-bottom-half">
+    <s:div styleClass="media l--push-bottom-half" id="project-info">
       <div class="media__body">
         <h1 class="l--push-all-0">#{projectHome.instance.name}</h1>
 
@@ -88,7 +88,7 @@
           </ul>
         </div>
       </s:fragment>
-    </div>
+    </s:div>
 
     <s:fragment rendered="#{identity.loggedIn}">
       <div class="panel l--push-top-half">

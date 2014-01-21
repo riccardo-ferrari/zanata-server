@@ -266,6 +266,11 @@ public class ProjectHome extends SlugHome<HProject> {
                 zanataMessages.getMessage("jsf.RolesUpdated"));
     }
 
+    public void setStatus(char initial) {
+        getInstance().setStatus(EntityStatus.valueOf(initial));
+        update();
+    }
+
     public Map<String, Boolean> getRoleRestrictions() {
         if (roleRestrictions == null) {
             roleRestrictions = Maps.newHashMap();
