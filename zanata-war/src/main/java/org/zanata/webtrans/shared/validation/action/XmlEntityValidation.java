@@ -32,9 +32,9 @@ import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
 /**
- *
+ * 
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
- *
+ * 
  **/
 public class XmlEntityValidation extends AbstractValidationAction {
     // &amp;, &quot;
@@ -85,7 +85,7 @@ public class XmlEntityValidation extends AbstractValidationAction {
 
     /**
      * Replace matched string with empty string
-     *
+     * 
      * @param regex
      * @param text
      * @return
@@ -99,5 +99,15 @@ public class XmlEntityValidation extends AbstractValidationAction {
             result = regex.exec(text);
         }
         return text;
+    }
+
+    @Override
+    public String getSourceExample() {
+        return "&#00A3 pound sign in xml entity";
+    }
+
+    @Override
+    public String getTargetExample() {
+        return "<span class='js-example__target txt--warning'>&#00A3</span> missing pound sign in xml entity";
     }
 }

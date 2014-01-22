@@ -124,4 +124,14 @@ public class NewlineLeadTrailValidation extends AbstractValidationAction {
         }
         return count;
     }
+
+    @Override
+    public String getSourceExample() {
+        return "\\n hello world with lead new line";
+    }
+
+    @Override
+    public String getTargetExample() {
+        return "&lt;strong&gt;\\n hello world with lead new line&lt;/stong&gt;";
+    }
 }

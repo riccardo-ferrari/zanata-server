@@ -118,4 +118,14 @@ public class PrintfXSIExtensionValidation extends PrintfVariablesValidation {
             return -1;
         }
     }
+
+    @Override
+    public String getSourceExample() {
+        return "";
+    }
+
+    @Override
+    public String getTargetExample() {
+        return "";
+    }
 }

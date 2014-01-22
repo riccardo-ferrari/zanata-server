@@ -144,7 +144,63 @@
     #{messages['jsf.Translation']}
   </h2>
   <h:form id="settings-translation-form" styleClass="l--push-bottom-0">
-    Translation
+    <h3 class="heading--secondary">#{messages['jsf.Validation']}</h3>
+
+    <p>#{messages['jsf.Validation.messages']}</p>
+    <ul class="list--slat">
+      <ui:repeat value="#{validationOptionsAction.validationList}"
+        var="validationAction">
+        <li class="js-example js-reveal">
+          <div class="g--tight">
+            <div class="g__item w--7-12">
+              <label
+                class="l--push-bottom-0">#{validationAction.id.displayName}</label>
+
+              <p
+                class="txt--meta l--push-bottom-quarter">#{validationAction.description}
+                <a href="#" class="button--link js-reveal__toggle" title=""
+                  data-target="##{validationAction.id.name()}-example"
+                  data-toggle-title="#{messages['jsf.tooltip.HideExample']}"
+                  data-original-title="#{messages['jsf.tooltip.ShowExample']}"><span
+                  class="js-reveal__toggle__text"
+                  data-toggle-value="Less">#{messages['jsf.tooltip.More']}</span>…</a>
+              </p>
+            </div>
+            <div class="g__item w--5-12">
+              <div class="button--group txt--align-right">
+                <ui:repeat value="#{validationOptionsAction.validationStates}"
+                  var="state">
+                  <input name="#{validationAction.id.name()}"
+                    id="#{validationAction.id.name()}-#{state}" value="#{state}"
+                    type="radio" class="form__item__input js-example__setter"
+                    data-example=""/>
+                  <label for="#{validationAction.id.name()}-#{state}"
+                    class="button">#{state}</label>
+                </ui:repeat>
+              </div>
+            </div>
+          </div>
+          <div class="g--tight l--push-bottom-half is-hidden"
+            id="#{validationAction.id.name()}-example">
+            <div class="g__item w--1-2 l--push-top-quarter">
+              <h4
+                class="zeta heading--secondary txt--uppercase">#{messages['jsf.project.validation.source']}</h4>
+              <pre class="l--push-all-0"><code
+                class="txt--mini">#{validationAction.sourceExample}</code></pre>
+            </div>
+            <div class="g__item w--1-2 l--push-top-quarter">
+              <h4
+                class="zeta heading--secondary txt--uppercase">#{messages['jsf.project.validation.target']}</h4>
+              <pre class="l--push-all-0"><code
+                class="txt--mini">#{validationAction.targetExample}</code></pre>
+            </div>
+          </div>
+        </li>
+      </ui:repeat>
+
+
+    </ul>
+    <hr/>
   </h:form>
 </li>
 <li id="settings-permissions">
@@ -245,7 +301,8 @@
       value="#{projectHome.instance.homeContent}"/>
 
     <p class="txt--meta">
-      <h:outputText value="#{messages['jsf.project.notes.markup']}" escape="false"/>
+      <h:outputText value="#{messages['jsf.project.notes.markup']}"
+        escape="false"/>
     </p>
 
     <a4j:commandLink value="#{messages['jsf.project.saveNotes']}"

@@ -31,9 +31,9 @@ import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
 /**
- *
+ * 
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
- *
+ * 
  **/
 public class HtmlXmlTagValidation extends AbstractValidationAction {
     public HtmlXmlTagValidation(ValidationId id, ValidationMessages messages) {
@@ -163,5 +163,15 @@ public class HtmlXmlTagValidation extends AbstractValidationAction {
             result = regExp.exec(compareFrom);
         }
         return unmatched;
+    }
+
+    @Override
+    public String getSourceExample() {
+        return "&lt;p&gt;&lt;strong&gt;Hello world&lt;/strong&gt;&lt;/p&gt;";
+    }
+
+    @Override
+    public String getTargetExample() {
+        return "&lt;p&gt;&lt;strong&gt;Hello world<span class='js-example__target txt--warning'>&lt;/stong&gt;</span>&lt;/p&gt;";
     }
 }

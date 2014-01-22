@@ -121,4 +121,14 @@ public class PrintfVariablesValidation extends AbstractValidationAction {
         }
         return vars;
     }
+
+    @Override
+    public String getSourceExample() {
+        return "";
+    }
+
+    @Override
+    public String getTargetExample() {
+        return "";
+    }
 }

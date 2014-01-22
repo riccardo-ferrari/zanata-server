@@ -230,6 +230,16 @@ public class JavaVariablesValidation extends AbstractValidationAction {
         return descriptor;
     }
 
+    @Override
+    public String getSourceExample() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public String getTargetExample() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     /**
      * Holds information about java variables, quoting etc. for a string.
      */
