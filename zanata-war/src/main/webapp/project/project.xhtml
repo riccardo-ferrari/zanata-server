@@ -47,7 +47,7 @@
       </div>
 
       <s:fragment
-        rendered="#{not empty projectHome.instance.sourceCheckoutURL and not empty projectHome.instance.sourceViewURL}">
+        rendered="#{not empty projectHome.instance.sourceCheckoutURL or not empty projectHome.instance.sourceViewURL}">
         <div class="d--top l--push-top-half l--pad-top-half">
           <h2 class="delta headding--secondary l--push-top-0">
             <i

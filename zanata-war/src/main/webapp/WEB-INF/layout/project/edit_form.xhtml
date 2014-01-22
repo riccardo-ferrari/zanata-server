@@ -62,19 +62,47 @@
     </a>
   </p>
 
+  <a4j:jsFunction name="bindValue" limitRender="true">
+    <a4j:param name="val" assignTo="#{projectHome.selectedProjectType}"/>
+  </a4j:jsFunction>
+
   <ul class="list--slat l--push-bottom-1">
+    <li>
+      <s:fragment rendered="#{projectHome.instance.defaultProjectType eq null}">
+        <input type="radio" name="project-type" id="project-type-null"
+          checked="true" class="form__radio__input" onchange="bindValue('')"/>
+      </s:fragment>
+      <s:fragment rendered="#{projectHome.instance.defaultProjectType ne null}">
+        <input type="radio" name="project-type" id="project-type-null"
+          class="form__radio__input" onchange="bindValue('')"/>
+      </s:fragment>
+      <label for="project-type-null"
+        class="form__radio__label">#{messages['jsf.projectType.NoSelection']}
+      </label>
+    </li>
+
     <ui:repeat value="#{projectHome.projectTypeList}" var="projectType">
       <li class="form__radio">
-        <h:selectOneRadio id="project-type" styleClass="form__radio__input">
-
-        </h:selectOneRadio>
-        <label for="#{rich:clientId('project-type')}"
+        <s:fragment
+          rendered="#{projectHome.instance.defaultProjectType.name() eq projectType.name()}">
+          <input type="radio" name="project-type" class="form__radio__input"
+            id="project-type-#{projectType.name()}" checked="true"
+            onchange="bindValue(this.id.substring('project-type-'.length, this.id.length))"/>
+        </s:fragment>
+        <s:fragment
+          rendered="#{projectHome.instance.defaultProjectType.name() ne projectType.name()}">
+          <input type="radio" name="project-type" class="form__radio__input"
+            id="project-type-#{projectType.name()}"
+            onchange="bindValue(this.id.substring('project-type-'.length, this.id.length))"/>
+        </s:fragment>
+        <label for="project-type-#{projectType.name()}"
           class="form__radio__label">#{projectType.name()} <span
           class="txt--meta">#{messages['jsf.projectType.detail.'.concat(projectType)]}</span>
         </label>
       </li>
     </ui:repeat>
   </ul>
+
 
   <h3 class="heading--secondary">#{messages['jsf.project.SourceCode']}</h3>
 
@@ -97,7 +125,7 @@
     </div>
     <div class="g__item w--1-2">
       <div class="form__item">
-        <h:outputLabel for="repo">Repository
+        <h:outputLabel for="repo">#{messages['jsf.field.repository']}
           <span class="txt--meta">#{messages['jsf.field.optional']}</span>
         </h:outputLabel>
         <s:decorate id="repoField" template="../field.xhtml">

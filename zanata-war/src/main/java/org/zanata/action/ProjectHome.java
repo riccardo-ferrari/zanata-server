@@ -50,6 +50,7 @@ import org.jboss.seam.faces.FacesMessages;
 import org.jboss.seam.international.StatusMessage;
 import org.jboss.seam.security.management.JpaIdentityStore;
 import org.zanata.common.EntityStatus;
+import org.zanata.common.ProjectType;
 import org.zanata.dao.AccountRoleDAO;
 import org.zanata.dao.PersonDAO;
 import org.zanata.model.HAccount;
@@ -69,7 +70,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 @Name("projectHome")
 public class ProjectHome extends SlugHome<HProject> {
@@ -118,6 +118,15 @@ public class ProjectHome extends SlugHome<HProject> {
     private AccountRoleDAO accountRoleDAO;
 
     private Map<String, Boolean> roleRestrictions;
+
+    public void setSelectedProjectType(String selectedProjectType) {
+        if (!StringUtils.isEmpty(selectedProjectType)) {
+            ProjectType projectType = ProjectType.valueOf(selectedProjectType);
+            getInstance().setDefaultProjectType(projectType);
+        } else {
+            getInstance().setDefaultProjectType(null);
+        }
+    }
 
     @Override
     protected HProject loadInstance() {
@@ -169,10 +178,6 @@ public class ProjectHome extends SlugHome<HProject> {
                     update();
                     reset();
 
-                    addMessage(StatusMessage.Severity.INFO,
-                            zanataMessages.getMessage(
-                                    "jsf.MaintainerAddedToProject",
-                                    maintainer.getName()));
                 }
             };
 
@@ -436,7 +441,6 @@ public class ProjectHome extends SlugHome<HProject> {
                 }
             }
         }
-
         return state;
     }
 
