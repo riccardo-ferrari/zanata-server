@@ -103,11 +103,11 @@ public class XmlEntityValidation extends AbstractValidationAction {
 
     @Override
     public String getSourceExample() {
-        return "&#00A3 pound sign in xml entity";
+        return "Pepper &amp; salt";
     }
 
     @Override
     public String getTargetExample() {
-        return "<span class='js-example__target txt--warning'>&#00A3</span> missing pound sign in xml entity";
+        return "Pepper &amp<span class='js-example__target txt--warning'>missing ;</span> salt";
     }
 }

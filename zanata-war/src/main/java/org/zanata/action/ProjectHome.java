@@ -21,20 +21,17 @@
 package org.zanata.action;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.faces.event.ValueChangeEvent;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
-
-import lombok.Getter;
-import lombok.Setter;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -63,13 +60,18 @@ import org.zanata.seam.scope.FlashScopeBean;
 import org.zanata.security.ZanataIdentity;
 import org.zanata.service.LocaleService;
 import org.zanata.service.SlugEntityService;
+import org.zanata.service.ValidationService;
 import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.ValidationAction;
-
+import org.zanata.webtrans.shared.model.ValidationId;
+import org.zanata.webtrans.shared.validation.ValidationFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Name("projectHome")
 public class ProjectHome extends SlugHome<HProject> {
@@ -95,10 +97,6 @@ public class ProjectHome extends SlugHome<HProject> {
     @In(required = false)
     private Boolean overrideLocales;
 
-    /* Outjected from ValidationOptionsAction */
-    @In(required = false)
-    private Collection<ValidationAction> customizedValidations;
-
     @In
     private LocaleService localeServiceImpl;
 
@@ -117,7 +115,13 @@ public class ProjectHome extends SlugHome<HProject> {
     @In
     private AccountRoleDAO accountRoleDAO;
 
+    @In
+    private ValidationService validationServiceImpl;
+
     private Map<String, Boolean> roleRestrictions;
+
+    private Map<ValidationId, ValidationAction> availableValidations = Maps
+            .newHashMap();
 
     public void setSelectedProjectType(String selectedProjectType) {
         if (!StringUtils.isEmpty(selectedProjectType)) {
@@ -176,8 +180,11 @@ public class ProjectHome extends SlugHome<HProject> {
                             personDAO.findByUsername(getSelectedItem());
                     getInstance().getMaintainers().add(maintainer);
                     update();
+                    addMessage(StatusMessage.Severity.INFO,
+                            zanataMessages.getMessage(
+                                    "jsf.MaintainerAddedToProject",
+                                    maintainer.getName()));
                     reset();
-
                 }
             };
 
@@ -220,7 +227,6 @@ public class ProjectHome extends SlugHome<HProject> {
 
         if (authenticatedAccount != null) {
             updateOverrideLocales();
-            updateOverrideValidations();
             getInstance().addMaintainer(authenticatedAccount.getPerson());
             retValue = super.persist();
             Events.instance().raiseEvent("projectAdded");
@@ -271,9 +277,12 @@ public class ProjectHome extends SlugHome<HProject> {
                 zanataMessages.getMessage("jsf.RolesUpdated"));
     }
 
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
     public void setStatus(char initial) {
         getInstance().setStatus(EntityStatus.valueOf(initial));
         update();
+        addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
+                "jsf.project.status.updated", EntityStatus.valueOf(initial)));
     }
 
     public Map<String, Boolean> getRoleRestrictions() {
@@ -303,7 +312,7 @@ public class ProjectHome extends SlugHome<HProject> {
     /**
      * Use FlashScopeBean to store message in page. Multiple ajax requests for
      * re-rendering statistics after updating will clear FacesMessages.
-     *
+     * 
      * @param severity
      * @param message
      */
@@ -412,11 +421,76 @@ public class ProjectHome extends SlugHome<HProject> {
         return slug;
     }
 
+    private Map<ValidationId, ValidationAction> getValidations() {
+        if (availableValidations.isEmpty()) {
+            Collection<ValidationAction> validationList =
+                    validationServiceImpl.getValidationActions(slug);
+
+            for (ValidationAction validationAction : validationList) {
+                availableValidations.put(validationAction.getId(),
+                        validationAction);
+            }
+        }
+
+        return availableValidations;
+    }
+
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public void updateValidationOption(String name, String state) {
+
+        for (Map.Entry<String, String> entry : getInstance()
+                .getCustomizedValidations().entrySet()) {
+            if (entry.getKey().equals(name)) {
+                entry.setValue(state);
+                getValidations().get(ValidationId.valueOf(name)).setState(
+                        ValidationAction.State.valueOf(state));
+                break;
+            }
+        }
+        ensureMutualExclusivity(getValidations()
+                .get(ValidationId.valueOf(name)));
+
+        update();
+        addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
+                "jsf.project.validation.updated", name, state));
+    }
+
+    public List<ValidationAction> getValidationList() {
+        List<ValidationAction> sortedList =
+                new ArrayList<ValidationAction>(getValidations().values());
+        Collections.sort(sortedList,
+                ValidationFactory.ValidationActionComparator);
+        return sortedList;
+    }
+
+    /**
+     * If this action is enabled(Warning or Error), then it's exclusive
+     * validation will be turn off
+     * 
+     * @param selectedValidationAction
+     */
+    private void ensureMutualExclusivity(
+            ValidationAction selectedValidationAction) {
+        if (selectedValidationAction.getState() != ValidationAction.State.Off) {
+            for (ValidationAction exclusiveValAction : selectedValidationAction
+                    .getExclusiveValidations()) {
+                getInstance().getCustomizedValidations().put(
+                        exclusiveValAction.getId().name(),
+                        ValidationAction.State.Off.name());
+                getValidations().get(exclusiveValAction.getId()).setState(
+                        ValidationAction.State.Off);
+            }
+        }
+    }
+
+    public List<ValidationAction.State> getValidationStates() {
+        return Arrays.asList(ValidationAction.State.values());
+    }
+
     @Override
     public String update() {
         clearMessage();
         updateOverrideLocales();
-        updateOverrideValidations();
         String state = super.update();
         Events.instance().raiseEvent(PROJECT_UPDATE, getInstance());
 
@@ -455,17 +529,6 @@ public class ProjectHome extends SlugHome<HProject> {
                                 .convertCustomizedLocale(customizedItems);
                 getInstance().getCustomizedLocales().clear();
                 getInstance().getCustomizedLocales().addAll(locale);
-            }
-        }
-    }
-
-    private void updateOverrideValidations() {
-        // edit project page code won't have customized validations outjected
-        if (customizedValidations != null) {
-            getInstance().getCustomizedValidations().clear();
-            for (ValidationAction action : customizedValidations) {
-                getInstance().getCustomizedValidations().put(
-                        action.getId().name(), action.getState().name());
             }
         }
     }

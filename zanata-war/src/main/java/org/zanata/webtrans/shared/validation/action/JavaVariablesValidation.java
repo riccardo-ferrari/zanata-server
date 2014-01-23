@@ -232,12 +232,12 @@ public class JavaVariablesValidation extends AbstractValidationAction {
 
     @Override
     public String getSourceExample() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return "value must be between {0} and {1}";
     }
 
     @Override
     public String getTargetExample() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return "value must be between {0} and <span class='js-example__target txt--warning'>{2}</span>";
     }
 
     /**

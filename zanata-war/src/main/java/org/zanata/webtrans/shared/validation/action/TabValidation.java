@@ -58,6 +58,6 @@ public class TabValidation extends AbstractValidationAction {
 
     @Override
     public String getTargetExample() {
-        return "<span class='js-example__target txt--warning'>\\t</span> hello world missing tab";
+        return "<span class='js-example__target txt--warning'>missing tab char (\\t)</span> hello world";
     }
 }

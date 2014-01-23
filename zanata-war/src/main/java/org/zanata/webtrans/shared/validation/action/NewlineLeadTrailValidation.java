@@ -132,6 +132,6 @@ public class NewlineLeadTrailValidation extends AbstractValidationAction {
 
     @Override
     public String getTargetExample() {
-        return "&lt;strong&gt;\\n hello world with lead new line&lt;/stong&gt;";
+        return "<span class='js-example__target txt--warning'>missing \\n</span> hello world with lead new line";
     }
 }

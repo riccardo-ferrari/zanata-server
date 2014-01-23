@@ -121,11 +121,11 @@ public class PrintfXSIExtensionValidation extends PrintfVariablesValidation {
 
     @Override
     public String getSourceExample() {
-        return "";
+        return "value must be between %x$1 and %y$2";
     }
 
     @Override
     public String getTargetExample() {
-        return "";
+        return "value must be between %x$1 and <span class='js-example__target txt--warning'>%y$3</span>";
     }
 }

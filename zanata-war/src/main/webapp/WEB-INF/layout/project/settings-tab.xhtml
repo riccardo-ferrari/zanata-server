@@ -14,7 +14,19 @@
       jQuery(this).focus();
     });
   }
+
+  function onValidationOptionChange(validationId) {
+    var value = validationId.split('-');
+    bindValidationValue(value[0], value[1]);
+  }
 </script>
+
+<a4j:jsFunction name="bindValidationValue"
+  action="#{projectHome.updateValidationOption(name, state)}"
+  limitRender="true" render="validation-list, pageMessages">
+  <a4j:param name="val1" assignTo="#{name}"/>
+  <a4j:param name="val2" assignTo="#{state}"/>
+</a4j:jsFunction>
 
 <h1>#{messages['jsf.Settings']}</h1>
 
@@ -46,7 +58,7 @@
   </li>
   <li>
     <a href="#settings-notes" id="settings-notes_tab">
-      <i class="i i--info"></i>
+      <i class="i i--notes"></i>
           <span
             class="is-hidden--m-down">#{messages['jsf.project.Notes']}</span>
     </a>
@@ -143,64 +155,104 @@
   <h2 class="l--push-all-0 gamma d--bottom l--push-bottom-half">
     #{messages['jsf.Translation']}
   </h2>
+
   <h:form id="settings-translation-form" styleClass="l--push-bottom-0">
     <h3 class="heading--secondary">#{messages['jsf.Validation']}</h3>
 
     <p>#{messages['jsf.Validation.messages']}</p>
-    <ul class="list--slat">
-      <ui:repeat value="#{validationOptionsAction.validationList}"
-        var="validationAction">
-        <li class="js-example js-reveal">
-          <div class="g--tight">
-            <div class="g__item w--7-12">
-              <label
-                class="l--push-bottom-0">#{validationAction.id.displayName}</label>
 
-              <p
-                class="txt--meta l--push-bottom-quarter">#{validationAction.description}
-                <a href="#" class="button--link js-reveal__toggle" title=""
-                  data-target="##{validationAction.id.name()}-example"
-                  data-toggle-title="#{messages['jsf.tooltip.HideExample']}"
-                  data-original-title="#{messages['jsf.tooltip.ShowExample']}"><span
-                  class="js-reveal__toggle__text"
-                  data-toggle-value="Less">#{messages['jsf.tooltip.More']}</span>…</a>
-              </p>
-            </div>
-            <div class="g__item w--5-12">
-              <div class="button--group txt--align-right">
-                <ui:repeat value="#{validationOptionsAction.validationStates}"
-                  var="state">
-                  <input name="#{validationAction.id.name()}"
-                    id="#{validationAction.id.name()}-#{state}" value="#{state}"
-                    type="radio" class="form__item__input js-example__setter"
-                    data-example=""/>
-                  <label for="#{validationAction.id.name()}-#{state}"
-                    class="button">#{state}</label>
-                </ui:repeat>
+    <s:div id="validation-list">
+      <ul class="list--slat">
+        <ui:repeat
+          value="#{projectHome.validationList}"
+          var="validationAction">
+          <li class="js-example js-reveal">
+            <div class="g--tight">
+              <div class="g__item w--7-12">
+                <label class="l--push-bottom-0">
+                  #{validationAction.id.displayName}
+                </label>
+
+                <p class="txt--meta l--push-bottom-quarter">
+                  #{validationAction.description}
+                  <a href="#" class="button--link js-reveal__toggle" title=""
+                    data-target="##{validationAction.id.name()}-example"
+                    data-toggle-title="#{messages['jsf.tooltip.HideExample']}"
+                    data-original-title="#{messages['jsf.tooltip.ShowExample']}">
+                  <span class="js-reveal__toggle__text"
+                    data-toggle-value="Less">
+                    #{messages['jsf.tooltip.More']}
+                  </span>…
+                  </a>
+                </p>
+              </div>
+              <div class="g__item w--5-12">
+                <div class="button--group txt--align-right">
+                  <ui:repeat value="#{projectHome.validationStates}"
+                    var="state">
+                    <s:fragment rendered="#{validationAction.state == state}">
+                      <input name="#{validationAction.id.name()}"
+                        id="#{validationAction.id.name()}-#{state}"
+                        checked="true"
+                        onchange="onValidationOptionChange(this.id)"
+                        type="radio"
+                        class="form__item__input js-example__setter"
+                        data-example=""/>
+                    </s:fragment>
+                    <s:fragment rendered="#{validationAction.state != state}">
+                      <input name="#{validationAction.id.name()}"
+                        id="#{validationAction.id.name()}-#{state}"
+                        onchange="onValidationOptionChange(this.id)"
+                        type="radio"
+                        class="form__item__input js-example__setter"
+                        data-example=""/>
+                    </s:fragment>
+                    <label for="#{validationAction.id.name()}-#{state}"
+                      class="button button--#{state.name() == 'Error'?'danger':state}">#{state}</label>
+                  </ui:repeat>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="g--tight l--push-bottom-half is-hidden"
-            id="#{validationAction.id.name()}-example">
-            <div class="g__item w--1-2 l--push-top-quarter">
-              <h4
-                class="zeta heading--secondary txt--uppercase">#{messages['jsf.project.validation.source']}</h4>
-              <pre class="l--push-all-0"><code
-                class="txt--mini">#{validationAction.sourceExample}</code></pre>
+            <div class="g--tight l--push-bottom-half is-hidden"
+              id="#{validationAction.id.name()}-example">
+              <div class="g__item w--1-2 l--push-top-quarter">
+                <h4 class="zeta heading--secondary txt--uppercase">
+                  #{messages['jsf.project.validation.source']}
+                </h4>
+              <pre class="l--push-all-0"><code class="txt--mini">
+                <h:outputText value="#{validationAction.sourceExample}"
+                  escape="false"/>
+              </code></pre>
+              </div>
+              <div class="g__item w--1-2 l--push-top-quarter">
+                <h4 class="zeta heading--secondary txt--uppercase">
+                  #{messages['jsf.project.validation.target']}
+                </h4>
+              <pre class="l--push-all-0"><code class="txt--mini">
+                <h:outputText value="#{validationAction.targetExample}"
+                  escape="false"/>
+              </code></pre>
+              </div>
             </div>
-            <div class="g__item w--1-2 l--push-top-quarter">
-              <h4
-                class="zeta heading--secondary txt--uppercase">#{messages['jsf.project.validation.target']}</h4>
-              <pre class="l--push-all-0"><code
-                class="txt--mini">#{validationAction.targetExample}</code></pre>
-            </div>
-          </div>
-        </li>
-      </ui:repeat>
-
-
-    </ul>
+          </li>
+        </ui:repeat>
+      </ul>
+    </s:div>
     <hr/>
+    <h3 class="heading--secondary">#{messages['jsf.CopyTrans']}</h3>
+
+    <p>#{messages['jsf.copytrans.message']}
+      <a href="http://zanata.org/help/reuse/copytrans-explained/" title=""
+        data-original-title="#{messages['jsf.project.CopyTransOpts.tooltip']}">
+        <i class="i i--help"></i>
+      </a>
+    </p>
+
+    <p class="message--highlight">#{messages['jsf.copytrans.message2']}</p>
+
+    <ol class="list--slat">
+
+    </ol>
   </h:form>
 </li>
 <li id="settings-permissions">
@@ -222,7 +274,7 @@
           <a4j:commandLink
             action="#{projectHome.removeMaintainer(maintainer)}"
             styleClass="l--float-right txt--danger reveal__target"
-            render="settings-permissions-form,maintainers-size,maintainers_content">
+            render="settings-permissions-form,maintainers-size,maintainers_content,pageMessages">
             <i class="i--large i--remove"></i>
           </a4j:commandLink>
         </li>
