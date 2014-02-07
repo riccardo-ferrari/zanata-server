@@ -29,6 +29,7 @@ import static org.zanata.common.DocumentType.OPEN_DOCUMENT_GRAPHICS;
 import static org.zanata.common.DocumentType.OPEN_DOCUMENT_PRESENTATION;
 import static org.zanata.common.DocumentType.OPEN_DOCUMENT_SPREADSHEET;
 import static org.zanata.common.DocumentType.OPEN_DOCUMENT_TEXT;
+import static org.zanata.common.DocumentType.SRT;
 import static org.zanata.common.DocumentType.PLAIN_TEXT;
 import static org.zanata.common.DocumentType.XML_DOCUMENT_TYPE_DEFINITION;
 
@@ -54,6 +55,7 @@ import org.zanata.adapter.IDMLAdapter;
 import org.zanata.adapter.OpenOfficeAdapter;
 import org.zanata.adapter.PlainTextAdapter;
 import org.zanata.adapter.po.PoReader2;
+import org.zanata.adapter.SRTAdapter;
 import org.zanata.common.DocumentType;
 import org.zanata.common.LocaleId;
 import org.zanata.common.ProjectType;
@@ -94,6 +96,7 @@ public class TranslationFileServiceImpl implements TranslationFileService {
         DOCTYPEMAP.put(XML_DOCUMENT_TYPE_DEFINITION, DTDAdapter.class);
         DOCTYPEMAP.put(IDML, IDMLAdapter.class);
         DOCTYPEMAP.put(HTML, HTMLAdapter.class);
+        DOCTYPEMAP.put(SRT, SRTAdapter.class);
     }
 
     private static Set<String> SUPPORTED_EXTENSIONS =
