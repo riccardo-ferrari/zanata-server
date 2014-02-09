@@ -34,7 +34,7 @@
     <zanata.api.version>3.3.0-SNAPSHOT</zanata.api.version>
     <!-- This should always be the previous version of the used api version above (but only 3.0.1 or later will work) -->
     <zanata.api.compat.version>3.1.1</zanata.api.compat.version>
-    <zanata.client.version>3.3.0-SNAPSHOT</zanata.client.version>
+    <zanata.client.version>3.3.0</zanata.client.version>
     <zanata.common.version>3.0.2</zanata.common.version>
 
     <richfaces.version>4.3.4.Final</richfaces.version>
@@ -251,6 +251,18 @@
       <dependency>
         <groupId>net.sf.okapi.filters</groupId>
         <artifactId>okapi-filter-dtd</artifactId>
+        <version>${okapi.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>net.sf.okapi.logbind</groupId>
+            <artifactId>build-log4j</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>net.sf.okapi.filters</groupId>
+        <artifactId>okapi-filter-html</artifactId>
         <version>${okapi.version}</version>
         <exclusions>
           <exclusion>
@@ -726,6 +738,14 @@
           <groupId>com.jcabi</groupId>
           <artifactId>jcabi-mysql-maven-plugin</artifactId>
           <version>0.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.gmaven</groupId>
+          <artifactId>gmaven-plugin</artifactId>
+          <version>1.5</version>
+          <configuration>
+            <providerSelection>2.0</providerSelection>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>

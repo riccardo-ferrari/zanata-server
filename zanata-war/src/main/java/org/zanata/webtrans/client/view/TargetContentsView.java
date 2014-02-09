@@ -127,6 +127,7 @@ public class TargetContentsView extends Composite implements
 
     @Override
     public void setValueAndCreateNewEditors(TransUnit transUnit) {
+        buttons.ensureDebugId("target-" + transUnit.getRowIndex());
         setCachedTU(transUnit);
         updateCommentIndicator(transUnit.getCommentsCount());
 
@@ -140,6 +141,7 @@ public class TargetContentsView extends Composite implements
         for (String target : cachedTargets) {
             Editor editor =
                     new Editor(target, rowIndex, listener, transUnit.getId());
+            editor.ensureDebugId(transUnit.getRowIndex() + "-");
             editor.setEnableSpellCheck(listener.getConfigState()
                     .isSpellCheckEnabled());
             editorGrid.setWidget(rowIndex, 0, editor);

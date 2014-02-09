@@ -76,7 +76,7 @@
         <redirect view-id="/account/login.xhtml" />
       </rule>
       <rule if-outcome="edit">
-        <redirect view-id="/profile/edit.xhtml" />
+        <redirect view-id="/profile/create_user.xhtml" />
       </rule>
       <rule if-outcome="inactive">
         <redirect view-id="/account/inactive_account.xhtml" />
@@ -110,7 +110,7 @@
     <navigation from-action="#{loginAction.login}">
       <rule
         if="#{authenticationManager.authenticated and authenticationManager.newUser}">
-        <redirect view-id="/profile/edit.xhtml" />
+        <redirect view-id="/profile/create_user.xhtml" />
       </rule>
       <rule if-outcome="inactive">
         <begin-conversation />
@@ -461,11 +461,11 @@
 
   <page view-id="/profile/create_user.xhtml">
     <restrict>#{identity.preAuthenticated}</restrict>
-    <navigation from-action="#{profileAction.createUser}">
+    <navigation from-action="#{newProfileAction.createUser}">
       <redirect view-id="/home.xhtml" />
     </navigation>
-    <navigation from-action="#{profileAction.cancel}">
-      <redirect view-id="/account/register.xhtml" />
+    <navigation from-action="#{newProfileAction.cancel}">
+      <redirect view-id="/home.xhtml" />
     </navigation>
   </page>
 
@@ -968,6 +968,12 @@
   <exception class="org.jboss.seam.ConcurrentRequestTimeoutException"
     log-level="trace">
     <http-error error-code="503" />
+  </exception>
+
+  <exception class="javax.validation.ConstraintViolationException" log-level="debug">
+    <redirect view-id="/error.xhtml">
+      <message severity="warn">#{messages['jsf.Error']} #{org.jboss.seam.handledException.message}</message>
+    </redirect>
   </exception>
 
   <exception class="org.jboss.seam.web.FileUploadException" log-level="warn">
