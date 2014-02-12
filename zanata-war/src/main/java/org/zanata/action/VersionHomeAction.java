@@ -49,7 +49,6 @@ import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.security.Restrict;
-import org.jboss.seam.framework.EntityNotFoundException;
 import org.jboss.seam.international.StatusMessage;
 import org.jboss.seam.util.Hex;
 import org.zanata.annotation.CachedMethods;
@@ -229,11 +228,11 @@ public class VersionHomeAction extends AbstractSortAction implements
         languageTabDocumentFilter.resetDocumentPage();
         documentTabDocumentFilter.resetDocumentPage();
         documents = null;
-        loadStatistic();
+        loadStatistics();
     }
 
     @Override
-    protected void loadStatistic() {
+    protected void loadStatistics() {
         statisticMap = Maps.newHashMap();
         for (HLocale locale : getSupportedLocale()) {
             WordStatistic wordStatistic =
@@ -307,7 +306,7 @@ public class VersionHomeAction extends AbstractSortAction implements
 
     public void setPageRendered(boolean pageRendered) {
         if (pageRendered) {
-            loadStatistic();
+            loadStatistics();
         }
         this.pageRendered = pageRendered;
     }

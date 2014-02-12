@@ -4,7 +4,6 @@
   xmlns:a4j="http://richfaces.org/a4j"
   xmlns:rich="http://richfaces.org/rich"
   xmlns:s="http://jboss.org/schema/seam/taglib"
-  xmlns:f="http://java.sun.com/jsf/core"
   xmlns:zanata="http://java.sun.com/jsf/composite/zanata">
 
 <script type="text/javascript">
@@ -247,12 +246,8 @@
         <i class="i i--help"></i>
       </a>
     </p>
-
     <p class="message--highlight">#{messages['jsf.copytrans.message2']}</p>
-
-    <ol class="list--slat">
-
-    </ol>
+    <ui:include src="/WEB-INF/layout/copy_trans_inline2.xhtml"/>
   </h:form>
 </li>
 <li id="settings-permissions">

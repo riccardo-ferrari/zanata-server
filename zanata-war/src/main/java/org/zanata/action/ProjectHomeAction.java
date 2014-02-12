@@ -206,7 +206,7 @@ public class ProjectHomeAction extends AbstractSortAction implements
     }
 
     @Override
-    protected void loadStatistic() {
+    protected void loadStatistics() {
         statisticMap = Maps.newHashMap();
 
         for (VersionItem versionItem : getProjectVersions()) {
@@ -282,7 +282,7 @@ public class ProjectHomeAction extends AbstractSortAction implements
 
     public void setPageRendered(boolean pageRendered) {
         if (pageRendered) {
-            loadStatistic();
+            loadStatistics();
         }
         this.pageRendered = pageRendered;
     }
@@ -290,7 +290,7 @@ public class ProjectHomeAction extends AbstractSortAction implements
     @Override
     public void resetPageData() {
         projectVersions = null;
-        loadStatistic();
+        loadStatistics();
     }
 
     @Override

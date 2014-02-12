@@ -81,6 +81,10 @@ public class CopyTransOptionsModel implements Serializable {
                         .valueOf(docIdMismatchAction));
     }
 
+    public void update(String action, String value) {
+        if()
+    }
+
     public String getContextMismatchAction() {
         return getInstance().getContextMismatchAction().toString();
     }
