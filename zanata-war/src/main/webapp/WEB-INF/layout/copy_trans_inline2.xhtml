@@ -13,101 +13,104 @@
 
   <a4j:jsFunction name="bindCopyTransValue"
     action="#{copyTransOptionsModel.update(action, value)}"
-    limitRender="true" render="copyTrans, pageMessages">
+    limitRender="true" render="pageMessages">
     <a4j:param name="val1" assignTo="#{action}"/>
     <a4j:param name="val2" assignTo="#{value}"/>
   </a4j:jsFunction>
 
-  <s:div id="copyTrans">
-    <ol class="list--slat">
-      <li>
-        <div class="g--tighter">
-          <div class="g__item w--3-8 l--push-bottom-quarter">
-            <p class="list__title">
-              #{messages['jsf.iteration.CopyTrans.Condition.onContentMismatch']}</p>
-            <p class="txt--meta">
-              #{messages['jsf.iteration.CopyTrans.Condition.onContentMismatch.details']}</p>
-          </div>
-          <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
-            <button class="button button--small button--danger" disabled="">
+  <ol class="list--slat">
+    <li>
+      <div class="g--tighter">
+        <div class="g__item w--3-8 l--push-bottom-quarter">
+          <p class="list__title">
+            #{messages['jsf.iteration.CopyTrans.Condition.onContentMismatch']}</p>
+
+          <p class="txt--meta">
+            #{messages['jsf.iteration.CopyTrans.Condition.onContentMismatch.details']}</p>
+        </div>
+        <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
+          <button class="button button--small button--danger" disabled="">
+            #{messages['jsf.iteration.CopyTrans.Action.reject']}
+          </button>
+        </div>
+      </div>
+    </li>
+
+    <li>
+      <div class="g--tighter">
+        <div class="g__item w--3-8 l--push-bottom-quarter">
+          <p class="list__title">
+            #{messages['jsf.iteration.CopyTrans.Condition.onContextMismatch']}
+          </p>
+
+          <p class="txt--meta">
+            #{messages['jsf.iteration.CopyTrans.Condition.onContextMismatch.details']}
+          </p>
+        </div>
+        <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
+          <div class="button--group">
+            <ui:repeat value="#{copyTransOptionsModel.ruleActions}" var="ruleAction">
+              #{ruleAction}
+            </ui:repeat>
+
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'IGNORE'}">
+              <input id="contextMismatch--IGNORE"
+                onchange="onValueChanged(this)"
+                value="IGNORE" type="radio" class="form__item__input"/>
+            </s:fragment>
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'IGNORE'}">
+              <input id="contextMismatch--IGNORE"
+                onchange="onValueChanged(this)"
+                value="IGNORE" type="radio" class="form__item__input"
+                checked="true"/>
+            </s:fragment>
+            <label for="contextMismatch--IGNORE"
+              class="button button--small button--success">
+              #{messages['jsf.iteration.CopyTrans.Action.continue']}
+            </label>
+
+
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'DOWNGRADE_TO_FUZZY'}">
+              <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
+                onchange="onValueChanged(this)"
+                value="DOWNGRADE_TO_FUZZY" type="radio"
+                class="form__item__input"/>
+            </s:fragment>
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'DOWNGRADE_TO_FUZZY'}">
+              <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
+                onchange="onValueChanged(this)"
+                value="DOWNGRADE_TO_FUZZY" type="radio"
+                class="form__item__input" checked="true"/>
+            </s:fragment>
+            <label for="contextMismatch--DOWNGRADE_TO_FUZZY"
+              class="button button--small button--unsure">
+              #{messages['jsf.iteration.CopyTrans.Action.downgradeToFuzzy']}
+            </label>
+
+
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'REJECT'}">
+              <input id="contextMismatch--REJECT"
+                onchange="onValueChanged(this)"
+                value="REJECT" type="radio" class="form__item__input"/>
+            </s:fragment>
+            <s:fragment
+              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'REJECT'}">
+              <input id="contextMismatch--REJECT" checked="true"
+                value="REJECT" type="radio" class="form__item__input"
+                onchange="onValueChanged(this)"/>
+            </s:fragment>
+            <label for="contextMismatch--REJECT"
+              class="button button--small button--danger">
               #{messages['jsf.iteration.CopyTrans.Action.reject']}
-            </button>
+            </label>
           </div>
         </div>
-      </li>
-
-      <li>
-        <div class="g--tighter">
-          <div class="g__item w--3-8 l--push-bottom-quarter">
-            <p class="list__title">
-              #{messages['jsf.iteration.CopyTrans.Condition.onContextMismatch']}
-            </p>
-
-            <p class="txt--meta">
-              #{messages['jsf.iteration.CopyTrans.Condition.onContextMismatch.details']}
-            </p>
-          </div>
-          <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
-            <div class="button--group">
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction ne 'IGNORE'}">
-                <input id="contextMismatch--IGNORE"
-                  onchange="onValueChanged(this)"
-                  value="IGNORE" type="radio" class="form__item__input"/>
-              </s:fragment>
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction eq 'IGNORE'}">
-                <input id="contextMismatch--IGNORE"
-                  onchange="onValueChanged(this)"
-                  value="IGNORE" type="radio" class="form__item__input"
-                  checked="true"/>
-              </s:fragment>
-              <label for="contextMismatch--IGNORE"
-                class="button button--small button--success">
-                #{messages['jsf.iteration.CopyTrans.Action.continue']}
-              </label>
-
-
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction ne 'DOWNGRADE_TO_FUZZY'}">
-                <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
-                  onchange="onValueChanged(this)"
-                  value="DOWNGRADE_TO_FUZZY" type="radio"
-                  class="form__item__input"/>
-              </s:fragment>
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction eq 'DOWNGRADE_TO_FUZZY'}">
-                <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
-                  onchange="onValueChanged(this)"
-                  value="DOWNGRADE_TO_FUZZY" type="radio"
-                  class="form__item__input" checked="true"/>
-              </s:fragment>
-              <label for="contextMismatch--DOWNGRADE_TO_FUZZY"
-                class="button button--small button--unsure">
-                #{messages['jsf.iteration.CopyTrans.Action.downgradeToFuzzy']}
-              </label>
-
-
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction ne 'REJECT'}">
-                <input id="contextMismatch--REJECT"
-                  onchange="onValueChanged(this)"
-                  value="REJECT" type="radio" class="form__item__input"/>
-              </s:fragment>
-              <s:fragment
-                rendered="#{copyTransOptionsModel.contextMismatchAction eq 'REJECT'}">
-                <input id="contextMismatch--REJECT" checked="true"
-                  value="REJECT" type="radio" class="form__item__input"
-                  onchange="onValueChanged(this)"/>
-              </s:fragment>
-              <label for="contextMismatch--REJECT"
-                class="button button--small button--danger">
-                #{messages['jsf.iteration.CopyTrans.Action.reject']}
-              </label>
-            </div>
-          </div>
-        </div>
-      </li>
-    </ol>
-  </s:div>
+      </div>
+    </li>
+  </ol>
 </ui:composition>

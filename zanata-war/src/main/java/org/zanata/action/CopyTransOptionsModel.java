@@ -21,8 +21,10 @@
 package org.zanata.action;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.persistence.EntityManager;
 
+import com.google.common.collect.Lists;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.AutoCreate;
 import org.jboss.seam.annotations.In;
@@ -65,7 +67,7 @@ public class CopyTransOptionsModel implements Serializable {
         return getInstance().getProjectMismatchAction().toString();
     }
 
-    public void setProjectMismatchAction(String projectMismatchAction) {
+    private void setProjectMismatchAction(String projectMismatchAction) {
         getInstance().setProjectMismatchAction(
                 HCopyTransOptions.ConditionRuleAction
                         .valueOf(projectMismatchAction));
@@ -75,24 +77,35 @@ public class CopyTransOptionsModel implements Serializable {
         return getInstance().getDocIdMismatchAction().toString();
     }
 
-    public void setDocIdMismatchAction(String docIdMismatchAction) {
+    private void setDocIdMismatchAction(String docIdMismatchAction) {
         getInstance().setDocIdMismatchAction(
                 HCopyTransOptions.ConditionRuleAction
                         .valueOf(docIdMismatchAction));
-    }
-
-    public void update(String action, String value) {
-        if()
     }
 
     public String getContextMismatchAction() {
         return getInstance().getContextMismatchAction().toString();
     }
 
-    public void setContextMismatchAction(String contextMismatchAction) {
+    private void setContextMismatchAction(String contextMismatchAction) {
         getInstance().setContextMismatchAction(
                 HCopyTransOptions.ConditionRuleAction
                         .valueOf(contextMismatchAction));
+    }
+
+    public void update(String action, String value) {
+        if (action.equalsIgnoreCase("ContextMismatch")) {
+            setContextMismatchAction(value);
+        } else if (action.equalsIgnoreCase("ProjectMismatch")) {
+            setProjectMismatchAction(value);
+        } else if (action.equalsIgnoreCase("DocumentMismatch")) {
+            setDocIdMismatchAction(value);
+        }
+    }
+
+    public List<HCopyTransOptions.ConditionRuleAction> getRuleActions() {
+        return Lists.newArrayList(HCopyTransOptions.ConditionRuleAction
+                .values());
     }
 
     public void save() {

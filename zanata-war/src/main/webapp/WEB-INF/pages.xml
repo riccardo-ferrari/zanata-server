@@ -424,7 +424,8 @@
     <navigation from-action="#{versionGroupJoinAction.send}">
       <rule if-outcome="success">
         <redirect view-id="/version-group/version_group.xhtml">
-          <param name="versionGroupSlug" value="#{versionGroupJoinAction.slug}" />
+          <param name="versionGroupSlug"
+            value="#{versionGroupJoinAction.slug}" />
         </redirect>
       </rule>
       <rule if-outcome="failure">
@@ -553,6 +554,8 @@
   <page view-id="/project/project.xhtml">
     <param name="slug" value="#{projectHome.slug}" />
     <param name="slug" value="#{projectHomeAction.slug}" />
+    <param name="projectSlug"
+      value="#{projectCopyTransOptionsAction.projectSlug}" />
     <param name="slug" value="#{versionDetailsAction.projectSlug}" />
     <action execute="#{projectHome.validateSuppliedId}" />
 

@@ -22,6 +22,8 @@ package org.zanata.action;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
@@ -42,6 +44,8 @@ import org.zanata.model.HProject;
 public class ProjectCopyTransOptionsAction implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @Setter
+    @Getter
     private String projectSlug;
 
     @In
@@ -49,14 +53,6 @@ public class ProjectCopyTransOptionsAction implements Serializable {
 
     @In
     private CopyTransOptionsModel copyTransOptionsModel;
-
-    public String getProjectSlug() {
-        return projectSlug;
-    }
-
-    public void setProjectSlug(String projectSlug) {
-        this.projectSlug = projectSlug;
-    }
 
     public void initialize() {
         if (this.getProject().getDefaultCopyTransOpts() != null) {
@@ -75,8 +71,7 @@ public class ProjectCopyTransOptionsAction implements Serializable {
             void saveOptions() {
         copyTransOptionsModel.save();
         HProject project = getProject();
-        project.setDefaultCopyTransOpts(
-            copyTransOptionsModel.getInstance());
+        project.setDefaultCopyTransOpts(copyTransOptionsModel.getInstance());
         projectDAO.makePersistent(project);
 
         FacesMessages.instance().add(StatusMessage.Severity.INFO,
