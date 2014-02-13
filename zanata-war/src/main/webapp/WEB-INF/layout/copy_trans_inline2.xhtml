@@ -1,22 +1,14 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
   xmlns:ui="http://java.sun.com/jsf/facelets"
-  xmlns:s="http://jboss.org/schema/seam/taglib"
-  xmlns:a4j="http://richfaces.org/a4j">
+  xmlns:s="http://jboss.org/schema/seam/taglib">
 
   <script type="text/javascript">
 
     function onValueChanged(checkbox) {
-      var values = jQuery(checkbox).attr("id").split("--");
-      bindCopyTransValue(values[0], jQuery(checkbox).attr("value"))
+      bindCopyTransValue(jQuery(checkbox).attr("name"),
+        jQuery(checkbox).attr("value"))
     }
   </script>
-
-  <a4j:jsFunction name="bindCopyTransValue"
-    action="#{copyTransOptionsModel.update(action, value)}"
-    limitRender="true" render="pageMessages">
-    <a4j:param name="val1" assignTo="#{action}"/>
-    <a4j:param name="val2" assignTo="#{value}"/>
-  </a4j:jsFunction>
 
   <ol class="list--slat">
     <li>
@@ -49,68 +41,121 @@
         </div>
         <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
           <div class="button--group">
-            <ui:repeat value="#{copyTransOptionsModel.ruleActions}" var="ruleAction">
-              #{ruleAction}
+            <ui:repeat value="#{copyTransOptionsModel.ruleActions}"
+              var="ruleAction">
+              <s:fragment
+                rendered="#{copyTransOptionsModel.contextMismatchAction ne ruleAction.action}">
+                <input id="contextMismatch--#{ruleAction.action}"
+                  name="contextMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"/>
+              </s:fragment>
+              <s:fragment
+                rendered="#{copyTransOptionsModel.contextMismatchAction eq ruleAction.action}">
+                <input id="contextMismatch--#{ruleAction.action}"
+                  name="contextMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"
+                  checked="true"/>
+              </s:fragment>
+              <label for="contextMismatch--#{ruleAction.action}"
+                class="button button--small #{ruleAction.css}">
+                #{ruleAction.displayText}
+              </label>
             </ui:repeat>
-
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'IGNORE'}">
-              <input id="contextMismatch--IGNORE"
-                onchange="onValueChanged(this)"
-                value="IGNORE" type="radio" class="form__item__input"/>
-            </s:fragment>
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'IGNORE'}">
-              <input id="contextMismatch--IGNORE"
-                onchange="onValueChanged(this)"
-                value="IGNORE" type="radio" class="form__item__input"
-                checked="true"/>
-            </s:fragment>
-            <label for="contextMismatch--IGNORE"
-              class="button button--small button--success">
-              #{messages['jsf.iteration.CopyTrans.Action.continue']}
-            </label>
-
-
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'DOWNGRADE_TO_FUZZY'}">
-              <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
-                onchange="onValueChanged(this)"
-                value="DOWNGRADE_TO_FUZZY" type="radio"
-                class="form__item__input"/>
-            </s:fragment>
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'DOWNGRADE_TO_FUZZY'}">
-              <input id="contextMismatch--DOWNGRADE_TO_FUZZY"
-                onchange="onValueChanged(this)"
-                value="DOWNGRADE_TO_FUZZY" type="radio"
-                class="form__item__input" checked="true"/>
-            </s:fragment>
-            <label for="contextMismatch--DOWNGRADE_TO_FUZZY"
-              class="button button--small button--unsure">
-              #{messages['jsf.iteration.CopyTrans.Action.downgradeToFuzzy']}
-            </label>
-
-
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction ne 'REJECT'}">
-              <input id="contextMismatch--REJECT"
-                onchange="onValueChanged(this)"
-                value="REJECT" type="radio" class="form__item__input"/>
-            </s:fragment>
-            <s:fragment
-              rendered="#{copyTransOptionsModel.contextMismatchAction eq 'REJECT'}">
-              <input id="contextMismatch--REJECT" checked="true"
-                value="REJECT" type="radio" class="form__item__input"
-                onchange="onValueChanged(this)"/>
-            </s:fragment>
-            <label for="contextMismatch--REJECT"
-              class="button button--small button--danger">
-              #{messages['jsf.iteration.CopyTrans.Action.reject']}
-            </label>
           </div>
         </div>
       </div>
+    </li>
+    <li>
+      <div class="g--tighter">
+        <div class="g__item w--3-8 l--push-bottom-quarter">
+          <p class="list__title">
+            #{messages['jsf.iteration.CopyTrans.Condition.onProjectMismatch']}
+          </p>
+
+          <p class="txt--meta">
+            #{messages['jsf.iteration.CopyTrans.Condition.onProjectMismatch.details']}
+          </p>
+        </div>
+        <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
+          <div class="button--group">
+            <ui:repeat value="#{copyTransOptionsModel.ruleActions}"
+              var="ruleAction">
+              <s:fragment
+                rendered="#{copyTransOptionsModel.projectMismatchAction ne ruleAction.action}">
+                <input id="projectMismatch--#{ruleAction.action}"
+                  name="projectMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"/>
+              </s:fragment>
+              <s:fragment
+                rendered="#{copyTransOptionsModel.projectMismatchAction eq ruleAction.action}">
+                <input id="projectMismatch--#{ruleAction.action}"
+                  name="projectMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"
+                  checked="true"/>
+              </s:fragment>
+              <label for="projectMismatch--#{ruleAction.action}"
+                class="button button--small #{ruleAction.css}">
+                #{ruleAction.displayText}
+              </label>
+            </ui:repeat>
+          </div>
+        </div>
+      </div>
+    </li>
+
+
+    <li>
+      <div class="g--tighter">
+        <div class="g__item w--3-8 l--push-bottom-quarter">
+          <p class="list__title">
+            #{messages['jsf.iteration.CopyTrans.Condition.onDocIdMismatch']}
+          </p>
+
+          <p class="txt--meta">
+            #{messages['jsf.iteration.CopyTrans.Condition.onDocIdMismatch.details']}
+          </p>
+        </div>
+        <div class="g__item w--5-8 txt--align-right l--push-bottom-quarter">
+          <div class="button--group">
+            <ui:repeat value="#{copyTransOptionsModel.ruleActions}"
+              var="ruleAction">
+              <s:fragment
+                rendered="#{copyTransOptionsModel.docIdMismatchAction ne ruleAction.action}">
+                <input id="docIdMismatch--#{ruleAction.action}"
+                  name="docIdMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"/>
+              </s:fragment>
+              <s:fragment
+                rendered="#{copyTransOptionsModel.docIdMismatchAction eq ruleAction.action}">
+                <input id="docIdMismatch--#{ruleAction.action}"
+                  name="docIdMismatch"
+                  onclick="onValueChanged(this)"
+                  value="#{ruleAction.action}" type="radio"
+                  class="form__item__input"
+                  checked="true"/>
+              </s:fragment>
+              <label for="docIdMismatch--#{ruleAction.action}"
+                class="button button--small #{ruleAction.css}">
+                #{ruleAction.displayText}
+              </label>
+            </ui:repeat>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li>
+      <p class="list__title">#{messages['jsf.CopyTrans.Help.message']}</p>
+      <p class="txt--meta">#{messages['jsf.CopyTrans.Help.message2']}</p>
     </li>
   </ol>
 </ui:composition>

@@ -24,25 +24,31 @@ import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 
-import com.google.common.collect.Lists;
 import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.AutoCreate;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
+import org.zanata.annotation.CachedMethodResult;
 import org.zanata.model.HCopyTransOptions;
+import org.zanata.util.ZanataMessages;
+import com.google.common.collect.Lists;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Holds a {@link org.zanata.model.HCopyTransOptions} model object. This
  * component is intended for use within other components that need to keep a
  * copy of a CopyTransOptions entity, although it may be accessed directly as
  * well.
- *
+ * 
  * @author Carlos Munoz <a
  *         href="mailto:camunoz@redhat.com">camunoz@redhat.com</a>
  */
 @Name("copyTransOptionsModel")
-@Scope(ScopeType.PAGE)
+@Scope(ScopeType.CONVERSATION)
 @AutoCreate
 public class CopyTransOptionsModel implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -50,17 +56,17 @@ public class CopyTransOptionsModel implements Serializable {
     @In
     private EntityManager entityManager;
 
+    @Setter
     private HCopyTransOptions instance;
+
+    @In
+    private ZanataMessages zanataMessages;
 
     public HCopyTransOptions getInstance() {
         if (instance == null) {
             instance = new HCopyTransOptions();
         }
         return instance;
-    }
-
-    public void setInstance(HCopyTransOptions instance) {
-        this.instance = instance;
     }
 
     public String getProjectMismatchAction() {
@@ -98,17 +104,39 @@ public class CopyTransOptionsModel implements Serializable {
             setContextMismatchAction(value);
         } else if (action.equalsIgnoreCase("ProjectMismatch")) {
             setProjectMismatchAction(value);
-        } else if (action.equalsIgnoreCase("DocumentMismatch")) {
+        } else if (action.equalsIgnoreCase("DocIdMismatch")) {
             setDocIdMismatchAction(value);
         }
     }
 
-    public List<HCopyTransOptions.ConditionRuleAction> getRuleActions() {
-        return Lists.newArrayList(HCopyTransOptions.ConditionRuleAction
-                .values());
+    @CachedMethodResult
+    public List<RuleAction> getRuleActions() {
+        List<RuleAction> list = Lists.newArrayList();
+        list.add(new RuleAction(HCopyTransOptions.ConditionRuleAction.IGNORE,
+                "button--success", zanataMessages
+                        .getMessage("jsf.iteration.CopyTrans.Action.continue")));
+
+        list.add(new RuleAction(
+                HCopyTransOptions.ConditionRuleAction.DOWNGRADE_TO_FUZZY,
+                "button--unsure",
+                zanataMessages
+                        .getMessage("jsf.iteration.CopyTrans.Action.downgradeToFuzzy")));
+
+        list.add(new RuleAction(HCopyTransOptions.ConditionRuleAction.REJECT,
+                "button--danger", zanataMessages
+                        .getMessage("jsf.iteration.CopyTrans.Action.reject")));
+        return list;
     }
 
     public void save() {
         this.setInstance(entityManager.merge(this.getInstance()));
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public class RuleAction {
+        private HCopyTransOptions.ConditionRuleAction action;
+        private String css;
+        private String displayText;
     }
 }

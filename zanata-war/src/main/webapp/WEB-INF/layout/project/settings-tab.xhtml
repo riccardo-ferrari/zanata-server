@@ -27,6 +27,13 @@
   <a4j:param name="val2" assignTo="#{state}"/>
 </a4j:jsFunction>
 
+<a4j:jsFunction name="bindCopyTransValue"
+  action="#{projectHome.updateCopyTrans(action, value)}"
+  limitRender="true" render="pageMessages">
+  <a4j:param name="val1" assignTo="#{action}"/>
+  <a4j:param name="val2" assignTo="#{value}"/>
+</a4j:jsFunction>
+
 <h1>#{messages['jsf.Settings']}</h1>
 
 <div class="tabs--vertical js-tabs">
@@ -246,6 +253,7 @@
         <i class="i i--help"></i>
       </a>
     </p>
+
     <p class="message--highlight">#{messages['jsf.copytrans.message2']}</p>
     <ui:include src="/WEB-INF/layout/copy_trans_inline2.xhtml"/>
   </h:form>

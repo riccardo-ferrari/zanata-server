@@ -40,6 +40,7 @@ import org.hibernate.criterion.Restrictions;
 import org.jboss.seam.Component;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.Transactional;
 import org.jboss.seam.annotations.security.Restrict;
 import org.jboss.seam.core.Events;
@@ -117,6 +118,9 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @In
     private ValidationService validationServiceImpl;
+
+    @In
+    private CopyTransOptionsModel copyTransOptionsModel;
 
     private Map<String, Boolean> roleRestrictions;
 
@@ -197,6 +201,30 @@ public class ProjectHome extends SlugHome<HProject> {
         if (ip.getStatus().equals(EntityStatus.OBSOLETE)
                 && !checkViewObsolete()) {
             throw new EntityNotFoundException();
+        }
+    }
+
+    @Transactional
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public
+            void updateCopyTrans(String action, String value) {
+        copyTransOptionsModel.setInstance(getInstance()
+            .getDefaultCopyTransOpts());
+        copyTransOptionsModel.update(action, value);
+        copyTransOptionsModel.save();
+        getInstance().setDefaultCopyTransOpts(
+                copyTransOptionsModel.getInstance());
+
+        update();
+        addMessage(StatusMessage.Severity.INFO,
+                zanataMessages.getMessage("jsf.project.CopyTransOpts.saved"));
+    }
+
+    public void initialize() {
+        validateSuppliedId();
+        if (getInstance().getDefaultCopyTransOpts() != null) {
+            copyTransOptionsModel.setInstance(getInstance()
+                    .getDefaultCopyTransOpts());
         }
     }
 
