@@ -229,12 +229,6 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
                                         @Override
                                         public boolean apply(
                                                 @Nullable HLocale input) {
-                                            if (StringUtils.isEmpty(getQuery())) {
-                                                return !getInstance()
-                                                        .getActiveLocales()
-                                                        .contains(input);
-                                            }
-
                                             return !getInstance()
                                                     .getActiveLocales()
                                                     .contains(input)
@@ -327,7 +321,7 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
     /**
      * Use FlashScopeBean to store message in page. Multiple ajax requests for
      * re-rendering statistics after updating will clear FacesMessages.
-     *
+     * 
      * @param severity
      * @param message
      */

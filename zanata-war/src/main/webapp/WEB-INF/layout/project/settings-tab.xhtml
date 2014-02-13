@@ -90,7 +90,7 @@
       <s:fragment rendered="#{projectHome.instance.status == 'ACTIVE'}">
         <div class="g__item w--1-2 l--push-bottom-1">
           <a4j:commandLink styleClass="button--warning l--push-bottom-half"
-            action="#{projectHome.setStatus('R')}" render="status">
+            action="#{projectHome.updateStatus('R')}" render="status">
             <i
               class="i--left i--lock"></i> #{messages['jsf.project.readonly']}
           </a4j:commandLink>
@@ -110,7 +110,7 @@
           </s:fragment>
           <a4j:commandLink styleClass="button--success l--push-bottom-half"
             rendered="#{projectHome.instance.status == 'READONLY'}"
-            action="#{projectHome.setStatus('A')}" render="status">
+            action="#{projectHome.updateStatus('A')}" render="status">
             <i
               class="i--left i--lock"></i> #{messages['jsf.project.writable']}
           </a4j:commandLink>
@@ -123,7 +123,7 @@
       <s:fragment rendered="#{projectHome.instance.status == 'OBSOLETE'}">
         <div class="g__item w--1-2">
           <a4j:commandLink styleClass="button--success l--push-bottom-half"
-            action="#{projectHome.setStatus('A')}" render="status">
+            action="#{projectHome.updateStatus('A')}" render="status">
             <i
               class="i--left i--archive"></i>
             #{messages['jsf.UnArchiveThisProject']}
@@ -135,7 +135,7 @@
       <s:fragment rendered="#{projectHome.instance.status != 'OBSOLETE'}">
         <div class="g__item w--1-2">
           <a4j:commandLink styleClass="button--danger l--push-bottom-half"
-            action="#{projectHome.setStatus('O')}" render="status">
+            action="#{projectHome.updateStatus('O')}" render="status">
             <i
               class="i--left i--archive"></i>
             #{messages['jsf.ArchiveThisProject']}
@@ -153,7 +153,37 @@
   </h2>
   <h:form id="settings-languages-form" styleClass="l--push-bottom-0">
     <ul class="list--slat list--highlight l--push-top-half">
-      Languages
+      <ui:repeat value="#{projectHome.getInstanceActiveLocales()}"
+        var="locale">
+        <li class="reveal--list-item">#{locale.retrieveDisplayName()}<span
+          class="txt--understated l--push-left-quarter">[#{locale.localeId}]</span>
+          <a4j:commandLink oncomplete="refreshStatistics()" execute="@this"
+            action="#{projectHome.removeLanguage(locale)}"
+            styleClass="l--float-right txt--danger reveal__target"
+            render="settings-languages-form">
+            <i class="i--large i--remove"></i>
+          </a4j:commandLink>
+        </li>
+      </ui:repeat>
+      <li class="list--highlight__item--none">
+        <label
+          for="#{rich:clientId('languageAutocomplete')}-autocomplete__input">
+          #{messages['jsf.AddALanguage']}
+        </label>
+
+        <zanata:autocomplete
+          actionBean="#{projectHome.localeAutocomplete}"
+          maxlength="80" minlength="1" searchWhenFocus="true"
+          id="languageAutocomplete"
+          fetchValue="#{result.localeId}" render="settings-languages-form"
+          oncomplete="refreshStatistics();focusCurrentActiveInput()"
+          placeholder="#{messages['jsf.SearchLanguages']}">
+
+          #{result.retrieveDisplayName()}<span
+          class="txt--understated l--push-left-quarter">[#{result.localeId}]</span>
+        </zanata:autocomplete>
+
+      </li>
     </ul>
   </h:form>
 </li>

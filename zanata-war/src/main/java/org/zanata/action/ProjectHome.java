@@ -62,6 +62,7 @@ import org.zanata.security.ZanataIdentity;
 import org.zanata.service.LocaleService;
 import org.zanata.service.SlugEntityService;
 import org.zanata.service.ValidationService;
+import org.zanata.service.impl.LocaleServiceImpl;
 import org.zanata.util.ZanataMessages;
 import org.zanata.webtrans.shared.model.ValidationAction;
 import org.zanata.webtrans.shared.model.ValidationId;
@@ -127,6 +128,82 @@ public class ProjectHome extends SlugHome<HProject> {
     private Map<ValidationId, ValidationAction> availableValidations = Maps
             .newHashMap();
 
+    @Getter
+    private AbstractAutocomplete<HLocale> localeAutocomplete =
+            new AbstractAutocomplete<HLocale>() {
+
+                private LocaleService localeServiceImpl =
+                        (LocaleService) Component
+                                .getInstance(LocaleServiceImpl.class);
+
+                private ZanataMessages zanataMessages =
+                        (ZanataMessages) Component
+                                .getInstance(ZanataMessages.class);
+
+                @Override
+                public List<HLocale> suggest() {
+                    if (StringUtils.isEmpty(getQuery())) {
+                        return Lists.newArrayList();
+                    }
+                    List<HLocale> localeList =
+                            localeServiceImpl.getSupportedLocales();
+
+                    if (!getInstance().isOverrideLocales()) {
+                        return localeList;
+                    } else {
+                        Collection<HLocale> filtered =
+                                Collections2.filter(localeList,
+                                        new Predicate<HLocale>() {
+                                            @Override
+                                            public boolean apply(
+                                                    @Nullable HLocale input) {
+                                                return !getInstance()
+                                                        .getCustomizedLocales()
+                                                        .contains(input)
+                                                        && (input
+                                                                .getLocaleId()
+                                                                .getId()
+                                                                .startsWith(
+                                                                        getQuery()) || input
+                                                                .retrieveDisplayName()
+                                                                .toLowerCase()
+                                                                .contains(
+                                                                        getQuery()
+                                                                                .toLowerCase()));
+                                            }
+                                        });
+
+                        return Lists.newArrayList(filtered);
+                    }
+                }
+
+                @Override
+                @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+                public void onSelectItemAction() {
+                    if (StringUtils.isEmpty(getSelectedItem())) {
+                        return;
+                    }
+                    clearMessage();
+
+                    HLocale locale =
+                            localeServiceImpl.getByLocaleId(getSelectedItem());
+
+                    if(!getInstance().isOverrideLocales()) {
+                        getInstance().setOverrideLocales(true);
+                        getInstance().getCustomizedLocales().clear();
+                    }
+                    getInstance().getCustomizedLocales().add(locale);
+
+                    update();
+                    reset();
+
+                    addMessage(StatusMessage.Severity.INFO,
+                            zanataMessages.getMessage(
+                                    "jsf.LanguageAddedToGroup",
+                                    locale.retrieveDisplayName()));
+                }
+            };
+
     public void setSelectedProjectType(String selectedProjectType) {
         if (!StringUtils.isEmpty(selectedProjectType)) {
             ProjectType projectType = ProjectType.valueOf(selectedProjectType);
@@ -134,6 +211,45 @@ public class ProjectHome extends SlugHome<HProject> {
         } else {
             getInstance().setDefaultProjectType(null);
         }
+    }
+
+    public List<HLocale> getInstanceActiveLocales() {
+        List<HLocale> locales;
+        if (getInstance().isOverrideLocales()) {
+            return Lists.newArrayList(getInstance().getCustomizedLocales());
+        } else {
+            locales = localeServiceImpl.getSupportedLocales();
+        }
+
+        Collections.sort(locales, new Comparator<HLocale>() {
+            @Override
+            public int compare(HLocale hLocale, HLocale hLocale2) {
+                return hLocale.retrieveDisplayName().compareTo(
+                        hLocale2.retrieveDisplayName());
+            }
+        });
+        return locales;
+    }
+
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public void removeLanguage(HLocale locale) {
+        clearMessage();
+        if (getInstance().isOverrideLocales()) {
+            getInstance().getCustomizedLocales().remove(locale);
+        } else {
+            getInstance().setOverrideLocales(true);
+            getInstance().getCustomizedLocales().clear();
+            for (HLocale activeLocale : getInstanceActiveLocales()) {
+                if (activeLocale != locale) {
+                    getInstance().getCustomizedLocales().add(activeLocale);
+                }
+            }
+        }
+        update();
+        addMessage(
+                StatusMessage.Severity.INFO,
+                zanataMessages.getMessage("jsf.project.LanguageRemoved",
+                        locale.retrieveDisplayName()));
     }
 
     @Override
@@ -206,10 +322,9 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @Transactional
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
-    public
-            void updateCopyTrans(String action, String value) {
+    public void updateCopyTrans(String action, String value) {
         copyTransOptionsModel.setInstance(getInstance()
-            .getDefaultCopyTransOpts());
+                .getDefaultCopyTransOpts());
         copyTransOptionsModel.update(action, value);
         copyTransOptionsModel.save();
         getInstance().setDefaultCopyTransOpts(
@@ -254,7 +369,6 @@ public class ProjectHome extends SlugHome<HProject> {
             return null;
 
         if (authenticatedAccount != null) {
-            updateOverrideLocales();
             getInstance().addMaintainer(authenticatedAccount.getPerson());
             retValue = super.persist();
             Events.instance().raiseEvent("projectAdded");
@@ -306,8 +420,29 @@ public class ProjectHome extends SlugHome<HProject> {
     }
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
-    public void setStatus(char initial) {
+    public void updateStatus(char initial) {
         getInstance().setStatus(EntityStatus.valueOf(initial));
+        if (getInstance().getStatus() == EntityStatus.READONLY) {
+            for (HProjectIteration version : getInstance()
+                    .getProjectIterations()) {
+                if (version.getStatus() == EntityStatus.ACTIVE) {
+                    version.setStatus(EntityStatus.READONLY);
+                    entityManager.merge(version);
+                    Events.instance().raiseEvent(
+                            VersionHome.PROJECT_ITERATION_UPDATE, version);
+                }
+            }
+        } else if (getInstance().getStatus() == EntityStatus.OBSOLETE) {
+            for (HProjectIteration version : getInstance()
+                    .getProjectIterations()) {
+                if (version.getStatus() != EntityStatus.OBSOLETE) {
+                    version.setStatus(EntityStatus.OBSOLETE);
+                    entityManager.merge(version);
+                    Events.instance().raiseEvent(
+                            VersionHome.PROJECT_ITERATION_UPDATE, version);
+                }
+            }
+        }
         update();
         addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
                 "jsf.project.status.updated", EntityStatus.valueOf(initial)));
@@ -518,47 +653,9 @@ public class ProjectHome extends SlugHome<HProject> {
     @Override
     public String update() {
         clearMessage();
-        updateOverrideLocales();
         String state = super.update();
         Events.instance().raiseEvent(PROJECT_UPDATE, getInstance());
-
-        if (getInstance().getStatus() == EntityStatus.READONLY) {
-            for (HProjectIteration version : getInstance()
-                    .getProjectIterations()) {
-                if (version.getStatus() == EntityStatus.ACTIVE) {
-                    version.setStatus(EntityStatus.READONLY);
-                    entityManager.merge(version);
-                    Events.instance().raiseEvent(
-                            VersionHome.PROJECT_ITERATION_UPDATE, version);
-                }
-            }
-        } else if (getInstance().getStatus() == EntityStatus.OBSOLETE) {
-            for (HProjectIteration version : getInstance()
-                    .getProjectIterations()) {
-                if (version.getStatus() != EntityStatus.OBSOLETE) {
-                    version.setStatus(EntityStatus.OBSOLETE);
-                    entityManager.merge(version);
-                    Events.instance().raiseEvent(
-                            VersionHome.PROJECT_ITERATION_UPDATE, version);
-                }
-            }
-        }
         return state;
-    }
-
-    private void updateOverrideLocales() {
-        if (overrideLocales != null) {
-            getInstance().setOverrideLocales(overrideLocales);
-            if (!overrideLocales) {
-                getInstance().getCustomizedLocales().clear();
-            } else if (customizedItems != null) {
-                Set<HLocale> locale =
-                        localeServiceImpl
-                                .convertCustomizedLocale(customizedItems);
-                getInstance().getCustomizedLocales().clear();
-                getInstance().getCustomizedLocales().addAll(locale);
-            }
-        }
     }
 
     public boolean isProjectActive() {
