@@ -1,6 +1,7 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
   xmlns:ui="http://java.sun.com/jsf/facelets"
-  xmlns:s="http://jboss.org/schema/seam/taglib">
+  xmlns:s="http://jboss.org/schema/seam/taglib"
+  xmlns:h="http://java.sun.com/jsf/html">
 
   <script type="text/javascript">
 
@@ -154,8 +155,9 @@
       </div>
     </li>
     <li>
-      <p class="list__title">#{messages['jsf.CopyTrans.Action.message']}</p>
-      <p class="txt--meta">#{messages['jsf.CopyTrans.Action.message2']}</p>
+      <p class="list__title">
+        <h:outputText escape="false" value="#{messages['jsf.CopyTrans.Action.message']}"/></p>
+      <p class="txt--meta"><h:outputText escape="false" value="#{messages['jsf.CopyTrans.Action.message2']}"/></p>
     </li>
   </ol>
 </ui:composition>
