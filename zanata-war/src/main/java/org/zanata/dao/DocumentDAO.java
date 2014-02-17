@@ -298,7 +298,10 @@ public class DocumentDAO extends AbstractDAOImpl<HDocument, Long> {
     }
 
     /**
-     * Returns document statistics for multiple locales.
+     *
+     * This method is currently returning wrong statistics -
+     * https://bugzilla.redhat.com/show_bug.cgi?id=1064737 Returns document
+     * statistics for multiple locales.
      *
      * @see DocumentDAO#getStatistics(long, org.zanata.common.LocaleId)
      * @param docId
