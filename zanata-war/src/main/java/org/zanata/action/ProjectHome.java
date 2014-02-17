@@ -188,7 +188,7 @@ public class ProjectHome extends SlugHome<HProject> {
                     HLocale locale =
                             localeServiceImpl.getByLocaleId(getSelectedItem());
 
-                    if(!getInstance().isOverrideLocales()) {
+                    if (!getInstance().isOverrideLocales()) {
                         getInstance().setOverrideLocales(true);
                         getInstance().getCustomizedLocales().clear();
                     }
@@ -205,7 +205,7 @@ public class ProjectHome extends SlugHome<HProject> {
             };
 
     public void setSelectedProjectType(String selectedProjectType) {
-        if (!StringUtils.isEmpty(selectedProjectType)) {
+        if (!StringUtils.isEmpty(selectedProjectType) && !selectedProjectType.equals("null")) {
             ProjectType projectType = ProjectType.valueOf(selectedProjectType);
             getInstance().setDefaultProjectType(projectType);
         } else {
@@ -475,7 +475,7 @@ public class ProjectHome extends SlugHome<HProject> {
     /**
      * Use FlashScopeBean to store message in page. Multiple ajax requests for
      * re-rendering statistics after updating will clear FacesMessages.
-     * 
+     *
      * @param severity
      * @param message
      */
@@ -600,27 +600,29 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
     public void updateValidationOption(String name, String state) {
+        ValidationId validatationId = ValidationId.valueOf(name);
 
-        for (Map.Entry<String, String> entry : getInstance()
-                .getCustomizedValidations().entrySet()) {
-            if (entry.getKey().equals(name)) {
-                entry.setValue(state);
-                getValidations().get(ValidationId.valueOf(name)).setState(
+        for (Map.Entry<ValidationId, ValidationAction> entry : getValidations()
+                .entrySet()) {
+            if (entry.getKey().name().equals(name)) {
+                getValidations().get(validatationId).setState(
                         ValidationAction.State.valueOf(state));
+                ensureMutualExclusivity(getValidations().get(validatationId));
                 break;
             }
+            getInstance().getCustomizedValidations().put(entry.getKey().name(),
+                entry.getValue().getState().name());
         }
-        ensureMutualExclusivity(getValidations()
-                .get(ValidationId.valueOf(name)));
 
         update();
         addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
-                "jsf.project.validation.updated", name, state));
+                "jsf.project.validation.updated",
+                validatationId.getDisplayName(), state));
     }
 
     public List<ValidationAction> getValidationList() {
         List<ValidationAction> sortedList =
-                new ArrayList<ValidationAction>(getValidations().values());
+                Lists.newArrayList(getValidations().values());
         Collections.sort(sortedList,
                 ValidationFactory.ValidationActionComparator);
         return sortedList;
@@ -629,7 +631,7 @@ public class ProjectHome extends SlugHome<HProject> {
     /**
      * If this action is enabled(Warning or Error), then it's exclusive
      * validation will be turn off
-     * 
+     *
      * @param selectedValidationAction
      */
     private void ensureMutualExclusivity(

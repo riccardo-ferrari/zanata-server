@@ -3,7 +3,8 @@
   xmlns:ui="http://java.sun.com/jsf/facelets"
   xmlns:h="http://java.sun.com/jsf/html"
   xmlns:zanata="http://java.sun.com/jsf/composite/zanata"
-  xmlns:f="http://java.sun.com/jsf/core">
+  xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:a4j="http://richfaces.org/a4j">
 
   <div class="panel">
     <div class="panel__header">
@@ -146,7 +147,11 @@
                 value="#{projectHomeAction.getStatisticForVersion(versionItem.version.slug)}"
                 rendered="#{projectHomeAction.pageRendered}"/>
 
-              <zanata:loader rendered="#{!projectHomeAction.pageRendered}"/>
+              <a4j:status name="statistic-loader">
+                <f:facet name="start">
+                  <zanata:loader/>
+                </f:facet>
+              </a4j:status>
             </s:link>
           </li>
         </ui:repeat>
