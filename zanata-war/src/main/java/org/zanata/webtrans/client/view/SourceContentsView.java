@@ -124,11 +124,10 @@ public class SourceContentsView extends Composite implements
         sourcePanelList.clear();
 
         int rowIndex = 0;
-        boolean useCodeMirrorEditor =
-                configHolder.getState().isUseCodeMirrorEditor();
+
         for (String source : value.getSources()) {
             SourcePanel sourcePanel =
-                    new SourcePanel(transUnit.getId(), useCodeMirrorEditor);
+                    new SourcePanel(transUnit.getId());
             sourcePanel.ensureDebugId(value.getRowIndex() + "-source-panel-" + rowIndex);
             sourcePanel.setValue(source, value.getSourceComment(),
                     value.isPlural());

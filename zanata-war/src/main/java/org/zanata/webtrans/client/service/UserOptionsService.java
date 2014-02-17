@@ -108,12 +108,6 @@ public class UserOptionsService {
                 .toString(configHolder.getState().isEnterSavesApproved()));
         configMap.put(UserOptions.EditorPageSize,
                 Integer.toString(configHolder.getState().getEditorPageSize()));
-        configMap.put(UserOptions.UseCodeMirrorEditor, Boolean
-                .toString(configHolder.getState().isUseCodeMirrorEditor()));
-        configMap
-                .put(UserOptions.EnableSpellCheck,
-                        Boolean.toString(configHolder.getState()
-                                .isSpellCheckEnabled()));
         configMap.put(UserOptions.TransMemoryDisplayMode, configHolder
                 .getState().getTransMemoryDisplayMode().name());
         configMap.put(UserOptions.DisplayTransMemory,
@@ -175,8 +169,6 @@ public class UserOptionsService {
                 .setEditorPageSize(UserConfigHolder.DEFAULT_EDITOR_PAGE_SIZE);
         configHolder
                 .setShowSaveApprovedWarning(UserConfigHolder.DEFAULT_SHOW_SAVE_APPROVED_WARNING);
-        configHolder
-                .setUseCodeMirrorEditor(UserConfigHolder.DEFAULT_USE_CODE_MIRROR);
         configHolder.setTMDisplayMode(UserConfigHolder.DEFAULT_TM_DISPLAY_MODE);
         configHolder.setShowTMPanel(UserConfigHolder.DEFAULT_SHOW_PANEL);
         configHolder.setShowGlossaryPanel(UserConfigHolder.DEFAULT_SHOW_PANEL);

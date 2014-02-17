@@ -121,20 +121,6 @@ public class LoadOptionsHandler extends
                     .get(UserOptions.Themes.getPersistentName()).getValue()));
         }
 
-        if (filteredOptions.containsKey(UserOptions.UseCodeMirrorEditor
-                .getPersistentName())) {
-            configHolder.setUseCodeMirrorEditor(filteredOptions.get(
-                    UserOptions.UseCodeMirrorEditor.getPersistentName())
-                    .getValueAsBoolean());
-        }
-
-        if (filteredOptions.containsKey(UserOptions.EnableSpellCheck
-                .getPersistentName())) {
-            configHolder.setSpellCheckEnabled(filteredOptions.get(
-                    UserOptions.EnableSpellCheck.getPersistentName())
-                    .getValueAsBoolean());
-        }
-
         if (filteredOptions.containsKey(UserOptions.TransMemoryDisplayMode
                 .getPersistentName())) {
             configHolder.setTMDisplayMode(DiffMode.valueOf(filteredOptions.get(

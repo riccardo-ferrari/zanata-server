@@ -101,11 +101,11 @@ public class Editor extends Composite implements ToggleEditor {
                 listener.onEditorClicked(id, index);
             }
         };
-        if (listener.getConfigState().isUseCodeMirrorEditor()) {
-            textArea = new CodeMirrorEditor(onCodeMirrorFocusCallback);
-        } else {
+//        if (listener.getConfigState().isUseCodeMirrorEditor()) {
+//            textArea = new CodeMirrorEditor(onCodeMirrorFocusCallback);
+//        } else {
             textArea = new EditorTextArea(displayString);
-        }
+//        }
 
         initWidget(uiBinder.createAndBindUi(this));
         // determine whether to show or hide buttons
@@ -123,14 +123,6 @@ public class Editor extends Composite implements ToggleEditor {
     @Override
     protected void onEnsureDebugId(String baseID) {
         textArea.ensureDebugId(baseID+ "target-" + index);
-    }
-
-    @Override
-    public void setEnableSpellCheck(Boolean enabled) {
-        targetWrapper.getElement().setAttribute("contenteditable",
-                enabled.toString());
-        targetWrapper.getElement().setAttribute("spellcheck",
-                enabled.toString());
     }
 
     private void fireValidationEvent() {

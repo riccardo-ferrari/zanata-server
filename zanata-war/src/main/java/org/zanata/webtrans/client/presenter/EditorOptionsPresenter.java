@@ -28,7 +28,6 @@ import net.customware.gwt.presenter.client.widget.WidgetPresenter;
 import org.zanata.webtrans.client.events.DisplaySouthPanelEvent;
 import org.zanata.webtrans.client.events.EditorPageSizeChangeEvent;
 import org.zanata.webtrans.client.events.NotificationEvent;
-import org.zanata.webtrans.client.events.RefreshPageEvent;
 import org.zanata.webtrans.client.events.ReloadUserConfigUIEvent;
 import org.zanata.webtrans.client.events.ReloadUserConfigUIHandler;
 import org.zanata.webtrans.client.events.UserConfigChangeEvent;
@@ -160,12 +159,7 @@ public class EditorOptionsPresenter extends
 
     @Override
     public void onSpellCheckOptionChanged(Boolean spellCheckChkValue) {
-        if (userOptionsService.getConfigHolder().getState()
-                .isSpellCheckEnabled() != spellCheckChkValue) {
-            userOptionsService.getConfigHolder().setSpellCheckEnabled(
-                    spellCheckChkValue);
-            eventBus.fireEvent(UserConfigChangeEvent.EDITOR_CONFIG_CHANGE_EVENT);
-        }
+
     }
 
     @Override
@@ -204,16 +198,6 @@ public class EditorOptionsPresenter extends
                             showTransUnitDetailsChkValue);
         }
         eventBus.fireEvent(UserConfigChangeEvent.EDITOR_CONFIG_CHANGE_EVENT);
-    }
-
-    @Override
-    public void onUseCodeMirrorOptionChanged(Boolean useCodeMirrorChkValue) {
-        if (userOptionsService.getConfigHolder().getState()
-                .isUseCodeMirrorEditor() != useCodeMirrorChkValue) {
-            userOptionsService.getConfigHolder().setUseCodeMirrorEditor(
-                    useCodeMirrorChkValue);
-            eventBus.fireEvent(RefreshPageEvent.REDRAW_PAGE_EVENT);
-        }
     }
 
     @Override

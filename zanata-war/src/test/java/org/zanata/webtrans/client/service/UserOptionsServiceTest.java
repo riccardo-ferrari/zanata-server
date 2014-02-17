@@ -138,7 +138,7 @@ public class UserOptionsServiceTest {
     public void getEditorOptions() {
         Map<UserOptions, String> map = service.getEditorOptions();
 
-        assertThat(map.size(), Matchers.equalTo(18));
+        assertThat(map.size(), Matchers.equalTo(16));
 
         assertThat(map.containsKey(UserOptions.ShowErrors),
                 Matchers.equalTo(true));
@@ -151,11 +151,7 @@ public class UserOptionsServiceTest {
                 Matchers.equalTo(true));
         assertThat(map.containsKey(UserOptions.TranslatedMessageFilter),
                 Matchers.equalTo(true));
-        assertThat(map.containsKey(UserOptions.UseCodeMirrorEditor),
-                Matchers.equalTo(true));
         assertThat(map.containsKey(UserOptions.TransMemoryDisplayMode),
-                Matchers.equalTo(true));
-        assertThat(map.containsKey(UserOptions.EnableSpellCheck),
                 Matchers.equalTo(true));
         assertThat(map.containsKey(UserOptions.FuzzyMessageFilter),
                 Matchers.equalTo(true));
@@ -226,8 +222,6 @@ public class UserOptionsServiceTest {
         assertThat(
                 configHolder.getState().isShowSaveApprovedWarning(),
                 Matchers.equalTo(UserConfigHolder.DEFAULT_SHOW_SAVE_APPROVED_WARNING));
-        assertThat(configHolder.getState().isUseCodeMirrorEditor(),
-                Matchers.equalTo(UserConfigHolder.DEFAULT_USE_CODE_MIRROR));
         assertThat(configHolder.getState().getTransMemoryDisplayMode(),
                 Matchers.equalTo(UserConfigHolder.DEFAULT_TM_DISPLAY_MODE));
         assertThat(configHolder.getState().getSelectedReferenceForSourceLang(),

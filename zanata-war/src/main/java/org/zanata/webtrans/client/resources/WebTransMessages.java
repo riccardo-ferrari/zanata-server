@@ -497,9 +497,6 @@ public interface WebTransMessages extends Messages {
     @DefaultMessage("Refresh current page")
     String refreshCurrentPage();
 
-    @DefaultMessage("Enable spell check in editor (Firefox only)")
-    String spellCheckTooltip();
-
     @DefaultMessage("Translation Memory (TM) options")
     String transMemoryOption();
 

@@ -69,14 +69,14 @@ public class SourcePanel extends Composite implements HasSelectableSource {
     private String source = "";
     private final TransUnitId transUnitId;
 
-    public SourcePanel(TransUnitId transUnitId, boolean useCodeMirrorEditor) {
+    public SourcePanel(TransUnitId transUnitId) {
         this.transUnitId = transUnitId;
         initWidget(uiBinder.createAndBindUi(this));
-        if (useCodeMirrorEditor) {
-            sourceContent = new CodeMirrorReadOnlyWidget();
-        } else {
+//        if (useCodeMirrorEditor) {
+//            sourceContent = new CodeMirrorReadOnlyWidget();
+//        } else {
             sourceContent = new HighlightingLabel();
-        }
+//        }
         sourceContentContainer.setWidget(sourceContent);
         sinkEvents(Event.ONCLICK);
     }

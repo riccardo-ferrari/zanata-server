@@ -30,19 +30,9 @@
       </g:CheckBox>
     </li>
     <li>
-      <g:CheckBox ui:field="useCodeMirrorChk">
-        <ui:text from="{messages.useSyntaxHighlight}" />
-      </g:CheckBox>
-    </li>
-    <li>
       <g:CheckBox ui:field="showSaveApprovedWarningChk"
         styleName="txt--invert">
         <ui:text from="{messages.showSaveApproveWarning}" />
-      </g:CheckBox>
-    </li>
-    <li>
-      <g:CheckBox ui:field="spellCheckChk">
-        <ui:text from="{messages.enabledSpellCheck}" />
       </g:CheckBox>
     </li>
 
