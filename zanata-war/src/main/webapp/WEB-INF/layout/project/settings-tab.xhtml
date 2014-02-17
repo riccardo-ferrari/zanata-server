@@ -20,8 +20,13 @@
   }
 
   jQuery(document).ready(function () {
-    jQuery('.js-form__checkbox.restricted-by-role-form').click(function () {
+    jQuery('.js-form__checkbox.js-form__restricted-by-role').click(function () {
       bindRestrictedByRoleValue(!jQuery(this).children(".js-form__checkbox__input").is(':checked'))
+    });
+    jQuery('.js-form__checkbox.js-form__role').click(function () {
+      var isRestricted = !jQuery(this).children(".js-form__checkbox__input").is(':checked');
+      var roleName = jQuery(this).children(".js-form__checkbox__input").attr('id');
+      bindRestrictRoleValue(roleName, isRestricted);
     });
   });
 </script>
@@ -44,6 +49,13 @@
   render="user-roles">
   <a4j:param name="val"
     assignTo="#{projectHome.instance.restrictedByRoles}"/>
+</a4j:jsFunction>
+
+<a4j:jsFunction name="bindRestrictRoleValue"
+  action="#{projectHome.updateRoles(roleName, isRestricted)}"
+  limitRender="true" render="pageMessages">
+  <a4j:param name="val1" assignTo="#{roleName}"/>
+  <a4j:param name="val2" assignTo="#{isRestricted}"/>
 </a4j:jsFunction>
 
 <h1>#{messages['jsf.Settings']}</h1>
@@ -351,7 +363,7 @@
     <hr/>
 
     <div class="l--push-bottom-half">
-      <div class="form__checkbox js-form__checkbox restricted-by-role-form">
+      <div class="form__checkbox js-form__checkbox js-form__restricted-by-role">
         <s:fragment rendered="#{projectHome.instance.restrictedByRoles}">
           <input type="checkbox" id="restrict-access"
             class="form__checkbox__input js-form__checkbox__input"
@@ -371,14 +383,18 @@
         <ul class="g--tighter">
           <ui:repeat value="#{projectHome.availableRoles}" var="role">
             <li class="g__item w--1-3 w--1-2-s">
-              <div class="form__checkbox js-form__checkbox">
-                <h:selectBooleanCheckbox id="role"
-                  styleClass="form__checkbox__input js-form__checkbox__input"
-                  value="#{projectHome.roleRestrictions[role.name]}">
-                  <a4j:ajax event="change" render="pageMessages"
-                    listener="#{projectHome.updateRoles()}"/>
-                </h:selectBooleanCheckbox>
-
+              <div class="form__checkbox js-form__checkbox js-form__role">
+                <s:fragment
+                  rendered="#{projectHome.isRoleRestrictionEnabled(role.name)}">
+                  <input type="checkbox" id="#{role.name}"
+                    class="form__checkbox__input js-form__checkbox__input"
+                    checked="true"/>
+                </s:fragment>
+                <s:fragment
+                  rendered="#{!projectHome.isRoleRestrictionEnabled(role.name)}">
+                  <input type="checkbox" id="#{role.name}"
+                    class="form__checkbox__input js-form__checkbox__input"/>
+                </s:fragment>
                 <label for="#{role.name}"
                   class="form__checkbox__label js-form__checkbox__label">#{role.name}</label>
               </div>

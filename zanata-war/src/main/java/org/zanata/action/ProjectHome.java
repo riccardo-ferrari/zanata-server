@@ -205,7 +205,8 @@ public class ProjectHome extends SlugHome<HProject> {
             };
 
     public void setSelectedProjectType(String selectedProjectType) {
-        if (!StringUtils.isEmpty(selectedProjectType) && !selectedProjectType.equals("null")) {
+        if (!StringUtils.isEmpty(selectedProjectType)
+                && !selectedProjectType.equals("null")) {
             ProjectType projectType = ProjectType.valueOf(selectedProjectType);
             getInstance().setDefaultProjectType(projectType);
         } else {
@@ -403,9 +404,11 @@ public class ProjectHome extends SlugHome<HProject> {
     }
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
-    public void updateRoles() {
+    public void updateRoles(String roleName, boolean isRestricted) {
         getInstance().getAllowedRoles().clear();
         if (getInstance().isRestrictedByRoles()) {
+            getRoleRestrictions().put(roleName, isRestricted);
+
             for (Map.Entry<String, Boolean> entry : getRoleRestrictions()
                     .entrySet()) {
                 if (entry.getValue()) {
@@ -457,6 +460,13 @@ public class ProjectHome extends SlugHome<HProject> {
             }
         }
         return roleRestrictions;
+    }
+
+    public boolean isRoleRestrictionEnabled(String roleName) {
+        if (getRoleRestrictions().containsKey(roleName)) {
+            return getRoleRestrictions().get(roleName);
+        }
+        return false;
     }
 
     public List<HAccountRole> getAvailableRoles() {
@@ -611,7 +621,7 @@ public class ProjectHome extends SlugHome<HProject> {
                 break;
             }
             getInstance().getCustomizedValidations().put(entry.getKey().name(),
-                entry.getValue().getState().name());
+                    entry.getValue().getState().name());
         }
 
         update();
