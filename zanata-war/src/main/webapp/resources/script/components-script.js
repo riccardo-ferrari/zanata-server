@@ -14,7 +14,7 @@ function onTabClick(tab) {
   jQuery(tab).parent().siblings("li").children("a").removeClass('is-active');
   jQuery(tab).addClass("is-active");
   jQuery(tab).parents('.tabs--lined').children('.tabs__content')
-    .children('div').addClass('is-hidden');
+      .children('div').addClass('is-hidden');
   jQuery(jQuery(tab).attr('href') + '_content').removeClass('is-hidden');
 }
 
@@ -89,9 +89,9 @@ jQuery(document).ready(function() {
 });
 
 function onResultKeyPressed(autocomplete, event, selectItemAction,
-                            selectItemFunction) {
+    selectItemFunction) {
   var currentSelected = jQuery(autocomplete).find('.autocomplete__results')
-    .children('.is-selected');
+      .children('.is-selected');
 
   if (isEnterKey(event)) {
     event.preventDefault();
@@ -102,9 +102,9 @@ function onResultKeyPressed(autocomplete, event, selectItemAction,
     // key: down
     deselectRow(currentSelected);
     if (currentSelected.length == 0
-      || jQuery(currentSelected).next().length == 0) {
+        || jQuery(currentSelected).next().length == 0) {
       selectRow(jQuery(autocomplete).find('.autocomplete__results').children(
-        'li').first());
+          'li').first());
     } else {
       selectRow(jQuery(currentSelected).next("li"));
     }
@@ -113,7 +113,7 @@ function onResultKeyPressed(autocomplete, event, selectItemAction,
     deselectRow(currentSelected);
     if (currentSelected.length == 0) {
       selectRow(jQuery(autocomplete).find('.autocomplete__results').children(
-        'li').last());
+          'li').last());
     } else {
       selectRow(jQuery(currentSelected).prev("li"));
     }
@@ -161,24 +161,24 @@ function onValueChange(inputField, event, renderResultFn) {
 }
 
 function registerMouseEvent(autocompleteId, selectItemAction,
-                            selectItemFunction) {
+    selectItemFunction) {
   jQuery("[id='" + autocompleteId + "']").find('.autocomplete__results')
-    .children('.autocomplete__result').each(function() {
-      jQuery(this).mouseover(function() {
-        selectRow(this);
-      });
+      .children('.autocomplete__result').each(function() {
+        jQuery(this).mouseover(function() {
+          selectRow(this);
+        });
 
-      jQuery(this).mouseout(function() {
-        deselectRow(this);
-      });
+        jQuery(this).mouseout(function() {
+          deselectRow(this);
+        });
 
-      jQuery(this).click(function() {
-        onSelectItem(this, selectItemAction, selectItemFunction);
+        jQuery(this).click(function() {
+          onSelectItem(this, selectItemAction, selectItemFunction);
+        });
       });
-    });
 
   var firstResult = jQuery("[id='" + autocompleteId + "']").find(
-    '.autocomplete__results').children('.autocomplete__result').first();
+      '.autocomplete__results').children('.autocomplete__result').first();
   if (firstResult.length != 0) {
     selectRow(firstResult);
   }
@@ -188,3 +188,13 @@ function filterList(input, filterFn) {
   filterFn(jQuery(input).val());
 }
 
+/* ----------------------------------------------------------- */
+/*----------------- zanata-checkbox component -----------------*/
+/* ----------------------------------------------------------- */
+
+function onCheckboxValueChanged(checkbox, jsFunction) {
+  var isRestricted = !jQuery(checkbox).children(".js-form__checkbox__input")
+      .is(':checked');
+  var key = jQuery(checkbox).children("input").first().val();
+  jsFunction(key, isRestricted);
+}

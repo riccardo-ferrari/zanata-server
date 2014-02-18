@@ -23,11 +23,6 @@
     jQuery('.js-form__checkbox.js-form__restricted-by-role').click(function () {
       bindRestrictedByRoleValue(!jQuery(this).children(".js-form__checkbox__input").is(':checked'))
     });
-    jQuery('.js-form__checkbox.js-form__role').click(function () {
-      var isRestricted = !jQuery(this).children(".js-form__checkbox__input").is(':checked');
-      var roleName = jQuery(this).children(".js-form__checkbox__input").attr('id');
-      bindRestrictRoleValue(roleName, isRestricted);
-    });
   });
 </script>
 
@@ -381,29 +376,17 @@
         styleClass="#{projectHome.instance.restrictedByRoles?'is-active': 'is-hidden'} bg--high l--pad-top-quarter l--pad-h-quarter"
         id="user-roles">
         <ul class="g--tighter">
-          <ui:repeat value="#{projectHome.availableRoles}" var="role">
+          <ui:repeat value="#{projectHome.availableRoles}" var="availableRole">
             <li class="g__item w--1-3 w--1-2-s">
-              <div class="form__checkbox js-form__checkbox js-form__role">
-                <s:fragment
-                  rendered="#{projectHome.isRoleRestrictionEnabled(role.name)}">
-                  <input type="checkbox" id="#{role.name}"
-                    class="form__checkbox__input js-form__checkbox__input"
-                    checked="true"/>
-                </s:fragment>
-                <s:fragment
-                  rendered="#{!projectHome.isRoleRestrictionEnabled(role.name)}">
-                  <input type="checkbox" id="#{role.name}"
-                    class="form__checkbox__input js-form__checkbox__input"/>
-                </s:fragment>
-                <label for="#{role.name}"
-                  class="form__checkbox__label js-form__checkbox__label">#{role.name}</label>
-              </div>
+              <zanata:checkbox label="#{availableRole.name}"
+                onValueChanged="bindRestrictRoleValue"
+                checked="#{projectHome.isRoleRestrictionEnabled(availableRole.name)}"
+                value="#{availableRole.name}"/>
             </li>
           </ui:repeat>
         </ul>
       </s:div>
     </div>
-
   </h:form>
 </li>
 <li id="settings-notes">
