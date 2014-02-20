@@ -592,34 +592,33 @@
   </page>
 
   <page view-id="/project/add_iteration.xhtml">
-    <param name="projectSlug" value="#{projectIterationHome.projectSlug}" />
-    <param name="projectSlug" value="#{validationOptionsAction.projectSlug}" />
+    <param name="projectSlug" value="#{versionHome.projectSlug}" />
 
-    <action execute="#{projectIterationHome.validateProjectSlug}" />
+    <action execute="#{versionHome.validateProjectSlug}" />
     <!-- can't use <restrict> here either -->
     <action
-      execute="#{identity.checkPermission(projectIterationHome.instance, 'insert')}" />
+      execute="#{identity.checkPermission(versionHome.instance, 'insert')}" />
     <action execute="#{breadcrumbs.clear}" />
     <action
       execute="#{breadcrumbs.addLocation('/project/home.xhtml', messages['jsf.Projects'])}" />
     <action
-      execute="#{breadcrumbs.addLocation('/project/project.xhtml/', projectIterationHome.instance.project.slug).param('slug', projectIterationHome.projectSlug)}" />
+      execute="#{breadcrumbs.addLocation('/project/project.xhtml/', versionHome.instance.project.slug).param('slug', versionHome.projectSlug)}" />
     <action
       execute="#{breadcrumbs.addLocation('', messages['jsf.CreateVersion'])}" />
 
-    <navigation from-action="#{projectIterationHome.persist}">
-      <rule if="#{projectIterationHome.managed}">
+    <navigation from-action="#{versionHome.persist}">
+      <rule if="#{versionHome.managed}">
         <redirect view-id="/iteration/view.xhtml">
           <param name="projectSlug"
-            value="#{projectIterationHome.projectSlug}" />
+            value="#{versionHome.projectSlug}" />
           <param name="iterationSlug"
-            value="#{projectIterationHome.instance.slug}" />
+            value="#{versionHome.instance.slug}" />
         </redirect>
       </rule>
     </navigation>
-    <navigation from-action="#{projectIterationHome.cancel}">
+    <navigation from-action="#{versionHome.cancel}">
       <redirect view-id="/project/project.xhtml">
-        <param name="slug" value="#{projectIterationHome.projectSlug}" />
+        <param name="slug" value="#{versionHome.projectSlug}" />
       </redirect>
     </navigation>
   </page>

@@ -140,39 +140,32 @@ public class ProjectHome extends SlugHome<HProject> {
                         (ZanataMessages) Component
                                 .getInstance(ZanataMessages.class);
 
+                private boolean isIncludeLocale(HLocale input) {
+                    return !getInstance().getCustomizedLocales()
+                            .contains(input)
+                            && (input.getLocaleId().getId()
+                                    .startsWith(getQuery()) || input
+                                    .retrieveDisplayName().toLowerCase()
+                                    .contains(getQuery().toLowerCase()));
+                }
+
                 @Override
                 public List<HLocale> suggest() {
-                    if (StringUtils.isEmpty(getQuery())) {
+                    if (StringUtils.isEmpty(getQuery())
+                            || !getInstance().isOverrideLocales()) {
                         return Lists.newArrayList();
-                    }
-                    List<HLocale> localeList =
-                            localeServiceImpl.getSupportedLocales();
-
-                    if (!getInstance().isOverrideLocales()) {
-                        return localeList;
                     } else {
+                        List<HLocale> localeList =
+                                localeServiceImpl.getSupportedLocales();
                         Collection<HLocale> filtered =
                                 Collections2.filter(localeList,
                                         new Predicate<HLocale>() {
                                             @Override
                                             public boolean apply(
                                                     @Nullable HLocale input) {
-                                                return !getInstance()
-                                                        .getCustomizedLocales()
-                                                        .contains(input)
-                                                        && (input
-                                                                .getLocaleId()
-                                                                .getId()
-                                                                .startsWith(
-                                                                        getQuery()) || input
-                                                                .retrieveDisplayName()
-                                                                .toLowerCase()
-                                                                .contains(
-                                                                        getQuery()
-                                                                                .toLowerCase()));
+                                                return isIncludeLocale(input);
                                             }
                                         });
-
                         return Lists.newArrayList(filtered);
                     }
                 }
@@ -241,7 +234,7 @@ public class ProjectHome extends SlugHome<HProject> {
             getInstance().setOverrideLocales(true);
             getInstance().getCustomizedLocales().clear();
             for (HLocale activeLocale : getInstanceActiveLocales()) {
-                if (activeLocale != locale) {
+                if (!activeLocale.equals(locale)) {
                     getInstance().getCustomizedLocales().add(activeLocale);
                 }
             }
@@ -251,6 +244,12 @@ public class ProjectHome extends SlugHome<HProject> {
                 StatusMessage.Severity.INFO,
                 zanataMessages.getMessage("jsf.project.LanguageRemoved",
                         locale.retrieveDisplayName()));
+    }
+
+    @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
+    public void setRestrictedByRole(String key, boolean checked) {
+        getInstance().setRestrictedByRoles(checked);
+        update();
     }
 
     @Override

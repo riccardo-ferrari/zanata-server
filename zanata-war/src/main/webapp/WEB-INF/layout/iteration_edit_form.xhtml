@@ -12,13 +12,13 @@
   <rich:panel>
     <s:decorate id="slugField" template="edit.xhtml" enclose="true">
       <ui:define name="label">#{messages['jsf.ProjectVersionId']}</ui:define>
-      <h:outputText rendered="#{projectIterationHome.managed}"
-        value="#{projectIterationHome.instance.slug}"/>
+      <h:outputText rendered="#{versionHome.managed}"
+        value="#{versionHome.instance.slug}"/>
 
-      <h:inputText rendered="#{not projectIterationHome.managed}" id="slug"
+      <h:inputText rendered="#{not versionHome.managed}" id="slug"
         required="true"
-        value="#{projectIterationHome.instance.slug}"
-        valueChangeListener="#{projectIterationHome.verifySlugAvailable}">
+        value="#{versionHome.instance.slug}"
+        valueChangeListener="#{versionHome.verifySlugAvailable}">
         <a4j:ajax event="blur" render="slugField" execute="@this"/>
       </h:inputText>
     </s:decorate>
@@ -27,7 +27,7 @@
       <ui:define name="label">#{messages['jsf.projectType']}</ui:define>
 
       <h:selectOneMenu id="projectType"
-        value="#{projectIterationHome.projectType}">
+        value="#{versionHome.projectType}">
         <f:selectItem itemValue="#{null}"
           itemLabel="#{messages['jsf.projectType.NoSelection']}"
           noSelectionOption="true"/>
@@ -49,14 +49,14 @@
       <ui:define
         name="label">#{messages['jsf.iteration.requireTranslationReview']}</ui:define>
       <h:selectBooleanCheckbox id="requireReviewChkbox"
-        value="#{projectIterationHome.instance.requireTranslationReview}"/>
+        value="#{versionHome.instance.requireTranslationReview}"/>
     </s:decorate>
 
     <s:decorate id="statusField" template="edit.xhtml">
       <ui:define name="label">#{messages['jsf.Status']}</ui:define>
       <h:selectOneMenu id="status"
-        value="#{projectIterationHome.instance.status}">
-        <f:selectItems value="#{projectIterationHome.statusList}"/>
+        value="#{versionHome.instance.status}">
+        <f:selectItems value="#{versionHome.statusList}"/>
       </h:selectOneMenu>
     </s:decorate>
 
@@ -114,13 +114,13 @@
 
   <div class="actionButtons">
     <h:commandButton id="save" value="#{messages['jsf.Save']}"
-      action="#{projectIterationHome.persist}"
-      rendered="#{!projectIterationHome.managed}"/>
+      action="#{versionHome.persist}"
+      rendered="#{!versionHome.managed}"/>
     <h:commandButton id="update" value="#{messages['jsf.Update']}"
-      action="#{projectIterationHome.update}"
-      rendered="#{projectIterationHome.managed}"/>
+      action="#{versionHome.update}"
+      rendered="#{versionHome.managed}"/>
     <s:button id="cancel" value="#{messages['jsf.Cancel']}"
-      action="#{projectIterationHome.cancel}"/>
+      action="#{versionHome.cancel}"/>
   </div>
 
 </h:form>

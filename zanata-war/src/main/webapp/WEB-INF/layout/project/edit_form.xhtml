@@ -136,7 +136,10 @@
           </h:inputText>
         </s:decorate>
 
-        <p class="txt--meta">#{messages['jsf.Project.sourceurl.message']}</p>
+        <p class="txt--meta">
+          <h:outputText escape="false"
+            value="#{messages['jsf.Project.sourceurl.message']}"/>
+        </p>
       </div>
     </div>
     <div class="g__item w--1-2">
@@ -153,7 +156,10 @@
           </h:inputText>
         </s:decorate>
 
-        <p class="txt--meta">#{messages['jsf.Project.repo.message']}</p>
+        <p class="txt--meta">
+          <h:outputText
+            escape="false" value="#{messages['jsf.Project.repo.message']}"/>
+        </p>
       </div>
     </div>
   </div>

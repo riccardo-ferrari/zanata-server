@@ -19,11 +19,10 @@
     bindValidationValue(value[0], value[1]);
   }
 
-  jQuery(document).ready(function () {
-    jQuery('.js-form__checkbox.js-form__restricted-by-role').click(function () {
-      bindRestrictedByRoleValue(!jQuery(this).children(".js-form__checkbox__input").is(':checked'))
-    });
-  });
+  function onRestrictedByRoleValueChanged(key, checked) {
+    bindRestrictedByRoleValue(key, checked);
+    //call function to render checkbox span
+  }
 </script>
 
 <a4j:jsFunction name="bindValidationValue"
@@ -41,9 +40,10 @@
 </a4j:jsFunction>
 
 <a4j:jsFunction name="bindRestrictedByRoleValue" limitRender="true"
-  render="user-roles">
-  <a4j:param name="val"
-    assignTo="#{projectHome.instance.restrictedByRoles}"/>
+  render="user-roles, pageMessages"
+  action="#{projectHome.setRestrictedByRole(key, checked)}">
+  <a4j:param name="val1" assignTo="#{key}"/>
+  <a4j:param name="val2" assignTo="#{checked}"/>
 </a4j:jsFunction>
 
 <a4j:jsFunction name="bindRestrictRoleValue"
@@ -358,20 +358,12 @@
     <hr/>
 
     <div class="l--push-bottom-half">
-      <div class="form__checkbox js-form__checkbox js-form__restricted-by-role">
-        <s:fragment rendered="#{projectHome.instance.restrictedByRoles}">
-          <input type="checkbox" id="restrict-access"
-            class="form__checkbox__input js-form__checkbox__input"
-            checked="true"/>
-        </s:fragment>
-        <s:fragment rendered="#{!projectHome.instance.restrictedByRoles}">
-          <input type="checkbox" id="restrict-access"
-            class="form__checkbox__input js-form__checkbox__input"/>
-        </s:fragment>
-        <label for="restrict-access"
-          class="form__checkbox__label js-form__checkbox__label js-reveal__toggle l--push-bottom-0"
-          data-target="#user-roles">#{messages['jsf.RestrictRoleAccessMessage']}</label>
-      </div>
+      <zanata:checkbox label="#{messages['jsf.RestrictRoleAccessMessage']}"
+        onValueChanged="onRestrictedByRoleValueChanged"
+        labelStyle="js-reveal__toggle l--push-bottom-0"
+        styleClass="js-form__restricted-by-role"
+        checked="#{projectHome.instance.isRestrictedByRoles()}"
+        value="restrict-access"/>
       <s:div
         styleClass="#{projectHome.instance.restrictedByRoles?'is-active': 'is-hidden'} bg--high l--pad-top-quarter l--pad-h-quarter"
         id="user-roles">
