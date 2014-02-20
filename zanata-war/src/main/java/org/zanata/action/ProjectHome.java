@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.faces.event.ValueChangeEvent;
 import javax.persistence.EntityManager;
@@ -40,7 +39,6 @@ import org.hibernate.criterion.Restrictions;
 import org.jboss.seam.Component;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
-import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.Transactional;
 import org.jboss.seam.annotations.security.Restrict;
 import org.jboss.seam.core.Events;
@@ -176,7 +174,6 @@ public class ProjectHome extends SlugHome<HProject> {
                     if (StringUtils.isEmpty(getSelectedItem())) {
                         return;
                     }
-                    clearMessage();
 
                     HLocale locale =
                             localeServiceImpl.getByLocaleId(getSelectedItem());
@@ -192,7 +189,7 @@ public class ProjectHome extends SlugHome<HProject> {
 
                     addMessage(StatusMessage.Severity.INFO,
                             zanataMessages.getMessage(
-                                    "jsf.LanguageAddedToGroup",
+                                    "jsf.project.LanguageAdded",
                                     locale.retrieveDisplayName()));
                 }
             };
@@ -210,7 +207,7 @@ public class ProjectHome extends SlugHome<HProject> {
     public List<HLocale> getInstanceActiveLocales() {
         List<HLocale> locales;
         if (getInstance().isOverrideLocales()) {
-            return Lists.newArrayList(getInstance().getCustomizedLocales());
+            locales = Lists.newArrayList(getInstance().getCustomizedLocales());
         } else {
             locales = localeServiceImpl.getSupportedLocales();
         }
@@ -227,17 +224,16 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
     public void removeLanguage(HLocale locale) {
-        clearMessage();
         if (getInstance().isOverrideLocales()) {
             getInstance().getCustomizedLocales().remove(locale);
         } else {
-            getInstance().setOverrideLocales(true);
             getInstance().getCustomizedLocales().clear();
             for (HLocale activeLocale : getInstanceActiveLocales()) {
                 if (!activeLocale.equals(locale)) {
                     getInstance().getCustomizedLocales().add(activeLocale);
                 }
             }
+            getInstance().setOverrideLocales(true);
         }
         update();
         addMessage(
@@ -302,7 +298,7 @@ public class ProjectHome extends SlugHome<HProject> {
                     update();
                     addMessage(StatusMessage.Severity.INFO,
                             zanataMessages.getMessage(
-                                    "jsf.MaintainerAddedToProject",
+                                    "jsf.project.MaintainerAdded",
                                     maintainer.getName()));
                     reset();
                 }
@@ -394,12 +390,11 @@ public class ProjectHome extends SlugHome<HProject> {
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")
     public void removeMaintainer(HPerson maintainer) {
-        clearMessage();
         getInstance().getMaintainers().remove(maintainer);
         update();
 
         addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
-                "jsf.MaintainerRemoveFromProject", maintainer.getName()));
+                "jsf.project.MaintainerRemoved", maintainer.getName()));
     }
 
     @Restrict("#{s:hasPermission(projectHome.instance, 'update')}")

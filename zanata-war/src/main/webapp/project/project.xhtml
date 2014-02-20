@@ -21,10 +21,10 @@
 </script>
 <h:form>
   <a4j:jsFunction name="refreshStatistics" status="statistic-loader"
-    render="versions_form" action="#{projectHomeAction.resetPageData}"/>
+    render="versions_form,pageMessages" action="#{projectHomeAction.resetPageData}"/>
 
   <a4j:jsFunction name="renderStatistics" status="statistic-loader"
-    render="versions_form" action="#{projectHomeAction.setPageRendered(true)}"/>
+    render="versions_form,pageMessages" action="#{projectHomeAction.setPageRendered(true)}"/>
 </h:form>
 
 <div class="g">

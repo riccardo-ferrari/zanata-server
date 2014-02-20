@@ -24,13 +24,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
-
-import lombok.Getter;
-import lombok.Setter;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -58,12 +54,14 @@ import org.zanata.service.VersionGroupService;
 import org.zanata.service.impl.LocaleServiceImpl;
 import org.zanata.service.impl.VersionGroupServiceImpl;
 import org.zanata.util.ZanataMessages;
-
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Alex Eng <a href="mailto:aeng@redhat.com">aeng@redhat.com</a>
@@ -350,7 +348,7 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
     @Restrict("#{s:hasPermission(versionGroupHome.instance, 'update')}")
     public void removeLanguage(HLocale locale) {
         getInstance().getActiveLocales().remove(locale);
-        super.update();
+        update();
         addMessage(
                 StatusMessage.Severity.INFO,
                 zanataMessages.getMessage("jsf.LanguageRemoveFromGroup",
@@ -360,7 +358,7 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
     @Restrict("#{s:hasPermission(versionGroupHome.instance, 'update')}")
     public void removeVersion(HProjectIteration version) {
         getInstance().getProjectIterations().remove(version);
-        super.update();
+        update();
 
         addMessage(
                 StatusMessage.Severity.INFO,
@@ -370,9 +368,8 @@ public class VersionGroupHome extends SlugHome<HIterationGroup> {
 
     @Restrict("#{s:hasPermission(versionGroupHome.instance, 'update')}")
     public void removeMaintainer(HPerson maintainer) {
-        clearMessage();
         getInstance().getMaintainers().remove(maintainer);
-        super.update();
+        update();
 
         addMessage(StatusMessage.Severity.INFO, zanataMessages.getMessage(
                 "jsf.MaintainerRemoveFromGroup", maintainer.getName()));
